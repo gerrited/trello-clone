@@ -18,11 +18,16 @@ interface BoardState {
   removeColumn: (columnId: string) => void;
   reorderColumns: (columns: Column[]) => void;
 
+  // Swimlane actions
+  addSwimlane: (swimlane: Swimlane) => void;
+  updateSwimlane: (swimlaneId: string, updates: Partial<Swimlane>) => void;
+  removeSwimlane: (swimlaneId: string) => void;
+
   // Card actions
   addCard: (card: CardSummary) => void;
   updateCard: (cardId: string, updates: Partial<CardSummary>) => void;
   removeCard: (cardId: string) => void;
-  moveCard: (cardId: string, toColumnId: string, newPosition: string) => void;
+  moveCard: (cardId: string, toColumnId: string, toSwimlaneId: string, newPosition: string) => void;
 }
 
 export const useBoardStore = create<BoardState>()(
@@ -57,6 +62,25 @@ export const useBoardStore = create<BoardState>()(
         state.board.columns = columns;
       }),
 
+      // Swimlane actions
+      addSwimlane: (swimlane) => set((state) => {
+        if (!state.board) return;
+        state.board.swimlanes.push(swimlane);
+        state.board.swimlanes.sort((a, b) => a.position.localeCompare(b.position));
+      }),
+
+      updateSwimlane: (swimlaneId, updates) => set((state) => {
+        if (!state.board) return;
+        const sl = state.board.swimlanes.find((s) => s.id === swimlaneId);
+        if (sl) Object.assign(sl, updates);
+      }),
+
+      removeSwimlane: (swimlaneId) => set((state) => {
+        if (!state.board) return;
+        state.board.swimlanes = state.board.swimlanes.filter((s) => s.id !== swimlaneId);
+      }),
+
+      // Card actions
       addCard: (card) => set((state) => {
         if (!state.board) return;
         state.board.cards.push(card);
@@ -73,11 +97,12 @@ export const useBoardStore = create<BoardState>()(
         state.board.cards = state.board.cards.filter((c) => c.id !== cardId);
       }),
 
-      moveCard: (cardId, toColumnId, newPosition) => set((state) => {
+      moveCard: (cardId, toColumnId, toSwimlaneId, newPosition) => set((state) => {
         if (!state.board) return;
         const card = state.board.cards.find((c) => c.id === cardId);
         if (card) {
           card.columnId = toColumnId;
+          card.swimlaneId = toSwimlaneId;
           card.position = newPosition;
         }
       }),

@@ -6,6 +6,7 @@ interface CardComponentProps {
   card: CardSummary;
   index: number;
   columnId: string;
+  swimlaneId: string;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -20,14 +21,14 @@ const TYPE_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   task: CheckSquare,
 };
 
-export function CardComponent({ card, index, columnId }: CardComponentProps) {
+export function CardComponent({ card, index, columnId, swimlaneId }: CardComponentProps) {
   const { ref, isDragging } = useSortable({
     id: card.id,
     index,
     type: 'card',
     accept: 'card',
-    group: columnId,
-    data: { columnId },
+    group: `${columnId}:${swimlaneId}`,
+    data: { columnId, swimlaneId },
   });
 
   return (

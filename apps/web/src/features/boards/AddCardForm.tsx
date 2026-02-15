@@ -14,9 +14,10 @@ const TYPE_PILL_COLORS: Record<string, { active: string; inactive: string }> = {
 interface AddCardFormProps {
   boardId: string;
   columnId: string;
+  swimlaneId?: string;
 }
 
-export function AddCardForm({ boardId, columnId }: AddCardFormProps) {
+export function AddCardForm({ boardId, columnId, swimlaneId }: AddCardFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [cardType, setCardType] = useState<CardType>('task');
@@ -27,7 +28,12 @@ export function AddCardForm({ boardId, columnId }: AddCardFormProps) {
     if (!title.trim()) return;
     setSubmitting(true);
     try {
-      const card = await cardsApi.createCard(boardId, { title: title.trim(), columnId, cardType });
+      const card = await cardsApi.createCard(boardId, {
+        title: title.trim(),
+        columnId,
+        cardType,
+        ...(swimlaneId ? { swimlaneId } : {}),
+      });
       addCard({
         id: card.id,
         columnId: card.columnId,

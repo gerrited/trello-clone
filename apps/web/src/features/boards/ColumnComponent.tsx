@@ -9,9 +9,10 @@ interface ColumnComponentProps {
   cards: CardSummary[];
   index: number;
   boardId: string;
+  swimlaneId: string;
 }
 
-export function ColumnComponent({ column, cards, index, boardId }: ColumnComponentProps) {
+export function ColumnComponent({ column, cards, index, boardId, swimlaneId }: ColumnComponentProps) {
   const { ref } = useSortable({
     id: column.id,
     index,
@@ -45,12 +46,18 @@ export function ColumnComponent({ column, cards, index, boardId }: ColumnCompone
 
       <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-2">
         {cards.map((card, cardIndex) => (
-          <CardComponent key={card.id} card={card} index={cardIndex} columnId={column.id} />
+          <CardComponent
+            key={card.id}
+            card={card}
+            index={cardIndex}
+            columnId={column.id}
+            swimlaneId={swimlaneId}
+          />
         ))}
       </div>
 
       <div className="p-2">
-        <AddCardForm boardId={boardId} columnId={column.id} />
+        <AddCardForm boardId={boardId} columnId={column.id} swimlaneId={swimlaneId} />
       </div>
     </div>
   );
