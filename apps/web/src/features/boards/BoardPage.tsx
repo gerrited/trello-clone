@@ -4,6 +4,7 @@ import { DragDropProvider } from '@dnd-kit/react';
 import { useBoardStore } from '../../stores/boardStore.js';
 import { getBoard } from '../../api/boards.api.js';
 import * as cardsApi from '../../api/cards.api.js';
+import * as columnsApi from '../../api/columns.api.js';
 import { AppLayout } from '../../components/layout/AppLayout.js';
 import { ColumnComponent } from './ColumnComponent.js';
 import { AddColumnForm } from './AddColumnForm.js';
@@ -16,6 +17,8 @@ export function BoardPage() {
   const setBoard = useBoardStore((s) => s.setBoard);
   const setLoading = useBoardStore((s) => s.setLoading);
   const moveCardInStore = useBoardStore((s) => s.moveCard);
+  const updateColumn = useBoardStore((s) => s.updateColumn);
+  const reorderColumns = useBoardStore((s) => s.reorderColumns);
   const clearBoard = useBoardStore((s) => s.clearBoard);
 
   useEffect(() => {
@@ -46,7 +49,48 @@ export function BoardPage() {
   const handleDragEnd = async (event: any) => {
     const { source, target } = event.operation;
     if (event.canceled || !source || !target) return;
-    if (source.type === 'column') return; // Column reorder deferred to Layer 2
+    if (source.type === 'column') {
+      const columnId = String(source.id);
+      const targetId = String(target.id);
+
+      if (columnId === targetId) return; // Dropped on itself
+
+      // Find the index of the target and source columns
+      const columns = board!.columns;
+      const targetIndex = columns.findIndex((c) => c.id === targetId);
+      const sourceIndex = columns.findIndex((c) => c.id === columnId);
+
+      if (targetIndex === -1) return;
+
+      // Determine afterId: the column after which we want to place the dragged column
+      // If dragging left (source > target), place before target -> afterId = column before target
+      // If dragging right (source < target), place after target
+      let afterId: string | null = null;
+      if (sourceIndex > targetIndex) {
+        // Dragged left
+        afterId = targetIndex > 0 ? columns[targetIndex - 1].id : null;
+      } else {
+        // Dragged right
+        afterId = columns[targetIndex].id;
+      }
+
+      try {
+        const updated = await columnsApi.moveColumn(board!.id, columnId, { afterId });
+        updateColumn(columnId, { position: updated.position });
+        // Re-sort columns by position after the store update
+        const currentColumns = useBoardStore.getState().board?.columns;
+        if (currentColumns) {
+          const sorted = [...currentColumns].sort((a, b) => a.position.localeCompare(b.position));
+          reorderColumns(sorted);
+        }
+      } catch {
+        // Reload board on error to reset state
+        if (teamId && boardId) {
+          getBoard(teamId, boardId).then(setBoard);
+        }
+      }
+      return;
+    }
 
     const cardId = String(source.id);
 
