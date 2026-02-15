@@ -5,6 +5,8 @@ import { getMe } from './api/auth.api.js';
 import { LoginPage } from './features/auth/LoginPage.js';
 import { RegisterPage } from './features/auth/RegisterPage.js';
 import { AuthCallbackPage } from './features/auth/AuthCallbackPage.js';
+import { TeamsPage } from './features/teams/TeamsPage.js';
+import { BoardListPage } from './features/boards/BoardListPage.js';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuthStore();
@@ -30,17 +32,8 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
-      <Route
-        path="/teams"
-        element={
-          <AuthGuard>
-            <div className="p-8">
-              <h1 className="text-2xl font-bold">Teams</h1>
-              <p className="text-gray-500 mt-2">Team-Übersicht kommt in Layer 1.</p>
-            </div>
-          </AuthGuard>
-        }
-      />
+      <Route path="/teams" element={<AuthGuard><TeamsPage /></AuthGuard>} />
+      <Route path="/teams/:teamId/boards" element={<AuthGuard><BoardListPage /></AuthGuard>} />
       <Route path="*" element={<Navigate to="/teams" />} />
     </Routes>
   );
