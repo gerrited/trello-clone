@@ -21,7 +21,7 @@ export function BoardPage() {
   useEffect(() => {
     if (!teamId || !boardId) return;
     setLoading(true);
-    getBoard(teamId, boardId).then(setBoard);
+    getBoard(teamId, boardId).then(setBoard).catch(() => setLoading(false));
     return () => clearBoard();
   }, [teamId, boardId, setBoard, setLoading, clearBoard]);
 

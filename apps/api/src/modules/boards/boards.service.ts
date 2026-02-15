@@ -20,36 +20,38 @@ async function requireTeamMember(teamId: string, userId: string) {
 export async function createBoard(teamId: string, userId: string, input: CreateBoardInput) {
   await requireTeamMember(teamId, userId);
 
-  const [board] = await db
-    .insert(schema.boards)
-    .values({
-      teamId,
-      name: input.name,
-      description: input.description ?? null,
-      createdBy: userId,
-    })
-    .returning();
+  return await db.transaction(async (tx) => {
+    const [board] = await tx
+      .insert(schema.boards)
+      .values({
+        teamId,
+        name: input.name,
+        description: input.description ?? null,
+        createdBy: userId,
+      })
+      .returning();
 
-  // Create default swimlane
-  await db.insert(schema.swimlanes).values({
-    boardId: board.id,
-    name: 'Default',
-    position: getPositionAfter(null),
-    isDefault: true,
-  });
-
-  // Create starter columns
-  let pos: string | null = null;
-  for (const name of ['To Do', 'In Progress', 'Done']) {
-    pos = getPositionAfter(pos);
-    await db.insert(schema.columns).values({
+    // Create default swimlane
+    await tx.insert(schema.swimlanes).values({
       boardId: board.id,
-      name,
-      position: pos,
+      name: 'Default',
+      position: getPositionAfter(null),
+      isDefault: true,
     });
-  }
 
-  return board;
+    // Create starter columns
+    let pos: string | null = null;
+    for (const name of ['To Do', 'In Progress', 'Done']) {
+      pos = getPositionAfter(pos);
+      await tx.insert(schema.columns).values({
+        boardId: board.id,
+        name,
+        position: pos,
+      });
+    }
+
+    return board;
+  });
 }
 
 export async function listBoards(teamId: string, userId: string) {

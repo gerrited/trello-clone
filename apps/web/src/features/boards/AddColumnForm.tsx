@@ -21,6 +21,8 @@ export function AddColumnForm({ boardId }: AddColumnFormProps) {
       addColumn(column);
       setName('');
       setIsOpen(false);
+    } catch {
+      // Keep form open on error so user can retry
     } finally {
       setSubmitting(false);
     }
@@ -32,7 +34,7 @@ export function AddColumnForm({ boardId }: AddColumnFormProps) {
         onClick={() => setIsOpen(true)}
         className="flex-shrink-0 w-72 h-12 rounded-lg border-2 border-dashed border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 flex items-center justify-center text-sm transition-colors"
       >
-        + Spalte hinzufugen
+        + Spalte hinzufügen
       </button>
     );
   }
@@ -52,7 +54,7 @@ export function AddColumnForm({ boardId }: AddColumnFormProps) {
       />
       <div className="flex gap-2 mt-2">
         <Button size="sm" onClick={handleSubmit} disabled={submitting || !name.trim()}>
-          Hinzufugen
+          Hinzufügen
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setIsOpen(false)}>
           Abbrechen

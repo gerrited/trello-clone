@@ -34,6 +34,8 @@ export function AddCardForm({ boardId, columnId }: AddCardFormProps) {
       });
       setTitle('');
       setIsOpen(false);
+    } catch {
+      // Keep form open on error so user can retry
     } finally {
       setSubmitting(false);
     }
@@ -45,7 +47,7 @@ export function AddCardForm({ boardId, columnId }: AddCardFormProps) {
         onClick={() => setIsOpen(true)}
         className="w-full text-left text-sm text-gray-500 hover:text-gray-700 py-1 px-2 rounded hover:bg-gray-200 transition-colors"
       >
-        + Karte hinzufugen
+        + Karte hinzufügen
       </button>
     );
   }
@@ -69,7 +71,7 @@ export function AddCardForm({ boardId, columnId }: AddCardFormProps) {
       />
       <div className="flex gap-2">
         <Button size="sm" onClick={handleSubmit} disabled={submitting || !title.trim()}>
-          Hinzufugen
+          Hinzufügen
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setIsOpen(false)}>
           Abbrechen
