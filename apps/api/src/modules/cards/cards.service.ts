@@ -30,17 +30,27 @@ export async function createCard(boardId: string, userId: string, input: CreateC
   });
   if (!column) throw new AppError(404, 'Column not found on this board');
 
-  // Get the default swimlane
-  const defaultSwimlane = await db.query.swimlanes.findFirst({
-    where: and(eq(schema.swimlanes.boardId, boardId), eq(schema.swimlanes.isDefault, true)),
-  });
-  if (!defaultSwimlane) throw new AppError(500, 'Board has no default swimlane');
+  // Resolve swimlane: use provided swimlaneId or fall back to default
+  let swimlaneId: string;
+  if (input.swimlaneId) {
+    const swimlane = await db.query.swimlanes.findFirst({
+      where: and(eq(schema.swimlanes.id, input.swimlaneId), eq(schema.swimlanes.boardId, boardId)),
+    });
+    if (!swimlane) throw new AppError(404, 'Swimlane not found on this board');
+    swimlaneId = swimlane.id;
+  } else {
+    const defaultSwimlane = await db.query.swimlanes.findFirst({
+      where: and(eq(schema.swimlanes.boardId, boardId), eq(schema.swimlanes.isDefault, true)),
+    });
+    if (!defaultSwimlane) throw new AppError(500, 'Board has no default swimlane');
+    swimlaneId = defaultSwimlane.id;
+  }
 
   // Get last card position in this column+swimlane
   const existingCards = await db.query.cards.findMany({
     where: and(
       eq(schema.cards.columnId, input.columnId),
-      eq(schema.cards.swimlaneId, defaultSwimlane.id),
+      eq(schema.cards.swimlaneId, swimlaneId),
       eq(schema.cards.isArchived, false),
     ),
     orderBy: [asc(schema.cards.position)],
@@ -56,7 +66,7 @@ export async function createCard(boardId: string, userId: string, input: CreateC
     .values({
       boardId,
       columnId: input.columnId,
-      swimlaneId: defaultSwimlane.id,
+      swimlaneId,
       title: input.title,
       description: input.description ?? null,
       cardType: input.cardType ?? 'task',
@@ -127,11 +137,20 @@ export async function moveCard(cardId: string, userId: string, input: MoveCardIn
   });
   if (!targetColumn) throw new AppError(404, 'Target column not found on this board');
 
+  // Resolve target swimlane
+  const targetSwimlaneId = input.swimlaneId ?? card.swimlaneId;
+  if (input.swimlaneId) {
+    const swimlane = await db.query.swimlanes.findFirst({
+      where: and(eq(schema.swimlanes.id, input.swimlaneId), eq(schema.swimlanes.boardId, card.boardId)),
+    });
+    if (!swimlane) throw new AppError(404, 'Target swimlane not found on this board');
+  }
+
   // Get all non-archived cards in the target column+swimlane (excluding the card being moved)
   const cardsInTarget = await db.query.cards.findMany({
     where: and(
       eq(schema.cards.columnId, input.columnId),
-      eq(schema.cards.swimlaneId, card.swimlaneId),
+      eq(schema.cards.swimlaneId, targetSwimlaneId),
       eq(schema.cards.isArchived, false),
     ),
     orderBy: [asc(schema.cards.position)],
@@ -142,7 +161,6 @@ export async function moveCard(cardId: string, userId: string, input: MoveCardIn
   let newPosition: string;
 
   if (input.afterId === null) {
-    // Move to the top of the column
     newPosition = getPositionBefore(otherCards[0]?.position ?? null);
   } else {
     const afterIndex = otherCards.findIndex((c) => c.id === input.afterId);
@@ -158,6 +176,7 @@ export async function moveCard(cardId: string, userId: string, input: MoveCardIn
     .update(schema.cards)
     .set({
       columnId: input.columnId,
+      swimlaneId: targetSwimlaneId,
       position: newPosition,
       updatedAt: new Date(),
     })
