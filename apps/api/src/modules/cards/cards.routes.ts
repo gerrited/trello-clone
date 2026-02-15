@@ -4,6 +4,7 @@ import { requireAuth } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
 import { createCardSchema, updateCardSchema, moveCardSchema } from '@trello-clone/shared';
 import * as ctrl from './cards.controller.js';
+import { assigneeRoutes } from '../assignees/assignees.routes.js';
 
 const router: RouterType = Router({ mergeParams: true });
 
@@ -14,5 +15,7 @@ router.get('/:cardId', ctrl.getHandler);
 router.patch('/:cardId', validate(updateCardSchema), ctrl.updateHandler);
 router.patch('/:cardId/move', validate(moveCardSchema), ctrl.moveHandler);
 router.delete('/:cardId', ctrl.deleteHandler);
+
+router.use('/:cardId/assignees', assigneeRoutes);
 
 export { router as cardRoutes };
