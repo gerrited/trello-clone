@@ -5,6 +5,7 @@ export const createCardSchema = z.object({
   description: z.string().max(5000).optional(),
   cardType: z.enum(['story', 'bug', 'task']).optional(),
   columnId: z.string().uuid(),
+  swimlaneId: z.string().uuid().optional(),
 });
 
 export const updateCardSchema = z.object({
@@ -17,6 +18,7 @@ export const updateCardSchema = z.object({
 export const moveCardSchema = z.object({
   columnId: z.string().uuid(),
   afterId: z.string().uuid().nullable(),
+  swimlaneId: z.string().uuid().optional(),
 });
 
 export type CreateCardInput = z.infer<typeof createCardSchema>;
