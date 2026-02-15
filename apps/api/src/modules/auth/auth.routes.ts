@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import type { Router as RouterType } from 'express';
 import passport from 'passport';
 import { validate } from '../../middleware/validate.js';
 import { requireAuth } from '../../middleware/auth.js';
@@ -6,7 +7,7 @@ import { registerSchema, loginSchema } from '@trello-clone/shared';
 import { env } from '../../config/env.js';
 import * as ctrl from './auth.controller.js';
 
-const router = Router();
+const router: RouterType = Router();
 
 router.post('/register', validate(registerSchema), ctrl.registerHandler);
 router.post('/login', validate(loginSchema), ctrl.loginHandler);

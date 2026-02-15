@@ -1,10 +1,11 @@
 import { Router } from 'express';
+import type { Router as RouterType } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
 import { createTeamSchema, updateTeamSchema, inviteMemberSchema, updateMemberRoleSchema } from '@trello-clone/shared';
 import * as ctrl from './teams.controller.js';
 
-const router = Router();
+const router: RouterType = Router();
 
 router.use(requireAuth);
 
