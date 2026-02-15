@@ -1,0 +1,27 @@
+import express, { type Express } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import { pino } from 'pino';
+import { env } from './config/env.js';
+import { errorHandler } from './middleware/error.js';
+
+const logger = pino({ name: 'api' });
+const app: Express = express();
+
+app.use(helmet());
+app.use(cors({ origin: env.WEB_URL, credentials: true }));
+app.use(express.json());
+app.use(cookieParser());
+
+app.get('/api/v1/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.use(errorHandler);
+
+app.listen(env.API_PORT, () => {
+  logger.info(`API server running on port ${env.API_PORT}`);
+});
+
+export { app };
