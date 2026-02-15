@@ -8,6 +8,7 @@ import { errorHandler } from './middleware/error.js';
 import passport from 'passport';
 import { setupPassport } from './modules/auth/passport.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
+import { teamRoutes } from './modules/teams/teams.routes.js';
 
 const logger = pino({ name: 'api' });
 const app: Express = express();
@@ -25,6 +26,7 @@ app.get('/api/v1/health', (_req, res) => {
 });
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/teams', teamRoutes);
 
 app.use(errorHandler);
 
