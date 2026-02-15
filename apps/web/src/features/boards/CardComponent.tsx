@@ -1,5 +1,6 @@
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { CardSummary } from '@trello-clone/shared';
+import { BookOpen, Bug, CheckSquare } from 'lucide-react';
 
 interface CardComponentProps {
   card: CardSummary;
@@ -11,6 +12,12 @@ const TYPE_COLORS: Record<string, string> = {
   story: 'bg-green-100 text-green-700',
   bug: 'bg-red-100 text-red-700',
   task: 'bg-blue-100 text-blue-700',
+};
+
+const TYPE_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
+  story: BookOpen,
+  bug: Bug,
+  task: CheckSquare,
 };
 
 export function CardComponent({ card, index, columnId }: CardComponentProps) {
@@ -31,9 +38,15 @@ export function CardComponent({ card, index, columnId }: CardComponentProps) {
       }`}
     >
       <div className="flex items-start gap-2">
-        <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${TYPE_COLORS[card.cardType]}`}>
-          {card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1)}
-        </span>
+        {(() => {
+          const TypeIcon = TYPE_ICONS[card.cardType];
+          return (
+            <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium ${TYPE_COLORS[card.cardType]}`}>
+              {TypeIcon && <TypeIcon size={12} />}
+              {card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1)}
+            </span>
+          );
+        })()}
       </div>
       <p className="text-sm text-gray-900 mt-1">{card.title}</p>
       {card.assignees.length > 0 && (
