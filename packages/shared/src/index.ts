@@ -6,4 +6,7 @@ export * from './types/comment.js';
 export * from './types/ws-events.js';
 export * from './validation/auth.schema.js';
 export * from './validation/team.schema.js';
+export * from './validation/board.schema.js';
+export * from './validation/column.schema.js';
+export * from './validation/card.schema.js';
 export * from './constants/index.js';
