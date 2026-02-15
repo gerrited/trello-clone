@@ -22,7 +22,7 @@ export async function listHandler(req: AuthRequest, res: Response, next: NextFun
 
 export async function getHandler(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const team = await teamsService.getTeam(req.params.teamId, req.userId!);
+    const team = await teamsService.getTeam(req.params.teamId as string, req.userId!);
     res.json({ team });
   } catch (err) {
     next(err);
@@ -31,7 +31,7 @@ export async function getHandler(req: AuthRequest, res: Response, next: NextFunc
 
 export async function updateHandler(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const team = await teamsService.updateTeam(req.params.teamId, req.userId!, req.body);
+    const team = await teamsService.updateTeam(req.params.teamId as string, req.userId!, req.body);
     res.json({ team });
   } catch (err) {
     next(err);
@@ -40,7 +40,7 @@ export async function updateHandler(req: AuthRequest, res: Response, next: NextF
 
 export async function deleteHandler(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    await teamsService.deleteTeam(req.params.teamId, req.userId!);
+    await teamsService.deleteTeam(req.params.teamId as string, req.userId!);
     res.status(204).end();
   } catch (err) {
     next(err);
@@ -49,7 +49,7 @@ export async function deleteHandler(req: AuthRequest, res: Response, next: NextF
 
 export async function inviteMemberHandler(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const membership = await teamsService.inviteMember(req.params.teamId, req.userId!, req.body);
+    const membership = await teamsService.inviteMember(req.params.teamId as string, req.userId!, req.body);
     res.status(201).json({ membership });
   } catch (err) {
     next(err);
@@ -58,7 +58,7 @@ export async function inviteMemberHandler(req: AuthRequest, res: Response, next:
 
 export async function removeMemberHandler(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    await teamsService.removeMember(req.params.teamId, req.userId!, req.params.userId);
+    await teamsService.removeMember(req.params.teamId as string, req.userId!, req.params.userId as string);
     res.status(204).end();
   } catch (err) {
     next(err);
@@ -68,9 +68,9 @@ export async function removeMemberHandler(req: AuthRequest, res: Response, next:
 export async function updateMemberRoleHandler(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const membership = await teamsService.updateMemberRole(
-      req.params.teamId,
+      req.params.teamId as string,
       req.userId!,
-      req.params.userId,
+      req.params.userId as string,
       req.body,
     );
     res.json({ membership });
