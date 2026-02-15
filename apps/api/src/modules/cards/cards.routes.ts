@@ -1,0 +1,17 @@
+import { Router } from 'express';
+import { requireAuth } from '../../middleware/auth.js';
+import { validate } from '../../middleware/validate.js';
+import { createCardSchema, updateCardSchema, moveCardSchema } from '@trello-clone/shared';
+import * as ctrl from './cards.controller.js';
+
+const router = Router({ mergeParams: true });
+
+router.use(requireAuth);
+
+router.post('/', validate(createCardSchema), ctrl.createHandler);
+router.get('/:cardId', ctrl.getHandler);
+router.patch('/:cardId', validate(updateCardSchema), ctrl.updateHandler);
+router.patch('/:cardId/move', validate(moveCardSchema), ctrl.moveHandler);
+router.delete('/:cardId', ctrl.deleteHandler);
+
+export { router as cardRoutes };

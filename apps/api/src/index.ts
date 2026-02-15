@@ -11,6 +11,7 @@ import { authRoutes } from './modules/auth/auth.routes.js';
 import { teamRoutes } from './modules/teams/teams.routes.js';
 import { boardRoutes } from './modules/boards/boards.routes.js';
 import { columnRoutes } from './modules/columns/columns.routes.js';
+import { cardRoutes } from './modules/cards/cards.routes.js';
 
 const logger = pino({ name: 'api' });
 const app: Express = express();
@@ -31,6 +32,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/teams', teamRoutes);
 app.use('/api/v1/teams/:teamId/boards', boardRoutes);
 app.use('/api/v1/boards/:boardId/columns', columnRoutes);
+app.use('/api/v1/boards/:boardId/cards', cardRoutes);
 
 app.use(errorHandler);
 

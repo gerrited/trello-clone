@@ -1,0 +1,179 @@
+import { eq, and, asc } from 'drizzle-orm';
+import { db, schema } from '../../db/index.js';
+import { AppError } from '../../middleware/error.js';
+import { getPositionAfter, getPositionBetween, getPositionBefore } from '../../utils/ordering.js';
+import type { CreateCardInput, UpdateCardInput, MoveCardInput } from '@trello-clone/shared';
+
+async function requireBoardAccess(boardId: string, userId: string) {
+  const board = await db.query.boards.findFirst({
+    where: eq(schema.boards.id, boardId),
+  });
+  if (!board) throw new AppError(404, 'Board not found');
+
+  const membership = await db.query.teamMemberships.findFirst({
+    where: and(
+      eq(schema.teamMemberships.teamId, board.teamId),
+      eq(schema.teamMemberships.userId, userId),
+    ),
+  });
+  if (!membership) throw new AppError(403, 'Not a member of this team');
+
+  return board;
+}
+
+export async function createCard(boardId: string, userId: string, input: CreateCardInput) {
+  await requireBoardAccess(boardId, userId);
+
+  // Verify the column belongs to this board
+  const column = await db.query.columns.findFirst({
+    where: and(eq(schema.columns.id, input.columnId), eq(schema.columns.boardId, boardId)),
+  });
+  if (!column) throw new AppError(404, 'Column not found on this board');
+
+  // Get the default swimlane
+  const defaultSwimlane = await db.query.swimlanes.findFirst({
+    where: and(eq(schema.swimlanes.boardId, boardId), eq(schema.swimlanes.isDefault, true)),
+  });
+  if (!defaultSwimlane) throw new AppError(500, 'Board has no default swimlane');
+
+  // Get last card position in this column+swimlane
+  const existingCards = await db.query.cards.findMany({
+    where: and(
+      eq(schema.cards.columnId, input.columnId),
+      eq(schema.cards.swimlaneId, defaultSwimlane.id),
+      eq(schema.cards.isArchived, false),
+    ),
+    orderBy: [asc(schema.cards.position)],
+    columns: { position: true },
+  });
+
+  const lastPos = existingCards.length > 0
+    ? existingCards[existingCards.length - 1].position
+    : null;
+
+  const [card] = await db
+    .insert(schema.cards)
+    .values({
+      boardId,
+      columnId: input.columnId,
+      swimlaneId: defaultSwimlane.id,
+      title: input.title,
+      description: input.description ?? null,
+      cardType: input.cardType ?? 'task',
+      position: getPositionAfter(lastPos),
+      createdBy: userId,
+    })
+    .returning();
+
+  return card;
+}
+
+export async function getCard(cardId: string, userId: string) {
+  const card = await db.query.cards.findFirst({
+    where: eq(schema.cards.id, cardId),
+    with: {
+      assignees: {
+        with: {
+          user: {
+            columns: { id: true, displayName: true, avatarUrl: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!card) throw new AppError(404, 'Card not found');
+
+  await requireBoardAccess(card.boardId, userId);
+
+  return {
+    ...card,
+    assignees: card.assignees.map((a) => ({
+      id: a.user.id,
+      displayName: a.user.displayName,
+      avatarUrl: a.user.avatarUrl,
+    })),
+  };
+}
+
+export async function updateCard(cardId: string, userId: string, input: UpdateCardInput) {
+  const card = await db.query.cards.findFirst({
+    where: eq(schema.cards.id, cardId),
+  });
+  if (!card) throw new AppError(404, 'Card not found');
+
+  await requireBoardAccess(card.boardId, userId);
+
+  const [updated] = await db
+    .update(schema.cards)
+    .set({ ...input, updatedAt: new Date() })
+    .where(eq(schema.cards.id, cardId))
+    .returning();
+
+  return updated;
+}
+
+export async function moveCard(cardId: string, userId: string, input: MoveCardInput) {
+  const card = await db.query.cards.findFirst({
+    where: eq(schema.cards.id, cardId),
+  });
+  if (!card) throw new AppError(404, 'Card not found');
+
+  await requireBoardAccess(card.boardId, userId);
+
+  // Verify the target column belongs to the same board
+  const targetColumn = await db.query.columns.findFirst({
+    where: and(eq(schema.columns.id, input.columnId), eq(schema.columns.boardId, card.boardId)),
+  });
+  if (!targetColumn) throw new AppError(404, 'Target column not found on this board');
+
+  // Get all non-archived cards in the target column+swimlane (excluding the card being moved)
+  const cardsInTarget = await db.query.cards.findMany({
+    where: and(
+      eq(schema.cards.columnId, input.columnId),
+      eq(schema.cards.swimlaneId, card.swimlaneId),
+      eq(schema.cards.isArchived, false),
+    ),
+    orderBy: [asc(schema.cards.position)],
+  });
+
+  const otherCards = cardsInTarget.filter((c) => c.id !== cardId);
+
+  let newPosition: string;
+
+  if (input.afterId === null) {
+    // Move to the top of the column
+    newPosition = getPositionBefore(otherCards[0]?.position ?? null);
+  } else {
+    const afterIndex = otherCards.findIndex((c) => c.id === input.afterId);
+    if (afterIndex === -1) throw new AppError(404, 'Target card not found');
+
+    const afterPos = otherCards[afterIndex].position;
+    const beforePos = otherCards[afterIndex + 1]?.position ?? null;
+
+    newPosition = getPositionBetween(afterPos, beforePos);
+  }
+
+  const [updated] = await db
+    .update(schema.cards)
+    .set({
+      columnId: input.columnId,
+      position: newPosition,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.cards.id, cardId))
+    .returning();
+
+  return updated;
+}
+
+export async function deleteCard(cardId: string, userId: string) {
+  const card = await db.query.cards.findFirst({
+    where: eq(schema.cards.id, cardId),
+  });
+  if (!card) throw new AppError(404, 'Card not found');
+
+  await requireBoardAccess(card.boardId, userId);
+
+  await db.delete(schema.cards).where(eq(schema.cards.id, cardId));
+}
