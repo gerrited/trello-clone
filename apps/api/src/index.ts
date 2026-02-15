@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { pino } from 'pino';
 import { env } from './config/env.js';
 import { errorHandler } from './middleware/error.js';
+import { authRoutes } from './modules/auth/auth.routes.js';
 
 const logger = pino({ name: 'api' });
 const app: Express = express();
@@ -17,6 +18,8 @@ app.use(cookieParser());
 app.get('/api/v1/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+app.use('/api/v1/auth', authRoutes);
 
 app.use(errorHandler);
 
