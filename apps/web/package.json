@@ -11,29 +11,32 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@dnd-kit/abstract": "^0.2.4",
+    "@dnd-kit/helpers": "^0.2.4",
+    "@dnd-kit/react": "^0.2.4",
+    "@hookform/resolvers": "^4.0",
     "@trello-clone/shared": "workspace:*",
+    "axios": "^1.7",
+    "immer": "^10.1",
+    "lucide-react": "^0.470",
     "react": "^19.0",
     "react-dom": "^19.0",
-    "react-router": "^7.0",
-    "zustand": "^5.0",
-    "immer": "^10.1",
-    "axios": "^1.7",
-    "socket.io-client": "^4.8",
-    "zod": "^3.24",
     "react-hook-form": "^7.54",
-    "@hookform/resolvers": "^4.0",
+    "react-router": "^7.0",
+    "socket.io-client": "^4.8",
     "sonner": "^1.7",
-    "lucide-react": "^0.470"
+    "zod": "^3.24",
+    "zustand": "^5.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.0",
+    "@testing-library/react": "^16.0",
     "@types/react": "^19.0",
     "@types/react-dom": "^19.0",
     "@vitejs/plugin-react": "^4.3",
     "tailwindcss": "^4.0",
-    "@tailwindcss/vite": "^4.0",
     "typescript": "^5.7",
     "vite": "^6.0",
-    "vitest": "^3.0",
-    "@testing-library/react": "^16.0"
+    "vitest": "^3.0"
   }
 }
