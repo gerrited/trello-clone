@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router';
 import { DragDropProvider } from '@dnd-kit/react';
+import { useSortable } from '@dnd-kit/react/sortable';
+import { CollisionPriority } from '@dnd-kit/abstract';
 import { useBoardStore } from '../../stores/boardStore.js';
 import { getBoard } from '../../api/boards.api.js';
 import * as cardsApi from '../../api/cards.api.js';
@@ -12,7 +14,47 @@ import { AddSwimlaneForm } from './AddSwimlaneForm.js';
 import { SwimlaneRowHeader } from './SwimlaneRow.js';
 import { CardComponent } from './CardComponent.js';
 import { AddCardForm } from './AddCardForm.js';
-import type { CardSummary } from '@trello-clone/shared';
+import type { Column, CardSummary } from '@trello-clone/shared';
+
+/** Shape of the DnD event we actually use from @dnd-kit */
+interface DragEndEvent {
+  canceled: boolean;
+  operation: {
+    source: { id: string | number; type?: string | number | Symbol; data?: Record<string, any> } | null;
+    target: { id: string | number; type?: string | number | Symbol; data?: Record<string, any> } | null;
+  };
+}
+
+function ColumnHeader({ column, cardCount, index }: { column: Column; cardCount: number; index: number }) {
+  const { ref } = useSortable({
+    id: column.id,
+    index,
+    type: 'column',
+    collisionPriority: CollisionPriority.Low,
+    accept: ['column'],
+    data: { columnId: column.id },
+  });
+
+  const isOverWipLimit = column.wipLimit !== null && cardCount > column.wipLimit;
+
+  return (
+    <div
+      ref={ref}
+      className="p-3 flex items-center gap-2 bg-white sticky top-0 z-10 border-b border-gray-200 cursor-grab active:cursor-grabbing"
+    >
+      {column.color && (
+        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: column.color }} />
+      )}
+      <h3 className="font-semibold text-sm text-gray-700 truncate">{column.name}</h3>
+      <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+        isOverWipLimit ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
+      }`}>
+        {cardCount}
+        {column.wipLimit !== null && ` / ${column.wipLimit}`}
+      </span>
+    </div>
+  );
+}
 
 export function BoardPage() {
   const { teamId, boardId } = useParams<{ teamId: string; boardId: string }>();
@@ -81,7 +123,7 @@ export function BoardPage() {
     return grouped;
   }, [board]);
 
-  const handleDragEnd = async (event: any) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { source, target } = event.operation;
     if (event.canceled || !source || !target) return;
     if (source.type === 'column') {
@@ -103,6 +145,13 @@ export function BoardPage() {
         afterId = columns[targetIndex].id;
       }
 
+      // Optimistic reorder: immediately update the store
+      const optimisticColumns = [...columns];
+      const [moved] = optimisticColumns.splice(sourceIndex, 1);
+      const insertAt = sourceIndex > targetIndex ? targetIndex : targetIndex;
+      optimisticColumns.splice(insertAt, 0, moved);
+      reorderColumns(optimisticColumns);
+
       try {
         const updated = await columnsApi.moveColumn(board!.id, columnId, { afterId });
         updateColumn(columnId, { position: updated.position });
@@ -112,6 +161,7 @@ export function BoardPage() {
           reorderColumns(sorted);
         }
       } catch {
+        // Revert on failure by reloading the board
         if (teamId && boardId) {
           getBoard(teamId, boardId).then(setBoard);
         }
@@ -138,17 +188,17 @@ export function BoardPage() {
       ? (cardsByCell[cellKey] || [])
       : (cardsByColumn[targetColumnId] || []);
 
-    const sourceIndex = target.type === 'card'
+    const dropIndex = target.type === 'card'
       ? targetCards.findIndex((c) => c.id === String(target.id))
       : targetCards.length;
 
     let afterId: string | null = null;
-    if (sourceIndex > 0) {
-      const cardBefore = targetCards[sourceIndex - 1];
+    if (dropIndex > 0) {
+      const cardBefore = targetCards[dropIndex - 1];
       if (cardBefore && cardBefore.id !== cardId) {
         afterId = cardBefore.id;
-      } else if (sourceIndex > 1) {
-        afterId = targetCards[sourceIndex - 2]?.id ?? null;
+      } else if (dropIndex > 1) {
+        afterId = targetCards[dropIndex - 2]?.id ?? null;
       }
     }
 
@@ -189,83 +239,75 @@ export function BoardPage() {
         <DragDropProvider onDragEnd={handleDragEnd}>
           {isMultiSwimlane ? (
             /* ---- Multi-swimlane: CSS Grid layout ---- */
-            <div className="overflow-x-auto pb-4">
-              <div
-                className="grid gap-0"
-                style={{
-                  gridTemplateColumns: `200px repeat(${board.columns.length}, 272px)`,
-                }}
-              >
-                {/* Header row: empty top-left corner + column headers */}
-                <div className="sticky top-0 bg-white z-10" />
-                {board.columns.map((column) => {
-                  const colCards = cardsByColumn[column.id] || [];
-                  const isOverWipLimit = column.wipLimit !== null && colCards.length > column.wipLimit;
-                  return (
-                    <div
+            <>
+              <div className="overflow-x-auto pb-4">
+                <div
+                  className="grid gap-0"
+                  style={{
+                    gridTemplateColumns: `200px repeat(${board.columns.length}, 272px)`,
+                  }}
+                >
+                  {/* Header row: empty top-left corner + column headers */}
+                  <div className="sticky top-0 bg-white z-10" />
+                  {board.columns.map((column, index) => (
+                    <ColumnHeader
                       key={column.id}
-                      className="p-3 flex items-center gap-2 bg-white sticky top-0 z-10 border-b border-gray-200"
-                    >
-                      {column.color && (
-                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: column.color }} />
-                      )}
-                      <h3 className="font-semibold text-sm text-gray-700 truncate">{column.name}</h3>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                        isOverWipLimit ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
-                      }`}>
-                        {colCards.length}
-                        {column.wipLimit !== null && ` / ${column.wipLimit}`}
-                      </span>
-                    </div>
-                  );
-                })}
+                      column={column}
+                      cardCount={(cardsByColumn[column.id] || []).length}
+                      index={index}
+                    />
+                  ))}
 
-                {/* Swimlane rows */}
-                {board.swimlanes.map((swimlane) => (
-                  <React.Fragment key={swimlane.id}>
-                    {/* Swimlane header cell */}
-                    <div
-                      className="border-t border-gray-200 bg-gray-50 flex items-start pt-2"
-                      style={{ minHeight: '120px' }}
-                    >
-                      <SwimlaneRowHeader swimlane={swimlane} boardId={board.id} />
-                    </div>
-                    {/* Card cells for each column */}
-                    {board.columns.map((column) => {
-                      const cellKey = `${column.id}:${swimlane.id}`;
-                      const cellCards = cardsByCell[cellKey] || [];
-                      return (
-                        <div
-                          key={cellKey}
-                          className="border-t border-l border-gray-200 bg-gray-50 p-2 space-y-2"
-                          style={{ minHeight: '120px' }}
-                        >
-                          {cellCards.map((card, cardIndex) => (
-                            <CardComponent
-                              key={card.id}
-                              card={card}
-                              index={cardIndex}
+                  {/* Swimlane rows */}
+                  {board.swimlanes.map((swimlane) => (
+                    <React.Fragment key={swimlane.id}>
+                      {/* Swimlane header cell */}
+                      <div
+                        className="border-t border-gray-200 bg-gray-50 flex items-start pt-2"
+                        style={{ minHeight: '120px' }}
+                      >
+                        <SwimlaneRowHeader swimlane={swimlane} boardId={board.id} />
+                      </div>
+                      {/* Card cells for each column */}
+                      {board.columns.map((column) => {
+                        const cellKey = `${column.id}:${swimlane.id}`;
+                        const cellCards = cardsByCell[cellKey] || [];
+                        return (
+                          <div
+                            key={cellKey}
+                            className="border-t border-l border-gray-200 bg-gray-50 p-2 space-y-2"
+                            style={{ minHeight: '120px' }}
+                          >
+                            {cellCards.map((card, cardIndex) => (
+                              <CardComponent
+                                key={card.id}
+                                card={card}
+                                index={cardIndex}
+                                columnId={column.id}
+                                swimlaneId={swimlane.id}
+                              />
+                            ))}
+                            <AddCardForm
+                              boardId={board.id}
                               columnId={column.id}
                               swimlaneId={swimlane.id}
                             />
-                          ))}
-                          <AddCardForm
-                            boardId={board.id}
-                            columnId={column.id}
-                            swimlaneId={swimlane.id}
-                          />
-                        </div>
-                      );
-                    })}
-                  </React.Fragment>
-                ))}
-              </div>
+                          </div>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
+                </div>
 
-              {/* Add swimlane button below the grid */}
-              <div className="mt-4 max-w-sm">
-                <AddSwimlaneForm boardId={board.id} />
+                {/* Add swimlane button below the grid */}
+                <div className="mt-4 max-w-sm">
+                  <AddSwimlaneForm boardId={board.id} />
+                </div>
               </div>
-            </div>
+              <div className="mt-2">
+                <AddColumnForm boardId={board.id} />
+              </div>
+            </>
           ) : (
             /* ---- Single swimlane: flat layout (identical to original) ---- */
             <>

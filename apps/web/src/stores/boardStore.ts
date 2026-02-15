@@ -22,6 +22,7 @@ interface BoardState {
   addSwimlane: (swimlane: Swimlane) => void;
   updateSwimlane: (swimlaneId: string, updates: Partial<Swimlane>) => void;
   removeSwimlane: (swimlaneId: string) => void;
+  reorderSwimlanes: (swimlanes: Swimlane[]) => void;
 
   // Card actions
   addCard: (card: CardSummary) => void;
@@ -78,6 +79,11 @@ export const useBoardStore = create<BoardState>()(
       removeSwimlane: (swimlaneId) => set((state) => {
         if (!state.board) return;
         state.board.swimlanes = state.board.swimlanes.filter((s) => s.id !== swimlaneId);
+      }),
+
+      reorderSwimlanes: (swimlanes) => set((state) => {
+        if (!state.board) return;
+        state.board.swimlanes = swimlanes;
       }),
 
       // Card actions

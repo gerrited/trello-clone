@@ -36,8 +36,8 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
     try {
       await swimlanesApi.deleteSwimlane(boardId, swimlane.id);
       removeSwimlaneFromStore(swimlane.id);
-    } catch {
-      // Ignore error
+    } catch (err: any) {
+      alert(err?.response?.data?.message ?? 'Fehler beim Löschen der Swimlane');
     }
   };
 
