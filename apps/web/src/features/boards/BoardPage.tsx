@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router';
 import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { CollisionPriority } from '@dnd-kit/abstract';
+import { Filter, X } from 'lucide-react';
 import { useBoardStore } from '../../stores/boardStore.js';
 import { getBoard } from '../../api/boards.api.js';
 import * as cardsApi from '../../api/cards.api.js';
@@ -17,7 +18,7 @@ import { AddCardForm } from './AddCardForm.js';
 import { CardDetailModal } from './CardDetailModal.js';
 import { ConnectionStatus } from '../../components/ui/ConnectionStatus.js';
 import { useRealtimeBoard } from '../../hooks/useRealtimeBoard.js';
-import type { Column, CardSummary } from '@trello-clone/shared';
+import type { Column, CardSummary, CardType } from '@trello-clone/shared';
 
 /** Shape of the DnD event we actually use from @dnd-kit */
 interface DragEndEvent {
@@ -84,6 +85,11 @@ export function BoardPage() {
   // Mobile column tab selector
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
 
+  // Filters
+  const [filterType, setFilterType] = useState<CardType | null>(null);
+  const [filterAssigneeId, setFilterAssigneeId] = useState<string | null>(null);
+  const hasFilters = filterType !== null || filterAssigneeId !== null;
+
   // Set default active column when board loads
   useEffect(() => {
     if (board && board.columns.length > 0 && !activeColumnId) {
@@ -100,17 +106,41 @@ export function BoardPage() {
     return defaultSl?.id ?? board.swimlanes[0]?.id ?? '';
   }, [board]);
 
+  // Apply filters to cards
+  const filteredCards = useMemo(() => {
+    if (!board) return [];
+    let cards = board.cards;
+    if (filterType) {
+      cards = cards.filter((c) => c.cardType === filterType);
+    }
+    if (filterAssigneeId) {
+      cards = cards.filter((c) => c.assignees.some((a) => a.id === filterAssigneeId));
+    }
+    return cards;
+  }, [board, filterType, filterAssigneeId]);
+
+  // Collect unique assignees across all cards (for the filter dropdown)
+  const allAssignees = useMemo(() => {
+    if (!board) return [];
+    const map = new Map<string, { id: string; displayName: string }>();
+    for (const card of board.cards) {
+      for (const a of card.assignees) {
+        if (!map.has(a.id)) map.set(a.id, { id: a.id, displayName: a.displayName });
+      }
+    }
+    return [...map.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
+  }, [board]);
+
   // Group cards by cell key (columnId:swimlaneId), sorted by position
   const cardsByCell = useMemo(() => {
     if (!board) return {};
     const grouped: Record<string, CardSummary[]> = {};
-    // Initialize cells for all column x swimlane combinations
     for (const col of board.columns) {
       for (const sl of board.swimlanes) {
         grouped[`${col.id}:${sl.id}`] = [];
       }
     }
-    for (const card of board.cards) {
+    for (const card of filteredCards) {
       const key = `${card.columnId}:${card.swimlaneId}`;
       if (grouped[key]) {
         grouped[key].push(card);
@@ -120,7 +150,7 @@ export function BoardPage() {
       grouped[cellKey].sort((a, b) => a.position.localeCompare(b.position));
     }
     return grouped;
-  }, [board]);
+  }, [board, filteredCards]);
 
   // For the flat layout, also compute cardsByColumn (all cards in a column regardless of swimlane)
   const cardsByColumn = useMemo(() => {
@@ -129,7 +159,7 @@ export function BoardPage() {
     for (const col of board.columns) {
       grouped[col.id] = [];
     }
-    for (const card of board.cards) {
+    for (const card of filteredCards) {
       if (grouped[card.columnId]) {
         grouped[card.columnId].push(card);
       }
@@ -138,7 +168,7 @@ export function BoardPage() {
       grouped[colId].sort((a, b) => a.position.localeCompare(b.position));
     }
     return grouped;
-  }, [board]);
+  }, [board, filteredCards]);
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { source, target } = event.operation;
@@ -254,6 +284,64 @@ export function BoardPage() {
           </Link>
           <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{board.name}</h1>
           <ConnectionStatus />
+        </div>
+
+        {/* Filter bar */}
+        <div className="flex flex-wrap items-center gap-2 mb-2 sm:mb-3">
+          <button
+            onClick={() => {
+              if (hasFilters) {
+                setFilterType(null);
+                setFilterAssigneeId(null);
+              }
+            }}
+            className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors ${
+              hasFilters
+                ? 'border-blue-300 bg-blue-50 text-blue-700'
+                : 'border-gray-200 text-gray-500'
+            }`}
+          >
+            <Filter size={12} />
+            Filter
+            {hasFilters && <X size={12} />}
+          </button>
+
+          {/* Card type filter pills */}
+          {(['task', 'story', 'bug'] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilterType(filterType === type ? null : type)}
+              className={`text-xs px-2 py-1 rounded-full border transition-colors ${
+                filterType === type
+                  ? type === 'task' ? 'border-blue-300 bg-blue-50 text-blue-700'
+                    : type === 'story' ? 'border-green-300 bg-green-50 text-green-700'
+                    : 'border-red-300 bg-red-50 text-red-700'
+                  : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          ))}
+
+          {/* Assignee filter */}
+          {allAssignees.length > 0 && (
+            <select
+              value={filterAssigneeId ?? ''}
+              onChange={(e) => setFilterAssigneeId(e.target.value || null)}
+              className="text-xs px-2 py-1 rounded-full border border-gray-200 bg-white text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">Alle Zuständigen</option>
+              {allAssignees.map((a) => (
+                <option key={a.id} value={a.id}>{a.displayName}</option>
+              ))}
+            </select>
+          )}
+
+          {hasFilters && (
+            <span className="text-xs text-gray-400">
+              {filteredCards.length}/{board.cards.length} Karten
+            </span>
+          )}
         </div>
 
         <DragDropProvider onDragEnd={handleDragEnd}>
