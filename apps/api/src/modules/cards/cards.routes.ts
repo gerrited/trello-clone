@@ -5,6 +5,7 @@ import { validate } from '../../middleware/validate.js';
 import { createCardSchema, updateCardSchema, moveCardSchema } from '@trello-clone/shared';
 import * as ctrl from './cards.controller.js';
 import { assigneeRoutes } from '../assignees/assignees.routes.js';
+import { commentRoutes } from '../comments/comments.routes.js';
 
 const router: RouterType = Router({ mergeParams: true });
 
@@ -17,5 +18,6 @@ router.patch('/:cardId/move', validate(moveCardSchema), ctrl.moveHandler);
 router.delete('/:cardId', ctrl.deleteHandler);
 
 router.use('/:cardId/assignees', assigneeRoutes);
+router.use('/:cardId/comments', commentRoutes);
 
 export { router as cardRoutes };
