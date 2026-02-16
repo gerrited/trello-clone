@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { CardSummary } from '@trello-clone/shared';
-import { BookOpen, Bug, CheckSquare } from 'lucide-react';
+import { BookOpen, Bug, CheckSquare, MessageSquare, Link2 } from 'lucide-react';
 import { useBoardStore } from '../../stores/boardStore.js';
 
 interface CardComponentProps {
@@ -55,6 +55,30 @@ export function CardComponent({ card, index, columnId, swimlaneId }: CardCompone
         })()}
       </div>
       <p className="text-sm text-gray-900 mt-1">{card.title}</p>
+      {/* Metadata badges */}
+      {(card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId) && (
+        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+          {card.parentCardId && (
+            <span className="flex items-center gap-0.5" title="Unteraufgabe">
+              <Link2 size={12} />
+            </span>
+          )}
+          {card.commentCount > 0 && (
+            <span className="flex items-center gap-1" title="Kommentare">
+              <MessageSquare size={12} />
+              {card.commentCount}
+            </span>
+          )}
+          {card.subtaskCount > 0 && (
+            <span className="flex items-center gap-1" title="Unteraufgaben">
+              <CheckSquare size={12} />
+              <span>
+                {card.subtaskDoneCount}/{card.subtaskCount}
+              </span>
+            </span>
+          )}
+        </div>
+      )}
       {card.assignees.length > 0 && (
         <div className="flex -space-x-1 mt-2">
           {card.assignees.map((assignee) => (
