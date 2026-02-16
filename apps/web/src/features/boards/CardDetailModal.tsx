@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { X, BookOpen, Bug, CheckSquare, Trash2 } from 'lucide-react';
-import type { CardDetail, CardType } from '@trello-clone/shared';
+import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil } from 'lucide-react';
+import type { CardDetail, CardType, Comment } from '@trello-clone/shared';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { useBoardStore } from '../../stores/boardStore.js';
+import { useAuthStore } from '../../stores/authStore.js';
 import * as cardsApi from '../../api/cards.api.js';
+import * as commentsApi from '../../api/comments.api.js';
 import { toast } from 'sonner';
 
 const TYPE_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -241,7 +243,16 @@ export function CardDetailModal() {
 
           {/* Subtasks section placeholder — filled in Task 6 */}
 
-          {/* Comments section placeholder — filled in Task 5 */}
+          {/* Comments section */}
+          <CommentSection
+            boardId={board!.id}
+            cardId={cardDetail.id}
+            comments={cardDetail.comments}
+            onCommentsChange={(newComments) => {
+              setCardDetail({ ...cardDetail, comments: newComments });
+              updateCardInStore(cardDetail.id, { commentCount: newComments.length });
+            }}
+          />
 
           {/* Delete button */}
           <div className="pt-4 border-t border-gray-200">
@@ -256,5 +267,168 @@ export function CardDetailModal() {
         </div>
       )}
     </Modal>
+  );
+}
+
+/* ---------- Comment Section ---------- */
+
+function CommentSection({
+  boardId,
+  cardId,
+  comments,
+  onCommentsChange,
+}: {
+  boardId: string;
+  cardId: string;
+  comments: Comment[];
+  onCommentsChange: (comments: Comment[]) => void;
+}) {
+  const currentUser = useAuthStore((s) => s.user);
+  const [newBody, setNewBody] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editBody, setEditBody] = useState('');
+
+  const handleAddComment = async () => {
+    if (!newBody.trim()) return;
+    setSubmitting(true);
+    try {
+      const comment = await commentsApi.createComment(boardId, cardId, { body: newBody.trim() });
+      onCommentsChange([...comments, comment]);
+      setNewBody('');
+    } catch {
+      toast.error('Kommentar konnte nicht hinzugefuegt werden');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateComment = async (commentId: string) => {
+    if (!editBody.trim()) return;
+    try {
+      const updated = await commentsApi.updateComment(boardId, cardId, commentId, { body: editBody.trim() });
+      onCommentsChange(comments.map((c) => (c.id === commentId ? updated : c)));
+      setEditingId(null);
+    } catch {
+      toast.error('Kommentar konnte nicht aktualisiert werden');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await commentsApi.deleteComment(boardId, cardId, commentId);
+      onCommentsChange(comments.filter((c) => c.id !== commentId));
+    } catch {
+      toast.error('Kommentar konnte nicht geloescht werden');
+    }
+  };
+
+  const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  return (
+    <div>
+      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+        <MessageSquare size={16} />
+        Kommentare ({comments.length})
+      </label>
+
+      {/* Comment list */}
+      <div className="space-y-3 mb-4">
+        {comments.map((comment) => {
+          const isOwn = comment.authorId === currentUser?.id;
+          const isEditing = editingId === comment.id;
+
+          return (
+            <div key={comment.id} className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center flex-shrink-0">
+                {comment.author?.displayName?.charAt(0).toUpperCase() ?? '?'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-900">
+                    {comment.author?.displayName ?? 'Unbekannt'}
+                  </span>
+                  <span className="text-xs text-gray-400">{formatTime(comment.createdAt)}</span>
+                  {isOwn && !isEditing && (
+                    <div className="flex gap-1 ml-auto">
+                      <button
+                        onClick={() => {
+                          setEditingId(comment.id);
+                          setEditBody(comment.body);
+                        }}
+                        className="p-1 text-gray-400 hover:text-blue-600"
+                        title="Bearbeiten"
+                      >
+                        <Pencil size={12} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        className="p-1 text-gray-400 hover:text-red-600"
+                        title="Loeschen"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {isEditing ? (
+                  <div className="mt-1 space-y-2">
+                    <textarea
+                      autoFocus
+                      value={editBody}
+                      onChange={(e) => setEditBody(e.target.value)}
+                      className="w-full rounded border border-gray-300 p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={2}
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => handleUpdateComment(comment.id)}>
+                        Speichern
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+                        Abbrechen
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-700 mt-0.5 whitespace-pre-wrap">{comment.body}</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Add comment form */}
+      <div className="flex gap-3">
+        <div className="w-8 h-8 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center flex-shrink-0">
+          {currentUser?.displayName?.charAt(0).toUpperCase() ?? '?'}
+        </div>
+        <div className="flex-1">
+          <textarea
+            value={newBody}
+            onChange={(e) => setNewBody(e.target.value)}
+            placeholder="Kommentar schreiben..."
+            className="w-full rounded-lg border border-gray-300 p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={2}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleAddComment();
+              }
+            }}
+          />
+          {newBody.trim() && (
+            <div className="mt-2">
+              <Button size="sm" onClick={handleAddComment} disabled={submitting}>
+                Kommentar senden
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
