@@ -32,7 +32,7 @@ export function AddColumnForm({ boardId }: AddColumnFormProps) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex-shrink-0 w-72 h-12 rounded-lg border-2 border-dashed border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 flex items-center justify-center text-sm transition-colors"
+        className="flex-shrink-0 w-full sm:w-72 h-12 rounded-lg border-2 border-dashed border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 flex items-center justify-center text-sm transition-colors"
       >
         + Spalte hinzufügen
       </button>
@@ -40,7 +40,7 @@ export function AddColumnForm({ boardId }: AddColumnFormProps) {
   }
 
   return (
-    <div className="flex-shrink-0 w-72 bg-gray-100 rounded-lg p-3">
+    <div className="flex-shrink-0 w-full sm:w-72 bg-gray-100 rounded-lg p-3">
       <input
         autoFocus
         value={name}

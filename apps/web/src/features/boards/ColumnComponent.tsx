@@ -27,7 +27,7 @@ export function ColumnComponent({ column, cards, index, boardId, swimlaneId }: C
   return (
     <div
       ref={ref}
-      className="flex-shrink-0 w-72 bg-gray-100 rounded-lg flex flex-col max-h-[calc(100vh-10rem)]"
+      className="flex-shrink-0 w-full sm:w-72 bg-gray-100 rounded-lg flex flex-col max-h-[calc(100vh-14rem)] sm:max-h-[calc(100vh-10rem)]"
     >
       <div className="p-3 flex items-center justify-between">
         <div className="flex items-center gap-2">

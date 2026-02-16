@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
@@ -80,6 +80,16 @@ export function BoardPage() {
 
   // Real-time updates via Socket.IO
   useRealtimeBoard(boardId);
+
+  // Mobile column tab selector
+  const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+
+  // Set default active column when board loads
+  useEffect(() => {
+    if (board && board.columns.length > 0 && !activeColumnId) {
+      setActiveColumnId(board.columns[0].id);
+    }
+  }, [board, activeColumnId]);
 
   const isMultiSwimlane = board ? board.swimlanes.length > 1 : false;
 
@@ -233,110 +243,173 @@ export function BoardPage() {
     );
   }
 
+  const activeColumn = board.columns.find((c) => c.id === activeColumnId) ?? board.columns[0];
+
   return (
     <AppLayout>
-      <div className="px-4 py-4">
-        <div className="flex items-center gap-4 mb-4">
+      <div className="px-2 sm:px-4 py-2 sm:py-4">
+        <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
           <Link to={`/teams/${teamId}/boards`} className="text-sm text-blue-600 hover:underline">
             &larr; Boards
           </Link>
-          <h1 className="text-xl font-bold text-gray-900">{board.name}</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{board.name}</h1>
           <ConnectionStatus />
         </div>
 
         <DragDropProvider onDragEnd={handleDragEnd}>
-          {isMultiSwimlane ? (
-            /* ---- Multi-swimlane: CSS Grid layout ---- */
-            <>
-              <div className="overflow-x-auto pb-4">
-                <div
-                  className="grid gap-0"
-                  style={{
-                    gridTemplateColumns: `200px repeat(${board.columns.length}, 272px)`,
-                  }}
-                >
-                  {/* Header row: empty top-left corner + column headers */}
-                  <div className="sticky top-0 bg-white z-10" />
-                  {board.columns.map((column, index) => (
-                    <ColumnHeader
-                      key={column.id}
-                      column={column}
-                      cardCount={(cardsByColumn[column.id] || []).length}
-                      index={index}
+          {/* ---- Mobile: Tab-based single column view ---- */}
+          <div className="sm:hidden">
+            {/* Column tabs */}
+            <div className="flex gap-1 overflow-x-auto pb-2 mb-2 -mx-2 px-2">
+              {board.columns.map((column) => {
+                const count = (cardsByColumn[column.id] || []).length;
+                const isActive = column.id === activeColumn?.id;
+                const isOverWip = column.wipLimit !== null && count > column.wipLimit;
+                return (
+                  <button
+                    key={column.id}
+                    onClick={() => setActiveColumnId(column.id)}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      isActive
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {column.color && (
+                      <span className="inline-block w-2 h-2 rounded-full mr-1" style={{ backgroundColor: column.color }} />
+                    )}
+                    {column.name}
+                    <span className={`ml-1 ${isOverWip ? 'text-red-600' : ''}`}>
+                      {count}{column.wipLimit !== null ? `/${column.wipLimit}` : ''}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active column content */}
+            {activeColumn && (
+              <div className="bg-gray-100 rounded-lg p-2 min-h-[50vh]">
+                <div className="space-y-2">
+                  {(cardsByColumn[activeColumn.id] || []).map((card, cardIndex) => (
+                    <CardComponent
+                      key={card.id}
+                      card={card}
+                      index={cardIndex}
+                      columnId={activeColumn.id}
+                      swimlaneId={defaultSwimlaneId}
                     />
                   ))}
+                </div>
+                <div className="mt-2">
+                  <AddCardForm boardId={board.id} columnId={activeColumn.id} swimlaneId={defaultSwimlaneId} />
+                </div>
+              </div>
+            )}
 
-                  {/* Swimlane rows */}
-                  {board.swimlanes.map((swimlane) => (
-                    <React.Fragment key={swimlane.id}>
-                      {/* Swimlane header cell */}
-                      <div
-                        className="border-t border-gray-200 bg-gray-50 flex items-start pt-2"
-                        style={{ minHeight: '120px' }}
-                      >
-                        <SwimlaneRowHeader swimlane={swimlane} boardId={board.id} />
-                      </div>
-                      {/* Card cells for each column */}
-                      {board.columns.map((column) => {
-                        const cellKey = `${column.id}:${swimlane.id}`;
-                        const cellCards = cardsByCell[cellKey] || [];
-                        return (
-                          <div
-                            key={cellKey}
-                            className="border-t border-l border-gray-200 bg-gray-50 p-2 space-y-2"
-                            style={{ minHeight: '120px' }}
-                          >
-                            {cellCards.map((card, cardIndex) => (
-                              <CardComponent
-                                key={card.id}
-                                card={card}
-                                index={cardIndex}
+            <div className="mt-3">
+              <AddColumnForm boardId={board.id} />
+            </div>
+            <div className="mt-2">
+              <AddSwimlaneForm boardId={board.id} />
+            </div>
+          </div>
+
+          {/* ---- Desktop: Original layout ---- */}
+          <div className="hidden sm:block">
+            {isMultiSwimlane ? (
+              /* ---- Multi-swimlane: CSS Grid layout ---- */
+              <>
+                <div className="overflow-x-auto pb-4">
+                  <div
+                    className="grid gap-0"
+                    style={{
+                      gridTemplateColumns: `200px repeat(${board.columns.length}, 272px)`,
+                    }}
+                  >
+                    {/* Header row: empty top-left corner + column headers */}
+                    <div className="sticky top-0 bg-white z-10" />
+                    {board.columns.map((column, index) => (
+                      <ColumnHeader
+                        key={column.id}
+                        column={column}
+                        cardCount={(cardsByColumn[column.id] || []).length}
+                        index={index}
+                      />
+                    ))}
+
+                    {/* Swimlane rows */}
+                    {board.swimlanes.map((swimlane) => (
+                      <React.Fragment key={swimlane.id}>
+                        {/* Swimlane header cell */}
+                        <div
+                          className="border-t border-gray-200 bg-gray-50 flex items-start pt-2"
+                          style={{ minHeight: '120px' }}
+                        >
+                          <SwimlaneRowHeader swimlane={swimlane} boardId={board.id} />
+                        </div>
+                        {/* Card cells for each column */}
+                        {board.columns.map((column) => {
+                          const cellKey = `${column.id}:${swimlane.id}`;
+                          const cellCards = cardsByCell[cellKey] || [];
+                          return (
+                            <div
+                              key={cellKey}
+                              className="border-t border-l border-gray-200 bg-gray-50 p-2 space-y-2"
+                              style={{ minHeight: '120px' }}
+                            >
+                              {cellCards.map((card, cardIndex) => (
+                                <CardComponent
+                                  key={card.id}
+                                  card={card}
+                                  index={cardIndex}
+                                  columnId={column.id}
+                                  swimlaneId={swimlane.id}
+                                />
+                              ))}
+                              <AddCardForm
+                                boardId={board.id}
                                 columnId={column.id}
                                 swimlaneId={swimlane.id}
                               />
-                            ))}
-                            <AddCardForm
-                              boardId={board.id}
-                              columnId={column.id}
-                              swimlaneId={swimlane.id}
-                            />
-                          </div>
-                        );
-                      })}
-                    </React.Fragment>
-                  ))}
-                </div>
+                            </div>
+                          );
+                        })}
+                      </React.Fragment>
+                    ))}
+                  </div>
 
-                {/* Add swimlane button below the grid */}
+                  {/* Add swimlane button below the grid */}
+                  <div className="mt-4 max-w-sm">
+                    <AddSwimlaneForm boardId={board.id} />
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <AddColumnForm boardId={board.id} />
+                </div>
+              </>
+            ) : (
+              /* ---- Single swimlane: flat layout (identical to original) ---- */
+              <>
+                <div className="flex gap-4 overflow-x-auto pb-4">
+                  {board.columns.map((column, index) => (
+                    <ColumnComponent
+                      key={column.id}
+                      column={column}
+                      cards={cardsByColumn[column.id] || []}
+                      index={index}
+                      boardId={board.id}
+                      swimlaneId={defaultSwimlaneId}
+                    />
+                  ))}
+                  <AddColumnForm boardId={board.id} />
+                </div>
                 <div className="mt-4 max-w-sm">
                   <AddSwimlaneForm boardId={board.id} />
                 </div>
-              </div>
-              <div className="mt-2">
-                <AddColumnForm boardId={board.id} />
-              </div>
-            </>
-          ) : (
-            /* ---- Single swimlane: flat layout (identical to original) ---- */
-            <>
-              <div className="flex gap-4 overflow-x-auto pb-4">
-                {board.columns.map((column, index) => (
-                  <ColumnComponent
-                    key={column.id}
-                    column={column}
-                    cards={cardsByColumn[column.id] || []}
-                    index={index}
-                    boardId={board.id}
-                    swimlaneId={defaultSwimlaneId}
-                  />
-                ))}
-                <AddColumnForm boardId={board.id} />
-              </div>
-              <div className="mt-4 max-w-sm">
-                <AddSwimlaneForm boardId={board.id} />
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </DragDropProvider>
         <CardDetailModal />
       </div>

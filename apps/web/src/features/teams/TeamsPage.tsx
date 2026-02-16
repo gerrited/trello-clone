@@ -44,17 +44,17 @@ export function TeamsPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Meine Teams</h1>
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Meine Teams</h1>
           <Button size="sm" onClick={() => setShowForm(!showForm)}>
             + Team erstellen
           </Button>
         </div>
 
         {showForm && (
-          <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
-            <div className="flex gap-2">
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-white rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Input
                 placeholder="Team Name"
                 value={newTeamName}
