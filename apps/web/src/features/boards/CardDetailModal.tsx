@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil, Link2, ListChecks } from 'lucide-react';
-import type { CardDetail, CardType, CardSummary, Comment } from '@trello-clone/shared';
+import type { CardDetail, CardType, Comment } from '@trello-clone/shared';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { useBoardStore } from '../../stores/boardStore.js';
@@ -64,12 +64,12 @@ export function CardDetailModal() {
   }, [selectedCardId, fetchCard]);
 
   const handleSaveTitle = async () => {
-    if (!board || !cardDetail || !title.trim()) return;
+    if (!board || !cardDetail || !title.trim() || !editingTitle) return;
+    setEditingTitle(false); // Prevent double-fire from blur after Enter
     try {
       await cardsApi.updateCard(board.id, cardDetail.id, { title: title.trim() });
       updateCardInStore(cardDetail.id, { title: title.trim() });
       setCardDetail({ ...cardDetail, title: title.trim() });
-      setEditingTitle(false);
     } catch {
       toast.error('Titel konnte nicht gespeichert werden');
     }
@@ -103,6 +103,12 @@ export function CardDetailModal() {
     if (!window.confirm('Karte wirklich loeschen?')) return;
     try {
       await cardsApi.deleteCard(board.id, cardDetail.id);
+      // Clean up subtask references in the store (DB sets parentCardId to null)
+      if (cardDetail.subtasks.length > 0) {
+        for (const sub of cardDetail.subtasks) {
+          updateCardInStore(sub.id, { parentCardId: null });
+        }
+      }
       removeCardFromStore(cardDetail.id);
       closeCard();
       toast.success('Karte geloescht');
@@ -116,7 +122,7 @@ export function CardDetailModal() {
 
   return (
     <Modal isOpen={!!selectedCardId} onClose={closeCard} title="Kartendetails">
-      {isLoading || !cardDetail ? (
+      {isLoading || !cardDetail || !board ? (
         <div className="p-8 text-center text-gray-500">Laden...</div>
       ) : (
         <div className="p-6 space-y-6">
@@ -586,7 +592,7 @@ function CommentSection({
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   return (

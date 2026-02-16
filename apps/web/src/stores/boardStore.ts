@@ -106,6 +106,13 @@ export const useBoardStore = create<BoardState>()(
 
       removeCard: (cardId) => set((state) => {
         if (!state.board) return;
+        const card = state.board.cards.find((c) => c.id === cardId);
+        if (card?.parentCardId) {
+          const parent = state.board.cards.find((c) => c.id === card.parentCardId);
+          if (parent) {
+            parent.subtaskCount = Math.max(0, parent.subtaskCount - 1);
+          }
+        }
         state.board.cards = state.board.cards.filter((c) => c.id !== cardId);
       }),
 

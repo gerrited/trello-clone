@@ -1,4 +1,4 @@
-import { eq, and, asc, sql, inArray } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
 import { getPositionAfter, getPositionBetween, getPositionBefore } from '../../utils/ordering.js';
