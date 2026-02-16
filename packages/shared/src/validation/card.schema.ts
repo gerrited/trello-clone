@@ -6,6 +6,7 @@ export const createCardSchema = z.object({
   cardType: z.enum(['story', 'bug', 'task']).optional(),
   columnId: z.string().uuid(),
   swimlaneId: z.string().uuid().optional(),
+  parentCardId: z.string().uuid().optional(),
 });
 
 export const updateCardSchema = z.object({
@@ -13,6 +14,7 @@ export const updateCardSchema = z.object({
   description: z.string().max(5000).nullable().optional(),
   cardType: z.enum(['story', 'bug', 'task']).optional(),
   isArchived: z.boolean().optional(),
+  parentCardId: z.string().uuid().nullable().optional(),
 });
 
 export const moveCardSchema = z.object({

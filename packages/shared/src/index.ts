@@ -11,4 +11,5 @@ export * from './validation/column.schema.js';
 export * from './validation/card.schema.js';
 export * from './validation/swimlane.schema.js';
 export * from './validation/assignee.schema.js';
+export * from './validation/comment.schema.js';
 export * from './constants/index.js';

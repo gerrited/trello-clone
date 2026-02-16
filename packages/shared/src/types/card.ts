@@ -29,3 +29,10 @@ export interface CardSummary {
   subtaskCount: number;
   subtaskDoneCount: number;
 }
+
+export interface CardDetail extends Card {
+  assignees: Array<{ id: string; displayName: string; avatarUrl: string | null }>;
+  comments: import('./comment.js').Comment[];
+  subtasks: CardSummary[];
+  parentCard: { id: string; title: string; cardType: CardType } | null;
+}
