@@ -6,20 +6,19 @@ import { getMe } from '../../api/auth.api.js';
 export function AuthCallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const setAuth = useAuthStore((s) => s.setAuth);
 
   useEffect(() => {
     const token = searchParams.get('token');
     if (token) {
       useAuthStore.getState().setAccessToken(token);
       getMe().then(({ user }) => {
-        setAuth(user, token);
+        useAuthStore.getState().setAuth(user, token);
         navigate('/teams');
       });
     } else {
       navigate('/login');
     }
-  }, [searchParams, setAuth, navigate]);
+  }, [searchParams, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

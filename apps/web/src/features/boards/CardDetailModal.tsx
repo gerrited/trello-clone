@@ -37,21 +37,23 @@ export function CardDetailModal() {
   const [description, setDescription] = useState('');
   const [editingDescription, setEditingDescription] = useState(false);
 
+  // Use getState() to avoid unstable closure references in dependencies
   const fetchCard = useCallback(async () => {
-    if (!board || !selectedCardId) return;
+    const { board: currentBoard, selectedCardId: currentCardId } = useBoardStore.getState();
+    if (!currentBoard || !currentCardId) return;
     setIsLoading(true);
     try {
-      const detail = await cardsApi.getCard(board.id, selectedCardId);
+      const detail = await cardsApi.getCard(currentBoard.id, currentCardId);
       setCardDetail(detail);
       setTitle(detail.title);
       setDescription(detail.description ?? '');
     } catch {
       toast.error('Karte konnte nicht geladen werden');
-      closeCard();
+      useBoardStore.getState().closeCard();
     } finally {
       setIsLoading(false);
     }
-  }, [board, selectedCardId, closeCard]);
+  }, []);
 
   useEffect(() => {
     if (selectedCardId) {

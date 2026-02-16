@@ -42,18 +42,15 @@ function AppRoutes() {
 }
 
 export function App() {
-  const setAuth = useAuthStore((s) => s.setAuth);
-  const setLoading = useAuthStore((s) => s.setLoading);
-
   useEffect(() => {
     getMe()
       .then(({ user }) => {
-        setAuth(user, useAuthStore.getState().accessToken || '');
+        useAuthStore.getState().setAuth(user, useAuthStore.getState().accessToken || '');
       })
       .catch(() => {
-        setLoading(false);
+        useAuthStore.getState().setLoading(false);
       });
-  }, [setAuth, setLoading]);
+  }, []);
 
   return (
     <BrowserRouter>
