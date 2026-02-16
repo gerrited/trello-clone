@@ -1,3 +1,4 @@
+import React from 'react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { CollisionPriority } from '@dnd-kit/abstract';
 import { CardComponent } from './CardComponent.js';
@@ -12,7 +13,7 @@ interface ColumnComponentProps {
   swimlaneId: string;
 }
 
-export function ColumnComponent({ column, cards, index, boardId, swimlaneId }: ColumnComponentProps) {
+export const ColumnComponent = React.memo(function ColumnComponent({ column, cards, index, boardId, swimlaneId }: ColumnComponentProps) {
   const { ref } = useSortable({
     id: column.id,
     index,
@@ -61,4 +62,4 @@ export function ColumnComponent({ column, cards, index, boardId, swimlaneId }: C
       </div>
     </div>
   );
-}
+});

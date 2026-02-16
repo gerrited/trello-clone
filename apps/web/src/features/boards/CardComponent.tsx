@@ -1,3 +1,4 @@
+import React from 'react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { CardSummary } from '@trello-clone/shared';
 import { BookOpen, Bug, CheckSquare, MessageSquare, Link2 } from 'lucide-react';
@@ -22,7 +23,7 @@ const TYPE_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   task: CheckSquare,
 };
 
-export function CardComponent({ card, index, columnId, swimlaneId }: CardComponentProps) {
+export const CardComponent = React.memo(function CardComponent({ card, index, columnId, swimlaneId }: CardComponentProps) {
   const openCard = useBoardStore((s) => s.openCard);
   const { ref, isDragging } = useSortable({
     id: card.id,
@@ -94,4 +95,4 @@ export function CardComponent({ card, index, columnId, swimlaneId }: CardCompone
       )}
     </div>
   );
-}
+});

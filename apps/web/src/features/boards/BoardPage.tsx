@@ -29,7 +29,7 @@ interface DragEndEvent {
   };
 }
 
-function ColumnHeader({ column, cardCount, index }: { column: Column; cardCount: number; index: number }) {
+const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index }: { column: Column; cardCount: number; index: number }) {
   const { ref } = useSortable({
     id: column.id,
     index,
@@ -58,7 +58,7 @@ function ColumnHeader({ column, cardCount, index }: { column: Column; cardCount:
       </span>
     </div>
   );
-}
+});
 
 export function BoardPage() {
   const { teamId, boardId } = useParams<{ teamId: string; boardId: string }>();
@@ -266,8 +266,29 @@ export function BoardPage() {
   if (isLoading || !board) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-gray-500">Board wird geladen...</p>
+        <div className="px-2 sm:px-4 py-2 sm:py-4 animate-pulse">
+          {/* Header skeleton */}
+          <div className="flex items-center gap-4 mb-4">
+            <div className="h-4 w-16 bg-gray-200 rounded" />
+            <div className="h-6 w-48 bg-gray-200 rounded" />
+          </div>
+          {/* Column skeletons */}
+          <div className="flex gap-4 overflow-hidden">
+            {[1, 2, 3].map((col) => (
+              <div key={col} className="flex-shrink-0 w-72 bg-gray-100 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-4 w-24 bg-gray-200 rounded" />
+                  <div className="h-5 w-8 bg-gray-200 rounded-full" />
+                </div>
+                {[1, 2, 3].slice(0, col === 2 ? 2 : 3).map((card) => (
+                  <div key={card} className="bg-white rounded-lg border border-gray-200 p-3 mb-2">
+                    <div className="h-4 w-16 bg-gray-200 rounded mb-2" />
+                    <div className="h-4 w-full bg-gray-200 rounded" />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </AppLayout>
     );
