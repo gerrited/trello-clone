@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil } from 'lucide-react';
-import type { CardDetail, CardType, Comment } from '@trello-clone/shared';
+import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil, Link2, ListChecks } from 'lucide-react';
+import type { CardDetail, CardType, CardSummary, Comment } from '@trello-clone/shared';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { useBoardStore } from '../../stores/boardStore.js';
@@ -25,8 +25,10 @@ export function CardDetailModal() {
   const board = useBoardStore((s) => s.board);
   const selectedCardId = useBoardStore((s) => s.selectedCardId);
   const closeCard = useBoardStore((s) => s.closeCard);
+  const openCard = useBoardStore((s) => s.openCard);
   const updateCardInStore = useBoardStore((s) => s.updateCard);
   const removeCardFromStore = useBoardStore((s) => s.removeCard);
+  const addCardToStore = useBoardStore((s) => s.addCard);
 
   const [cardDetail, setCardDetail] = useState<CardDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -241,7 +243,59 @@ export function CardDetailModal() {
             </div>
           )}
 
-          {/* Subtasks section placeholder — filled in Task 6 */}
+          {/* Parent card link */}
+          {cardDetail.parentCard && (
+            <div className="flex items-center gap-2 text-sm bg-gray-50 rounded-lg p-3">
+              <Link2 size={14} className="text-gray-400 flex-shrink-0" />
+              <span className="text-gray-600">Unteraufgabe von:</span>
+              <button
+                onClick={() => openCard(cardDetail.parentCard!.id)}
+                className="font-medium text-blue-600 hover:underline truncate"
+              >
+                {cardDetail.parentCard.title}
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await cardsApi.updateCard(board!.id, cardDetail.id, { parentCardId: null });
+                    updateCardInStore(cardDetail.id, { parentCardId: null });
+                    if (cardDetail.parentCard) {
+                      const parent = board!.cards.find((c) => c.id === cardDetail.parentCard!.id);
+                      if (parent) {
+                        updateCardInStore(parent.id, { subtaskCount: Math.max(0, parent.subtaskCount - 1) });
+                      }
+                    }
+                    setCardDetail({ ...cardDetail, parentCardId: null, parentCard: null });
+                    toast.success('Verknuepfung entfernt');
+                  } catch {
+                    toast.error('Verknuepfung konnte nicht entfernt werden');
+                  }
+                }}
+                className="ml-auto text-gray-400 hover:text-red-500 flex-shrink-0"
+                title="Verknuepfung entfernen"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Subtasks section (only if card is not itself a subtask) */}
+          {!cardDetail.parentCardId && (
+            <SubtaskSection
+              boardId={board!.id}
+              card={cardDetail}
+              onSubtasksChange={fetchCard}
+            />
+          )}
+
+          {/* Set as subtask (only if card has no subtasks and no parent) */}
+          {!cardDetail.parentCardId && cardDetail.subtasks.length === 0 && (
+            <SetParentSection
+              boardId={board!.id}
+              card={cardDetail}
+              onParentSet={fetchCard}
+            />
+          )}
 
           {/* Comments section */}
           <CommentSection
@@ -267,6 +321,213 @@ export function CardDetailModal() {
         </div>
       )}
     </Modal>
+  );
+}
+
+/* ---------- Subtask Section ---------- */
+
+function SubtaskSection({
+  boardId,
+  card,
+  onSubtasksChange,
+}: {
+  boardId: string;
+  card: CardDetail;
+  onSubtasksChange: () => void;
+}) {
+  const board = useBoardStore((s) => s.board);
+  const openCard = useBoardStore((s) => s.openCard);
+  const addCardToStore = useBoardStore((s) => s.addCard);
+  const updateCardInStore = useBoardStore((s) => s.updateCard);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const lastColumnId = board?.columns[board.columns.length - 1]?.id ?? null;
+  const doneCount = card.subtasks.filter((s) => s.columnId === lastColumnId).length;
+
+  const handleAddSubtask = async () => {
+    if (!newTitle.trim() || !board) return;
+    setSubmitting(true);
+    try {
+      const newCard = await cardsApi.createCard(boardId, {
+        title: newTitle.trim(),
+        columnId: board.columns[0].id,
+        parentCardId: card.id,
+      });
+      addCardToStore({
+        id: newCard.id,
+        columnId: newCard.columnId,
+        swimlaneId: newCard.swimlaneId,
+        parentCardId: newCard.parentCardId,
+        cardType: newCard.cardType,
+        title: newCard.title,
+        position: newCard.position,
+        assignees: [],
+        commentCount: 0,
+        subtaskCount: 0,
+        subtaskDoneCount: 0,
+      });
+      updateCardInStore(card.id, { subtaskCount: card.subtasks.length + 1 });
+      setNewTitle('');
+      setShowAddForm(false);
+      onSubtasksChange();
+    } catch {
+      toast.error('Unteraufgabe konnte nicht erstellt werden');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div>
+      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+        <ListChecks size={16} />
+        Unteraufgaben {card.subtasks.length > 0 && `(${doneCount}/${card.subtasks.length})`}
+      </label>
+
+      {/* Progress bar */}
+      {card.subtasks.length > 0 && (
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+          <div
+            className="bg-green-500 h-2 rounded-full transition-all"
+            style={{ width: `${(doneCount / card.subtasks.length) * 100}%` }}
+          />
+        </div>
+      )}
+
+      {/* Subtask list */}
+      <div className="space-y-1">
+        {card.subtasks.map((subtask) => {
+          const isDone = subtask.columnId === lastColumnId;
+          return (
+            <div
+              key={subtask.id}
+              className="flex items-center gap-2 text-sm p-2 rounded hover:bg-gray-50 cursor-pointer"
+              onClick={() => openCard(subtask.id)}
+            >
+              <div
+                className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center ${
+                  isDone ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'
+                }`}
+              >
+                {isDone && <CheckSquare size={10} />}
+              </div>
+              <span className={isDone ? 'line-through text-gray-400' : 'text-gray-700'}>{subtask.title}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Add subtask form */}
+      {showAddForm ? (
+        <div className="mt-2 space-y-2">
+          <input
+            autoFocus
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleAddSubtask();
+              if (e.key === 'Escape') setShowAddForm(false);
+            }}
+            placeholder="Unteraufgabe hinzufuegen..."
+            className="w-full rounded border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div className="flex gap-2">
+            <Button size="sm" onClick={handleAddSubtask} disabled={submitting || !newTitle.trim()}>
+              Hinzufuegen
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowAddForm(false)}>
+              Abbrechen
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setShowAddForm(true)} className="mt-2 text-sm text-gray-500 hover:text-gray-700">
+          + Unteraufgabe hinzufuegen
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Set Parent Section ---------- */
+
+function SetParentSection({
+  boardId,
+  card,
+  onParentSet,
+}: {
+  boardId: string;
+  card: CardDetail;
+  onParentSet: () => void;
+}) {
+  const board = useBoardStore((s) => s.board);
+  const updateCardInStore = useBoardStore((s) => s.updateCard);
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  // Candidates: cards on the same board that are not already subtasks and not the current card
+  const candidates = (board?.cards ?? []).filter(
+    (c) => c.id !== card.id && !c.parentCardId && c.title.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const handleSetParent = async (parentId: string) => {
+    try {
+      await cardsApi.updateCard(boardId, card.id, { parentCardId: parentId });
+      updateCardInStore(card.id, { parentCardId: parentId });
+      const parentCard = board?.cards.find((c) => c.id === parentId);
+      if (parentCard) {
+        updateCardInStore(parentId, { subtaskCount: parentCard.subtaskCount + 1 });
+      }
+      setIsOpen(false);
+      onParentSet();
+    } catch {
+      toast.error('Verknuepfung konnte nicht gesetzt werden');
+    }
+  };
+
+  if (!isOpen) {
+    return (
+      <button onClick={() => setIsOpen(true)} className="text-sm text-gray-500 hover:text-gray-700">
+        <Link2 size={14} className="inline mr-1" />
+        Als Unteraufgabe zuweisen...
+      </button>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">Elternkarte waehlen</label>
+      <input
+        autoFocus
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Karte suchen..."
+        className="w-full rounded border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <div className="max-h-40 overflow-y-auto border border-gray-200 rounded">
+        {candidates.length === 0 ? (
+          <div className="p-3 text-sm text-gray-400 text-center">Keine passenden Karten gefunden</div>
+        ) : (
+          candidates.slice(0, 20).map((c) => (
+            <button
+              key={c.id}
+              onClick={() => handleSetParent(c.id)}
+              className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 hover:text-blue-700 border-b border-gray-100 last:border-b-0"
+            >
+              <span className={`inline-block text-xs px-1 py-0.5 rounded mr-2 ${TYPE_COLORS[c.cardType]}`}>
+                {c.cardType.charAt(0).toUpperCase() + c.cardType.slice(1)}
+              </span>
+              {c.title}
+            </button>
+          ))
+        )}
+      </div>
+      <Button size="sm" variant="ghost" onClick={() => setIsOpen(false)}>
+        Abbrechen
+      </Button>
+    </div>
   );
 }
 
