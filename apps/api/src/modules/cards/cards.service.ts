@@ -1,4 +1,4 @@
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, sql, inArray } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
 import { getPositionAfter, getPositionBetween, getPositionBefore } from '../../utils/ordering.js';
@@ -46,6 +46,17 @@ export async function createCard(boardId: string, userId: string, input: CreateC
     swimlaneId = defaultSwimlane.id;
   }
 
+  // Validate parentCardId if provided
+  let parentCardId: string | null = null;
+  if (input.parentCardId) {
+    const parent = await db.query.cards.findFirst({
+      where: and(eq(schema.cards.id, input.parentCardId), eq(schema.cards.boardId, boardId)),
+    });
+    if (!parent) throw new AppError(404, 'Parent card not found on this board');
+    if (parent.parentCardId) throw new AppError(400, 'Cannot nest subtasks more than one level deep');
+    parentCardId = parent.id;
+  }
+
   // Get last card position in this column+swimlane
   const existingCards = await db.query.cards.findMany({
     where: and(
@@ -67,6 +78,7 @@ export async function createCard(boardId: string, userId: string, input: CreateC
       boardId,
       columnId: input.columnId,
       swimlaneId,
+      parentCardId,
       title: input.title,
       description: input.description ?? null,
       cardType: input.cardType ?? 'task',
@@ -89,12 +101,38 @@ export async function getCard(cardId: string, userId: string) {
           },
         },
       },
+      comments: {
+        orderBy: [asc(schema.comments.createdAt)],
+        with: {
+          author: {
+            columns: { id: true, displayName: true, avatarUrl: true },
+          },
+        },
+      },
+      parentCard: {
+        columns: { id: true, title: true, cardType: true },
+      },
     },
   });
 
   if (!card) throw new AppError(404, 'Card not found');
 
   await requireBoardAccess(card.boardId, userId);
+
+  // Fetch subtasks separately (non-archived only)
+  const subtasks = await db.query.cards.findMany({
+    where: and(eq(schema.cards.parentCardId, cardId), eq(schema.cards.isArchived, false)),
+    orderBy: [asc(schema.cards.position)],
+    columns: {
+      id: true,
+      columnId: true,
+      swimlaneId: true,
+      parentCardId: true,
+      cardType: true,
+      title: true,
+      position: true,
+    },
+  });
 
   return {
     ...card,
@@ -103,6 +141,23 @@ export async function getCard(cardId: string, userId: string) {
       displayName: a.user.displayName,
       avatarUrl: a.user.avatarUrl,
     })),
+    comments: card.comments.map((c) => ({
+      id: c.id,
+      cardId: c.cardId,
+      authorId: c.authorId,
+      body: c.body,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+      author: c.author,
+    })),
+    subtasks: subtasks.map((s) => ({
+      ...s,
+      assignees: [] as Array<{ id: string; displayName: string; avatarUrl: string | null }>,
+      commentCount: 0,
+      subtaskCount: 0,
+      subtaskDoneCount: 0,
+    })),
+    parentCard: card.parentCard ?? null,
   };
 }
 
@@ -113,6 +168,30 @@ export async function updateCard(cardId: string, userId: string, input: UpdateCa
   if (!card) throw new AppError(404, 'Card not found');
 
   await requireBoardAccess(card.boardId, userId);
+
+  // Validate parentCardId changes
+  if (input.parentCardId !== undefined) {
+    if (input.parentCardId !== null) {
+      if (input.parentCardId === cardId) {
+        throw new AppError(400, 'A card cannot be its own parent');
+      }
+      const parent = await db.query.cards.findFirst({
+        where: and(eq(schema.cards.id, input.parentCardId), eq(schema.cards.boardId, card.boardId)),
+      });
+      if (!parent) throw new AppError(404, 'Parent card not found on this board');
+      if (parent.parentCardId) throw new AppError(400, 'Cannot nest subtasks more than one level deep');
+
+      // Check if the card already has children (would create depth > 1)
+      const existingChildren = await db.query.cards.findMany({
+        where: eq(schema.cards.parentCardId, cardId),
+        columns: { id: true },
+        limit: 1,
+      });
+      if (existingChildren.length > 0) {
+        throw new AppError(400, 'Cannot set parent on a card that already has subtasks');
+      }
+    }
+  }
 
   const [updated] = await db
     .update(schema.cards)

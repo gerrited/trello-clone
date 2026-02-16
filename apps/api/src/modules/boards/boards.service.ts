@@ -1,4 +1,4 @@
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, sql, inArray } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
 import { getPositionAfter } from '../../utils/ordering.js';
@@ -98,6 +98,39 @@ export async function getBoard(boardId: string, userId: string) {
     }),
   ]);
 
+  // Compute comment counts per card (single SQL query)
+  const cardIds = cardsResult.map((c) => c.id);
+  const commentCounts: Record<string, number> = {};
+  if (cardIds.length > 0) {
+    const counts = await db
+      .select({
+        cardId: schema.comments.cardId,
+        count: sql<number>`count(*)::int`.as('count'),
+      })
+      .from(schema.comments)
+      .where(inArray(schema.comments.cardId, cardIds))
+      .groupBy(schema.comments.cardId);
+
+    for (const row of counts) {
+      commentCounts[row.cardId] = row.count;
+    }
+  }
+
+  // Compute subtask counts from the card array (in-memory)
+  const lastColumn = columnsResult.length > 0 ? columnsResult[columnsResult.length - 1] : null;
+  const subtaskCounts: Record<string, { total: number; done: number }> = {};
+  for (const card of cardsResult) {
+    if (card.parentCardId) {
+      if (!subtaskCounts[card.parentCardId]) {
+        subtaskCounts[card.parentCardId] = { total: 0, done: 0 };
+      }
+      subtaskCounts[card.parentCardId].total++;
+      if (lastColumn && card.columnId === lastColumn.id) {
+        subtaskCounts[card.parentCardId].done++;
+      }
+    }
+  }
+
   const cardSummaries = cardsResult.map((card) => ({
     id: card.id,
     columnId: card.columnId,
@@ -111,9 +144,9 @@ export async function getBoard(boardId: string, userId: string) {
       displayName: a.user.displayName,
       avatarUrl: a.user.avatarUrl,
     })),
-    commentCount: 0,
-    subtaskCount: 0,
-    subtaskDoneCount: 0,
+    commentCount: commentCounts[card.id] ?? 0,
+    subtaskCount: subtaskCounts[card.id]?.total ?? 0,
+    subtaskDoneCount: subtaskCounts[card.id]?.done ?? 0,
   }));
 
   return {
