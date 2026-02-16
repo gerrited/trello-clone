@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/authStore.js';
+import { getSocketId } from './ws.js';
 
 export const api = axios.create({
   baseURL: '/api/v1',
@@ -13,6 +14,11 @@ api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  // Send socket ID so the server can exclude us from broadcasts
+  const socketId = getSocketId();
+  if (socketId) {
+    config.headers['X-Socket-Id'] = socketId;
   }
   return config;
 });
@@ -52,7 +58,10 @@ api.interceptors.response.use(
         failedQueue.forEach(({ reject }) => reject(refreshError));
         failedQueue = [];
         useAuthStore.getState().logout();
-        window.location.href = '/login';
+        // Use soft navigation instead of hard reload to prevent infinite reload loops
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

@@ -1,3 +1,4 @@
+import { createServer } from 'node:http';
 import express, { type Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -13,9 +14,14 @@ import { boardRoutes } from './modules/boards/boards.routes.js';
 import { columnRoutes } from './modules/columns/columns.routes.js';
 import { cardRoutes } from './modules/cards/cards.routes.js';
 import { swimlaneRoutes } from './modules/swimlanes/swimlanes.routes.js';
+import { setupSocketIO } from './ws/socket.js';
 
 const logger = pino({ name: 'api' });
 const app: Express = express();
+const httpServer = createServer(app);
+
+// Initialize Socket.IO
+setupSocketIO(httpServer);
 
 app.use(helmet());
 app.use(cors({ origin: env.WEB_URL, credentials: true }));
@@ -38,7 +44,7 @@ app.use('/api/v1/boards/:boardId/swimlanes', swimlaneRoutes);
 
 app.use(errorHandler);
 
-app.listen(env.API_PORT, () => {
+httpServer.listen(env.API_PORT, () => {
   logger.info(`API server running on port ${env.API_PORT}`);
 });
 

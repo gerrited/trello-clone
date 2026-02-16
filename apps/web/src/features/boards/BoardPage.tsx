@@ -15,6 +15,8 @@ import { SwimlaneRowHeader } from './SwimlaneRow.js';
 import { CardComponent } from './CardComponent.js';
 import { AddCardForm } from './AddCardForm.js';
 import { CardDetailModal } from './CardDetailModal.js';
+import { ConnectionStatus } from '../../components/ui/ConnectionStatus.js';
+import { useRealtimeBoard } from '../../hooks/useRealtimeBoard.js';
 import type { Column, CardSummary } from '@trello-clone/shared';
 
 /** Shape of the DnD event we actually use from @dnd-kit */
@@ -70,10 +72,14 @@ export function BoardPage() {
 
   useEffect(() => {
     if (!teamId || !boardId) return;
-    setLoading(true);
-    getBoard(teamId, boardId).then(setBoard).catch(() => setLoading(false));
-    return () => clearBoard();
-  }, [teamId, boardId, setBoard, setLoading, clearBoard]);
+    const { setLoading: sl, setBoard: sb, clearBoard: cb } = useBoardStore.getState();
+    sl(true);
+    getBoard(teamId, boardId).then(sb).catch(() => useBoardStore.getState().setLoading(false));
+    return () => cb();
+  }, [teamId, boardId]);
+
+  // Real-time updates via Socket.IO
+  useRealtimeBoard(boardId);
 
   const isMultiSwimlane = board ? board.swimlanes.length > 1 : false;
 
@@ -235,6 +241,7 @@ export function BoardPage() {
             &larr; Boards
           </Link>
           <h1 className="text-xl font-bold text-gray-900">{board.name}</h1>
+          <ConnectionStatus />
         </div>
 
         <DragDropProvider onDragEnd={handleDragEnd}>
