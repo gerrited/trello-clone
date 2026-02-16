@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { CardSummary } from '@trello-clone/shared';
 import { BookOpen, Bug, CheckSquare } from 'lucide-react';
+import { useBoardStore } from '../../stores/boardStore.js';
 
 interface CardComponentProps {
   card: CardSummary;
@@ -22,6 +23,7 @@ const TYPE_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
 };
 
 export function CardComponent({ card, index, columnId, swimlaneId }: CardComponentProps) {
+  const openCard = useBoardStore((s) => s.openCard);
   const { ref, isDragging } = useSortable({
     id: card.id,
     index,
@@ -34,8 +36,11 @@ export function CardComponent({ card, index, columnId, swimlaneId }: CardCompone
   return (
     <div
       ref={ref}
-      className={`bg-white rounded-lg border border-gray-200 p-3 shadow-sm cursor-grab active:cursor-grabbing transition-shadow hover:shadow-md ${
-        isDragging ? 'opacity-50 shadow-lg' : ''
+      onClick={() => {
+        if (!isDragging) openCard(card.id);
+      }}
+      className={`bg-white rounded-lg border border-gray-200 p-3 shadow-sm cursor-pointer transition-shadow hover:shadow-md ${
+        isDragging ? 'opacity-50 shadow-lg cursor-grabbing' : ''
       }`}
     >
       <div className="flex items-start gap-2">

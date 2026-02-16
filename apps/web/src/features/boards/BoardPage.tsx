@@ -14,6 +14,7 @@ import { AddSwimlaneForm } from './AddSwimlaneForm.js';
 import { SwimlaneRowHeader } from './SwimlaneRow.js';
 import { CardComponent } from './CardComponent.js';
 import { AddCardForm } from './AddCardForm.js';
+import { CardDetailModal } from './CardDetailModal.js';
 import type { Column, CardSummary } from '@trello-clone/shared';
 
 /** Shape of the DnD event we actually use from @dnd-kit */
@@ -330,6 +331,7 @@ export function BoardPage() {
             </>
           )}
         </DragDropProvider>
+        <CardDetailModal />
       </div>
     </AppLayout>
   );

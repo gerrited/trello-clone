@@ -1,13 +1,13 @@
 import { api } from './client.js';
-import type { Card, CreateCardInput, UpdateCardInput, MoveCardInput } from '@trello-clone/shared';
+import type { Card, CardDetail, CreateCardInput, UpdateCardInput, MoveCardInput } from '@trello-clone/shared';
 
 export async function createCard(boardId: string, input: CreateCardInput): Promise<Card> {
   const { data } = await api.post<{ card: Card }>(`/boards/${boardId}/cards`, input);
   return data.card;
 }
 
-export async function getCard(boardId: string, cardId: string): Promise<Card> {
-  const { data } = await api.get<{ card: Card }>(`/boards/${boardId}/cards/${cardId}`);
+export async function getCard(boardId: string, cardId: string): Promise<CardDetail> {
+  const { data } = await api.get<{ card: CardDetail }>(`/boards/${boardId}/cards/${cardId}`);
   return data.card;
 }
 

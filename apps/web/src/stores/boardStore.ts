@@ -7,10 +7,13 @@ import type { BoardDetail } from '../api/boards.api.js';
 interface BoardState {
   board: BoardDetail | null;
   isLoading: boolean;
+  selectedCardId: string | null;
 
   setBoard: (board: BoardDetail) => void;
   clearBoard: () => void;
   setLoading: (loading: boolean) => void;
+  openCard: (cardId: string) => void;
+  closeCard: () => void;
 
   // Column actions
   addColumn: (column: Column) => void;
@@ -36,10 +39,13 @@ export const useBoardStore = create<BoardState>()(
     immer((set) => ({
       board: null,
       isLoading: false,
+      selectedCardId: null,
 
       setBoard: (board) => set((state) => { state.board = board; state.isLoading = false; }),
-      clearBoard: () => set((state) => { state.board = null; }),
+      clearBoard: () => set((state) => { state.board = null; state.selectedCardId = null; }),
       setLoading: (loading) => set((state) => { state.isLoading = loading; }),
+      openCard: (cardId) => set((state) => { state.selectedCardId = cardId; }),
+      closeCard: () => set((state) => { state.selectedCardId = null; }),
 
       addColumn: (column) => set((state) => {
         if (!state.board) return;
