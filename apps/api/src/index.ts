@@ -14,6 +14,11 @@ import { boardRoutes } from './modules/boards/boards.routes.js';
 import { columnRoutes } from './modules/columns/columns.routes.js';
 import { cardRoutes } from './modules/cards/cards.routes.js';
 import { swimlaneRoutes } from './modules/swimlanes/swimlanes.routes.js';
+import { labelRoutes } from './modules/labels/labels.routes.js';
+import { boardActivityRoutes, cardActivityRoutes, notificationRoutes } from './modules/activities/activities.routes.js';
+import { searchRoutes } from './modules/search/search.routes.js';
+import { templateRoutes, saveAsTemplateRoutes } from './modules/templates/templates.routes.js';
+import { ensureSystemTemplates } from './modules/templates/templates.service.js';
 import { setupSocketIO } from './ws/socket.js';
 
 const logger = pino({ name: 'api' });
@@ -22,6 +27,9 @@ const httpServer = createServer(app);
 
 // Initialize Socket.IO
 setupSocketIO(httpServer);
+
+// Seed system templates
+ensureSystemTemplates().catch((err) => logger.error(err, 'Failed to seed system templates'));
 
 app.use(helmet());
 app.use(cors({ origin: env.WEB_URL, credentials: true }));
@@ -41,6 +49,13 @@ app.use('/api/v1/teams/:teamId/boards', boardRoutes);
 app.use('/api/v1/boards/:boardId/columns', columnRoutes);
 app.use('/api/v1/boards/:boardId/cards', cardRoutes);
 app.use('/api/v1/boards/:boardId/swimlanes', swimlaneRoutes);
+app.use('/api/v1/boards/:boardId/labels', labelRoutes);
+app.use('/api/v1/boards/:boardId/activities', boardActivityRoutes);
+app.use('/api/v1/cards/:cardId/activities', cardActivityRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/search', searchRoutes);
+app.use('/api/v1/teams/:teamId/templates', templateRoutes);
+app.use('/api/v1/boards/:boardId/save-as-template', saveAsTemplateRoutes);
 
 app.use(errorHandler);
 

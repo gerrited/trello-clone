@@ -42,6 +42,9 @@ export function setupSocketIO(httpServer: HttpServer): Server {
     const userId = socket.data.userId as string;
     logger.info({ userId, socketId: socket.id }, 'Client connected');
 
+    // Join user-specific room for notifications
+    socket.join(`user:${userId}`);
+
     // Join a board room
     socket.on(WS_EVENTS.BOARD_JOIN, (boardId: string) => {
       if (typeof boardId !== 'string' || !boardId) return;

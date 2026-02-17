@@ -3,6 +3,7 @@ import type { AuthRequest } from '../../middleware/auth.js';
 import * as swimlanesService from './swimlanes.service.js';
 import { broadcastToBoard } from '../../ws/emitters.js';
 import { WS_EVENTS } from '@trello-clone/shared';
+import { logActivity } from '../activities/activities.service.js';
 
 export async function createHandler(req: AuthRequest, res: Response, next: NextFunction) {
   try {
@@ -10,6 +11,7 @@ export async function createHandler(req: AuthRequest, res: Response, next: NextF
     const swimlane = await swimlanesService.createSwimlane(boardId, req.userId!, req.body);
     res.status(201).json({ swimlane });
     broadcastToBoard(boardId, WS_EVENTS.SWIMLANE_CREATED, { swimlane }, req.socketId);
+    logActivity({ boardId, userId: req.userId!, action: 'swimlane.created', entityType: 'swimlane', entityId: swimlane.id, metadata: { name: swimlane.name }, excludeSocketId: req.socketId });
   } catch (err) {
     next(err);
   }
@@ -44,6 +46,7 @@ export async function deleteHandler(req: AuthRequest, res: Response, next: NextF
     await swimlanesService.deleteSwimlane(swimlaneId, req.userId!);
     res.status(204).end();
     broadcastToBoard(boardId, WS_EVENTS.SWIMLANE_DELETED, { swimlaneId }, req.socketId);
+    logActivity({ boardId, userId: req.userId!, action: 'swimlane.deleted', entityType: 'swimlane', entityId: swimlaneId, excludeSocketId: req.socketId });
   } catch (err) {
     next(err);
   }

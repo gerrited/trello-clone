@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { listBoards, createBoard } from '../../api/boards.api.js';
+import { createBoardFromTemplate } from '../../api/templates.api.js';
 import { AppLayout } from '../../components/layout/AppLayout.js';
 import { Button } from '../../components/ui/Button.js';
-import { Input } from '../../components/ui/Input.js';
+import { TemplatePicker } from './TemplatePicker.js';
 import type { Board } from '@trello-clone/shared';
 
 export function BoardListPage() {
   const { teamId } = useParams<{ teamId: string }>();
   const [boards, setBoards] = useState<Board[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [newBoardName, setNewBoardName] = useState('');
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -21,14 +21,17 @@ export function BoardListPage() {
       .finally(() => setLoading(false));
   }, [teamId]);
 
-  const handleCreateBoard = async () => {
-    if (!teamId || !newBoardName.trim()) return;
+  const handleCreateBoard = async (templateId: string | null, boardName: string) => {
+    if (!teamId) return;
     setCreating(true);
     try {
-      const board = await createBoard(teamId, { name: newBoardName.trim() });
+      let board: Board;
+      if (templateId) {
+        board = await createBoardFromTemplate(teamId, { name: boardName, templateId });
+      } else {
+        board = await createBoard(teamId, { name: boardName });
+      }
       setBoards((prev) => [...prev, board]);
-      setNewBoardName('');
-      setShowForm(false);
     } finally {
       setCreating(false);
     }
@@ -44,29 +47,14 @@ export function BoardListPage() {
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">Boards</h1>
           </div>
-          <Button size="sm" onClick={() => setShowForm(!showForm)}>
-            + Board erstellen
+          <Button
+            size="sm"
+            onClick={() => setShowTemplatePicker(true)}
+            disabled={creating}
+          >
+            {creating ? 'Erstellen...' : '+ Board erstellen'}
           </Button>
         </div>
-
-        {showForm && (
-          <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Board Name"
-                value={newBoardName}
-                onChange={(e) => setNewBoardName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateBoard()}
-              />
-              <Button onClick={handleCreateBoard} disabled={creating || !newBoardName.trim()}>
-                {creating ? 'Erstellen...' : 'Erstellen'}
-              </Button>
-              <Button variant="ghost" onClick={() => setShowForm(false)}>
-                Abbrechen
-              </Button>
-            </div>
-          </div>
-        )}
 
         {loading ? (
           <p className="text-gray-500">Laden...</p>
@@ -88,6 +76,13 @@ export function BoardListPage() {
             ))}
           </div>
         )}
+
+        <TemplatePicker
+          isOpen={showTemplatePicker}
+          onClose={() => setShowTemplatePicker(false)}
+          teamId={teamId ?? ''}
+          onSelectTemplate={handleCreateBoard}
+        />
       </div>
     </AppLayout>
   );

@@ -1,12 +1,30 @@
-import type { ReactNode } from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { Search } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore.js';
 import { logoutUser } from '../../api/auth.api.js';
 import { Button } from '../ui/Button.js';
+import { NotificationBell } from './NotificationBell.js';
+import { useNotifications } from '../../hooks/useNotifications.js';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts.js';
+import { CommandPalette } from '../../features/boards/CommandPalette.js';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+
+  // Initialize global notification listener
+  useNotifications();
+
+  // Global keyboard shortcut for command palette
+  const shortcutHandlers = useMemo(
+    () => ({
+      onOpenCommandPalette: () => setShowCommandPalette(true),
+    }),
+    [],
+  );
+  useKeyboardShortcuts(shortcutHandlers);
 
   const handleLogout = async () => {
     await logoutUser();
@@ -22,6 +40,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
             Trello Clone
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
+            <button
+              onClick={() => setShowCommandPalette(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              title="Suche (Ctrl+K)"
+            >
+              <Search size={14} />
+              <span className="hidden sm:inline text-xs">Suche</span>
+              <kbd className="hidden sm:inline text-[10px] px-1 bg-white border border-gray-300 rounded">
+                ⌘K
+              </kbd>
+            </button>
+            <NotificationBell />
             <span className="text-sm text-gray-600 hidden sm:inline">{user?.displayName}</span>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               Abmelden
@@ -30,6 +60,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main>{children}</main>
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+      />
     </div>
   );
 }

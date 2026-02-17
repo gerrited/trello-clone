@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useParams, Link, useNavigate } from 'react-router';
 import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { CollisionPriority } from '@dnd-kit/abstract';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, Calendar, Activity, Keyboard } from 'lucide-react';
 import { useBoardStore } from '../../stores/boardStore.js';
 import { getBoard } from '../../api/boards.api.js';
 import * as cardsApi from '../../api/cards.api.js';
@@ -16,9 +16,13 @@ import { SwimlaneRowHeader } from './SwimlaneRow.js';
 import { CardComponent } from './CardComponent.js';
 import { AddCardForm } from './AddCardForm.js';
 import { CardDetailModal } from './CardDetailModal.js';
+import { ActivityFeed } from './ActivityFeed.js';
+import { ShortcutHelpModal } from './ShortcutHelpModal.js';
+import { SaveAsTemplateButton } from './SaveAsTemplateButton.js';
 import { ConnectionStatus } from '../../components/ui/ConnectionStatus.js';
 import { useRealtimeBoard } from '../../hooks/useRealtimeBoard.js';
-import type { Column, CardSummary, CardType } from '@trello-clone/shared';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts.js';
+import type { Column, CardSummary, CardType, Label } from '@trello-clone/shared';
 
 /** Shape of the DnD event we actually use from @dnd-kit */
 interface DragEndEvent {
@@ -62,6 +66,7 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
 
 export function BoardPage() {
   const { teamId, boardId } = useParams<{ teamId: string; boardId: string }>();
+  const navigate = useNavigate();
   const board = useBoardStore((s) => s.board);
   const isLoading = useBoardStore((s) => s.isLoading);
   const setBoard = useBoardStore((s) => s.setBoard);
@@ -70,6 +75,9 @@ export function BoardPage() {
   const updateColumn = useBoardStore((s) => s.updateColumn);
   const reorderColumns = useBoardStore((s) => s.reorderColumns);
   const clearBoard = useBoardStore((s) => s.clearBoard);
+
+  // Keyboard shortcut modal states
+  const [showShortcutHelp, setShowShortcutHelp] = useState(false);
 
   useEffect(() => {
     if (!teamId || !boardId) return;
@@ -82,13 +90,38 @@ export function BoardPage() {
   // Real-time updates via Socket.IO
   useRealtimeBoard(boardId);
 
+  // Keyboard shortcuts
+  const shortcutHandlers = useMemo(
+    () => ({
+      onShowHelp: () => setShowShortcutHelp(true),
+      onNewCard: () => {
+        // Focus the first AddCardForm on the page (by clicking its trigger button)
+        const addBtn = document.querySelector('[data-add-card-trigger]') as HTMLButtonElement | null;
+        addBtn?.click();
+      },
+      onGoToBoards: () => {
+        if (teamId) navigate(`/teams/${teamId}/boards`);
+      },
+      onFocusFilter: () => {
+        const filterBtn = document.querySelector('[data-filter-trigger]') as HTMLButtonElement | null;
+        filterBtn?.focus();
+      },
+      onToggleActivity: () => setShowActivity((prev) => !prev),
+    }),
+    [teamId, navigate],
+  );
+  useKeyboardShortcuts(shortcutHandlers);
+
   // Mobile column tab selector
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
 
   // Filters
   const [filterType, setFilterType] = useState<CardType | null>(null);
   const [filterAssigneeId, setFilterAssigneeId] = useState<string | null>(null);
-  const hasFilters = filterType !== null || filterAssigneeId !== null;
+  const [filterLabelIds, setFilterLabelIds] = useState<string[]>([]);
+  const [filterDueDate, setFilterDueDate] = useState<'overdue' | 'week' | 'none' | null>(null);
+  const [showActivity, setShowActivity] = useState(false);
+  const hasFilters = filterType !== null || filterAssigneeId !== null || filterLabelIds.length > 0 || filterDueDate !== null;
 
   // Set default active column when board loads
   useEffect(() => {
@@ -116,8 +149,22 @@ export function BoardPage() {
     if (filterAssigneeId) {
       cards = cards.filter((c) => c.assignees.some((a) => a.id === filterAssigneeId));
     }
+    if (filterLabelIds.length > 0) {
+      cards = cards.filter((c) => filterLabelIds.some((lid) => c.labels.some((l) => l.id === lid)));
+    }
+    if (filterDueDate) {
+      const now = new Date();
+      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      if (filterDueDate === 'overdue') {
+        cards = cards.filter((c) => c.dueDate && new Date(c.dueDate) < now);
+      } else if (filterDueDate === 'week') {
+        cards = cards.filter((c) => c.dueDate && new Date(c.dueDate) >= now && new Date(c.dueDate) <= weekFromNow);
+      } else if (filterDueDate === 'none') {
+        cards = cards.filter((c) => !c.dueDate);
+      }
+    }
     return cards;
-  }, [board, filterType, filterAssigneeId]);
+  }, [board, filterType, filterAssigneeId, filterLabelIds, filterDueDate]);
 
   // Collect unique assignees across all cards (for the filter dropdown)
   const allAssignees = useMemo(() => {
@@ -305,6 +352,18 @@ export function BoardPage() {
           </Link>
           <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{board.name}</h1>
           <ConnectionStatus />
+          <SaveAsTemplateButton boardId={board.id} />
+          <button
+            onClick={() => setShowActivity(!showActivity)}
+            className={`hidden sm:flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors ml-auto ${
+              showActivity
+                ? 'border-blue-300 bg-blue-50 text-blue-700'
+                : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            <Activity size={12} />
+            Aktivitaet
+          </button>
         </div>
 
         {/* Filter bar */}
@@ -314,6 +373,8 @@ export function BoardPage() {
               if (hasFilters) {
                 setFilterType(null);
                 setFilterAssigneeId(null);
+                setFilterLabelIds([]);
+                setFilterDueDate(null);
               }
             }}
             className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors ${
@@ -351,12 +412,76 @@ export function BoardPage() {
               onChange={(e) => setFilterAssigneeId(e.target.value || null)}
               className="text-xs px-2 py-1 rounded-full border border-gray-200 bg-white text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
-              <option value="">Alle Zuständigen</option>
+              <option value="">Alle Zustaendigen</option>
               {allAssignees.map((a) => (
                 <option key={a.id} value={a.id}>{a.displayName}</option>
               ))}
             </select>
           )}
+
+          {/* Label filter pills */}
+          {(board.labels ?? []).length > 0 && (
+            <>
+              <span className="text-xs text-gray-400 hidden sm:inline">|</span>
+              {(board.labels ?? []).map((label) => {
+                const isActive = filterLabelIds.includes(label.id);
+                return (
+                  <button
+                    key={label.id}
+                    onClick={() =>
+                      setFilterLabelIds(
+                        isActive
+                          ? filterLabelIds.filter((id) => id !== label.id)
+                          : [...filterLabelIds, label.id],
+                      )
+                    }
+                    className={`text-xs px-2 py-1 rounded-full border transition-colors ${
+                      isActive
+                        ? 'text-white border-transparent'
+                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                    }`}
+                    style={isActive ? { backgroundColor: label.color, borderColor: label.color } : undefined}
+                  >
+                    {!isActive && (
+                      <span
+                        className="inline-block w-2 h-2 rounded-full mr-1"
+                        style={{ backgroundColor: label.color }}
+                      />
+                    )}
+                    {label.name}
+                  </button>
+                );
+              })}
+            </>
+          )}
+
+          {/* Due date filter */}
+          <span className="text-xs text-gray-400 hidden sm:inline">|</span>
+          {([
+            { key: 'overdue' as const, label: 'Ueberfaellig', color: 'border-red-300 bg-red-50 text-red-700' },
+            { key: 'week' as const, label: 'Diese Woche', color: 'border-orange-300 bg-orange-50 text-orange-700' },
+            { key: 'none' as const, label: 'Kein Datum', color: 'border-gray-300 bg-gray-50 text-gray-700' },
+          ]).map(({ key, label, color }) => (
+            <button
+              key={key}
+              onClick={() => setFilterDueDate(filterDueDate === key ? null : key)}
+              className={`text-xs px-2 py-1 rounded-full border transition-colors ${
+                filterDueDate === key ? color : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              {key === 'overdue' || key === 'week' ? <Calendar size={10} className="inline mr-1" /> : null}
+              {label}
+            </button>
+          ))}
+
+          {/* Calendar link */}
+          <Link
+            to={`/teams/${teamId}/boards/${boardId}/calendar`}
+            className="text-xs px-2 py-1 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors inline-flex items-center gap-1"
+          >
+            <Calendar size={10} />
+            Kalender
+          </Link>
 
           {hasFilters && (
             <span className="text-xs text-gray-400">
@@ -365,6 +490,8 @@ export function BoardPage() {
           )}
         </div>
 
+        <div className={`flex gap-4 ${showActivity ? 'sm:pr-0' : ''}`}>
+        <div className="flex-1 min-w-0">
         <DragDropProvider onDragEnd={handleDragEnd}>
           {/* ---- Mobile: Tab-based single column view ---- */}
           <div className="sm:hidden">
@@ -520,7 +647,40 @@ export function BoardPage() {
             )}
           </div>
         </DragDropProvider>
+        </div>
+
+        {/* Activity Sidebar */}
+        {showActivity && (
+          <div className="hidden sm:block w-72 flex-shrink-0">
+            <div className="sticky top-0 bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between p-3 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                  <Activity size={14} />
+                  Aktivitaet
+                </h3>
+                <button
+                  onClick={() => setShowActivity(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              <ActivityFeed boardId={boardId} maxHeight="calc(100vh - 200px)" />
+            </div>
+          </div>
+        )}
+        </div>
         <CardDetailModal />
+        <ShortcutHelpModal isOpen={showShortcutHelp} onClose={() => setShowShortcutHelp(false)} />
+
+        {/* Shortcut help trigger button */}
+        <button
+          onClick={() => setShowShortcutHelp(true)}
+          className="hidden sm:flex fixed bottom-4 right-4 w-8 h-8 items-center justify-center rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 transition-colors shadow-sm z-40"
+          title="Tastaturkuerzel (?)"
+        >
+          <Keyboard size={14} />
+        </button>
       </div>
     </AppLayout>
   );

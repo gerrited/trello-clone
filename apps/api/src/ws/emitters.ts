@@ -19,3 +19,12 @@ export function broadcastToBoard(
     io.to(room).emit(event, payload);
   }
 }
+
+/**
+ * Emit an event to a specific user (all their connected sockets).
+ * Uses the user-specific room `user:{userId}`.
+ */
+export function emitToUser(userId: string, event: string, payload: unknown): void {
+  const io = getIO();
+  io.to(`user:${userId}`).emit(event, payload);
+}

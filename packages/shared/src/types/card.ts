@@ -10,6 +10,7 @@ export interface Card {
   title: string;
   description: string | null;
   position: string;
+  dueDate: string | null;
   isArchived: boolean;
   createdBy: string;
   createdAt: string;
@@ -24,7 +25,9 @@ export interface CardSummary {
   cardType: CardType;
   title: string;
   position: string;
+  dueDate: string | null;
   assignees: Array<{ id: string; displayName: string; avatarUrl: string | null }>;
+  labels: Array<{ id: string; name: string; color: string }>;
   commentCount: number;
   subtaskCount: number;
   subtaskDoneCount: number;
@@ -32,6 +35,7 @@ export interface CardSummary {
 
 export interface CardDetail extends Card {
   assignees: Array<{ id: string; displayName: string; avatarUrl: string | null }>;
+  labels: Array<{ id: string; name: string; color: string }>;
   comments: import('./comment.js').Comment[];
   subtasks: CardSummary[];
   parentCard: { id: string; title: string; cardType: CardType } | null;

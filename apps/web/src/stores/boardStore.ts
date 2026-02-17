@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import type { Column, Swimlane, CardSummary } from '@trello-clone/shared';
+import type { Column, Swimlane, CardSummary, Label } from '@trello-clone/shared';
 import type { BoardDetail } from '../api/boards.api.js';
 
 interface BoardState {
@@ -32,6 +32,11 @@ interface BoardState {
   updateCard: (cardId: string, updates: Partial<CardSummary>) => void;
   removeCard: (cardId: string) => void;
   moveCard: (cardId: string, toColumnId: string, toSwimlaneId: string, newPosition: string) => void;
+
+  // Label actions
+  addLabel: (label: Label) => void;
+  updateLabel: (labelId: string, updates: Partial<Label>) => void;
+  removeLabel: (labelId: string) => void;
 }
 
 export const useBoardStore = create<BoardState>()(
@@ -123,6 +128,32 @@ export const useBoardStore = create<BoardState>()(
           card.columnId = toColumnId;
           card.swimlaneId = toSwimlaneId;
           card.position = newPosition;
+        }
+      }),
+
+      // Label actions
+      addLabel: (label) => set((state) => {
+        if (!state.board) return;
+        state.board.labels.push(label);
+      }),
+
+      updateLabel: (labelId, updates) => set((state) => {
+        if (!state.board) return;
+        const label = state.board.labels.find((l) => l.id === labelId);
+        if (label) Object.assign(label, updates);
+        // Also update label data on any cards that have this label
+        for (const card of state.board.cards) {
+          const cardLabel = card.labels.find((l) => l.id === labelId);
+          if (cardLabel) Object.assign(cardLabel, updates);
+        }
+      }),
+
+      removeLabel: (labelId) => set((state) => {
+        if (!state.board) return;
+        state.board.labels = state.board.labels.filter((l) => l.id !== labelId);
+        // Remove from all cards
+        for (const card of state.board.cards) {
+          card.labels = card.labels.filter((l) => l.id !== labelId);
         }
       }),
     })),

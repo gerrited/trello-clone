@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { WS_EVENTS } from '@trello-clone/shared';
-import type { CardSummary, Column, Swimlane } from '@trello-clone/shared';
+import type { CardSummary, Column, Swimlane, Label } from '@trello-clone/shared';
 import { connectSocket, disconnectSocket } from '../api/ws.js';
 import { useBoardStore } from '../stores/boardStore.js';
 
@@ -138,6 +138,40 @@ export function useRealtimeBoard(boardId: string | undefined) {
       }
     });
 
+    // --- Label events ---
+    socket.on(WS_EVENTS.LABEL_CREATED, (data: { label: Label }) => {
+      useBoardStore.getState().addLabel(data.label);
+    });
+
+    socket.on(WS_EVENTS.LABEL_UPDATED, (data: { label: Label }) => {
+      useBoardStore.getState().updateLabel(data.label.id, data.label);
+    });
+
+    socket.on(WS_EVENTS.LABEL_DELETED, (data: { labelId: string }) => {
+      useBoardStore.getState().removeLabel(data.labelId);
+    });
+
+    socket.on(WS_EVENTS.CARD_LABEL_ADDED, (data: { cardId: string; label: { id: string; name: string; color: string } }) => {
+      const card = useBoardStore.getState().board?.cards.find((c) => c.id === data.cardId);
+      if (card) {
+        const alreadyHas = card.labels.some((l) => l.id === data.label.id);
+        if (!alreadyHas) {
+          useBoardStore.getState().updateCard(data.cardId, {
+            labels: [...card.labels, data.label],
+          });
+        }
+      }
+    });
+
+    socket.on(WS_EVENTS.CARD_LABEL_REMOVED, (data: { cardId: string; labelId: string }) => {
+      const card = useBoardStore.getState().board?.cards.find((c) => c.id === data.cardId);
+      if (card) {
+        useBoardStore.getState().updateCard(data.cardId, {
+          labels: card.labels.filter((l) => l.id !== data.labelId),
+        });
+      }
+    });
+
     return () => {
       // Leave board room and remove listeners
       if (connectedBoardRef.current) {
@@ -162,6 +196,11 @@ export function useRealtimeBoard(boardId: string | undefined) {
       socket.off(WS_EVENTS.COMMENT_DELETED);
       socket.off(WS_EVENTS.ASSIGNEE_ADDED);
       socket.off(WS_EVENTS.ASSIGNEE_REMOVED);
+      socket.off(WS_EVENTS.LABEL_CREATED);
+      socket.off(WS_EVENTS.LABEL_UPDATED);
+      socket.off(WS_EVENTS.LABEL_DELETED);
+      socket.off(WS_EVENTS.CARD_LABEL_ADDED);
+      socket.off(WS_EVENTS.CARD_LABEL_REMOVED);
     };
   }, [boardId]);
 }

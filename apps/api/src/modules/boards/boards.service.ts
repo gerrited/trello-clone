@@ -98,6 +98,11 @@ export async function getBoard(boardId: string, userId: string) {
     }),
   ]);
 
+  // Fetch all labels for this board
+  const labelsResult = await db.query.labels.findMany({
+    where: eq(schema.labels.boardId, boardId),
+  });
+
   // Compute comment counts per card (single SQL query)
   const cardIds = cardsResult.map((c) => c.id);
   const commentCounts: Record<string, number> = {};
@@ -113,6 +118,23 @@ export async function getBoard(boardId: string, userId: string) {
 
     for (const row of counts) {
       commentCounts[row.cardId] = row.count;
+    }
+  }
+
+  // Fetch card-label assignments in batch
+  const cardLabelMap: Record<string, Array<{ id: string; name: string; color: string }>> = {};
+  if (cardIds.length > 0) {
+    const cardLabelRows = await db.query.cardLabels.findMany({
+      where: inArray(schema.cardLabels.cardId, cardIds),
+      with: {
+        label: {
+          columns: { id: true, name: true, color: true },
+        },
+      },
+    });
+    for (const row of cardLabelRows) {
+      if (!cardLabelMap[row.cardId]) cardLabelMap[row.cardId] = [];
+      cardLabelMap[row.cardId].push(row.label);
     }
   }
 
@@ -139,11 +161,13 @@ export async function getBoard(boardId: string, userId: string) {
     cardType: card.cardType,
     title: card.title,
     position: card.position,
+    dueDate: card.dueDate?.toISOString() ?? null,
     assignees: card.assignees.map((a) => ({
       id: a.user.id,
       displayName: a.user.displayName,
       avatarUrl: a.user.avatarUrl,
     })),
+    labels: cardLabelMap[card.id] ?? [],
     commentCount: commentCounts[card.id] ?? 0,
     subtaskCount: subtaskCounts[card.id]?.total ?? 0,
     subtaskDoneCount: subtaskCounts[card.id]?.done ?? 0,
@@ -154,6 +178,7 @@ export async function getBoard(boardId: string, userId: string) {
     columns: columnsResult,
     swimlanes: swimlanesResult,
     cards: cardSummaries,
+    labels: labelsResult,
   };
 }
 

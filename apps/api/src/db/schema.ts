@@ -9,6 +9,7 @@ import {
   timestamp,
   index,
   unique,
+  jsonb,
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 
@@ -111,6 +112,7 @@ export const cards = pgTable(
     title: varchar('title', { length: 500 }).notNull(),
     description: text('description'),
     position: varchar('position', { length: 50 }).notNull(),
+    dueDate: timestamp('due_date', { withTimezone: true }),
     isArchived: boolean('is_archived').notNull().default(false),
     createdBy: uuid('created_by').notNull().references(() => users.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -147,6 +149,87 @@ export const comments = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('idx_comments_card').on(t.cardId)],
+);
+
+// Labels (board-scoped)
+export const labels = pgTable(
+  'labels',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    boardId: uuid('board_id').notNull().references(() => boards.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 50 }).notNull(),
+    color: varchar('color', { length: 7 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.boardId, t.name), index('idx_labels_board').on(t.boardId)],
+);
+
+// Card Labels (junction table)
+export const cardLabels = pgTable(
+  'card_labels',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    cardId: uuid('card_id').notNull().references(() => cards.id, { onDelete: 'cascade' }),
+    labelId: uuid('label_id').notNull().references(() => labels.id, { onDelete: 'cascade' }),
+  },
+  (t) => [
+    unique().on(t.cardId, t.labelId),
+    index('idx_cl_card').on(t.cardId),
+    index('idx_cl_label').on(t.labelId),
+  ],
+);
+
+// Activities
+export const activities = pgTable(
+  'activities',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    boardId: uuid('board_id').notNull().references(() => boards.id, { onDelete: 'cascade' }),
+    cardId: uuid('card_id').references(() => cards.id, { onDelete: 'set null' }),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    action: varchar('action', { length: 50 }).notNull(),
+    entityType: varchar('entity_type', { length: 30 }).notNull(),
+    entityId: uuid('entity_id').notNull(),
+    metadata: text('metadata'), // JSON string
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('idx_activities_board_created').on(t.boardId, t.createdAt),
+    index('idx_activities_card').on(t.cardId),
+  ],
+);
+
+// Notifications
+export const notifications = pgTable(
+  'notifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    activityId: uuid('activity_id').notNull().references(() => activities.id, { onDelete: 'cascade' }),
+    isRead: boolean('is_read').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('idx_notif_user_unread').on(t.userId, t.isRead),
+    index('idx_notif_user_created').on(t.userId, t.createdAt),
+  ],
+);
+
+// Board Templates
+export const boardTemplates = pgTable(
+  'board_templates',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    teamId: uuid('team_id').references(() => teams.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 200 }).notNull(),
+    description: text('description'),
+    isSystem: boolean('is_system').notNull().default(false),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    config: jsonb('config').notNull().default({}),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('idx_templates_team').on(t.teamId)],
 );
 
 // Refresh Tokens

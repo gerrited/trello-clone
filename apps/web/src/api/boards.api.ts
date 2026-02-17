@@ -1,10 +1,11 @@
 import { api } from './client.js';
-import type { Board, CreateBoardInput, UpdateBoardInput, CardSummary, Column, Swimlane } from '@trello-clone/shared';
+import type { Board, CreateBoardInput, UpdateBoardInput, CardSummary, Column, Swimlane, Label } from '@trello-clone/shared';
 
 export interface BoardDetail extends Board {
   columns: Column[];
   swimlanes: Swimlane[];
   cards: CardSummary[];
+  labels: Label[];
 }
 
 export async function listBoards(teamId: string): Promise<Board[]> {

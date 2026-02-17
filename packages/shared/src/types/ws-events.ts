@@ -23,4 +23,13 @@ export const WS_EVENTS = {
 
   ASSIGNEE_ADDED: 'assignee:added',
   ASSIGNEE_REMOVED: 'assignee:removed',
+
+  LABEL_CREATED: 'label:created',
+  LABEL_UPDATED: 'label:updated',
+  LABEL_DELETED: 'label:deleted',
+  CARD_LABEL_ADDED: 'card:label:added',
+  CARD_LABEL_REMOVED: 'card:label:removed',
+
+  ACTIVITY_CREATED: 'activity:created',
+  NOTIFICATION_NEW: 'notification:new',
 } as const;

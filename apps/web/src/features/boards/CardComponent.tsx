@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { CardSummary } from '@trello-clone/shared';
-import { BookOpen, Bug, CheckSquare, MessageSquare, Link2 } from 'lucide-react';
+import { BookOpen, Bug, CheckSquare, MessageSquare, Link2, Calendar } from 'lucide-react';
 import { useBoardStore } from '../../stores/boardStore.js';
 
 interface CardComponentProps {
@@ -23,6 +23,26 @@ const TYPE_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   task: CheckSquare,
 };
 
+function getDueDateStyle(dueDate: string): { className: string; label: string } {
+  const now = new Date();
+  const due = new Date(dueDate);
+  const diffMs = due.getTime() - now.getTime();
+  const diffHours = diffMs / (1000 * 60 * 60);
+
+  if (diffMs < 0) {
+    return { className: 'bg-red-100 text-red-700', label: 'Ueberfaellig' };
+  }
+  if (diffHours < 24) {
+    return { className: 'bg-orange-100 text-orange-700', label: 'Bald faellig' };
+  }
+  return { className: 'bg-gray-100 text-gray-600', label: '' };
+}
+
+function formatDueDate(dueDate: string): string {
+  const d = new Date(dueDate);
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+}
+
 export const CardComponent = React.memo(function CardComponent({ card, index, columnId, swimlaneId }: CardComponentProps) {
   const openCard = useBoardStore((s) => s.openCard);
   const { ref, isDragging } = useSortable({
@@ -34,6 +54,9 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
     data: { columnId, swimlaneId },
   });
 
+  const dueDateStyle = card.dueDate ? getDueDateStyle(card.dueDate) : null;
+  const hasMetadata = card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId || card.dueDate;
+
   return (
     <div
       ref={ref}
@@ -44,6 +67,21 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
         isDragging ? 'opacity-50 shadow-lg cursor-grabbing' : ''
       }`}
     >
+      {/* Label chips */}
+      {card.labels.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-1.5">
+          {card.labels.map((label) => (
+            <span
+              key={label.id}
+              className="text-[10px] px-1.5 py-0.5 rounded-full text-white font-medium leading-tight"
+              style={{ backgroundColor: label.color }}
+            >
+              {label.name}
+            </span>
+          ))}
+        </div>
+      )}
+
       <div className="flex items-start gap-2">
         {(() => {
           const TypeIcon = TYPE_ICONS[card.cardType];
@@ -57,11 +95,20 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
       </div>
       <p className="text-sm text-gray-900 mt-1">{card.title}</p>
       {/* Metadata badges */}
-      {(card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId) && (
-        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+      {hasMetadata && (
+        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 flex-wrap">
           {card.parentCardId && (
             <span className="flex items-center gap-0.5" title="Unteraufgabe">
               <Link2 size={12} />
+            </span>
+          )}
+          {card.dueDate && dueDateStyle && (
+            <span
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${dueDateStyle.className}`}
+              title={dueDateStyle.label || `Faellig am ${formatDueDate(card.dueDate)}`}
+            >
+              <Calendar size={12} />
+              {formatDueDate(card.dueDate)}
             </span>
           )}
           {card.commentCount > 0 && (

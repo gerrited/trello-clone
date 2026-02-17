@@ -3,6 +3,7 @@ import type { AuthRequest } from '../../middleware/auth.js';
 import * as service from './assignees.service.js';
 import { broadcastToBoard } from '../../ws/emitters.js';
 import { WS_EVENTS } from '@trello-clone/shared';
+import { logActivity } from '../activities/activities.service.js';
 
 export async function addHandler(req: AuthRequest, res: Response, next: NextFunction) {
   try {
@@ -11,6 +12,7 @@ export async function addHandler(req: AuthRequest, res: Response, next: NextFunc
     const result = await service.addAssignee(boardId, cardId, req.userId!, req.body);
     res.status(201).json(result);
     broadcastToBoard(boardId, WS_EVENTS.ASSIGNEE_ADDED, { cardId, ...result }, req.socketId);
+    logActivity({ boardId, userId: req.userId!, action: 'assignee.added', entityType: 'card', entityId: cardId, cardId, metadata: { assigneeDisplayName: result.assignee?.displayName }, excludeSocketId: req.socketId });
   } catch (err) {
     next(err);
   }
@@ -24,6 +26,7 @@ export async function removeHandler(req: AuthRequest, res: Response, next: NextF
     await service.removeAssignee(boardId, cardId, req.userId!, userId);
     res.status(204).end();
     broadcastToBoard(boardId, WS_EVENTS.ASSIGNEE_REMOVED, { cardId, userId }, req.socketId);
+    logActivity({ boardId, userId: req.userId!, action: 'assignee.removed', entityType: 'card', entityId: cardId, cardId, excludeSocketId: req.socketId });
   } catch (err) {
     next(err);
   }

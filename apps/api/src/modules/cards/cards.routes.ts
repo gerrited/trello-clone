@@ -6,6 +6,7 @@ import { createCardSchema, updateCardSchema, moveCardSchema } from '@trello-clon
 import * as ctrl from './cards.controller.js';
 import { assigneeRoutes } from '../assignees/assignees.routes.js';
 import { commentRoutes } from '../comments/comments.routes.js';
+import { cardLabelRoutes } from '../labels/labels.routes.js';
 
 const router: RouterType = Router({ mergeParams: true });
 
@@ -19,5 +20,6 @@ router.delete('/:cardId', ctrl.deleteHandler);
 
 router.use('/:cardId/assignees', assigneeRoutes);
 router.use('/:cardId/comments', commentRoutes);
+router.use('/:cardId/labels', cardLabelRoutes);
 
 export { router as cardRoutes };

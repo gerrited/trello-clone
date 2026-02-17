@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
-import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil, Link2, ListChecks } from 'lucide-react';
+import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil, Link2, ListChecks, Calendar, Activity } from 'lucide-react';
 import type { CardDetail, CardType, Comment } from '@trello-clone/shared';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
+import { LabelPicker } from './LabelPicker.js';
 import { useBoardStore } from '../../stores/boardStore.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import * as cardsApi from '../../api/cards.api.js';
 import * as commentsApi from '../../api/comments.api.js';
+import { ActivityFeed } from './ActivityFeed.js';
 import { toast } from 'sonner';
 
 const TYPE_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -234,6 +236,52 @@ export function CardDetailModal() {
             )}
           </div>
 
+          {/* Labels */}
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <label className="text-sm font-medium text-gray-700">Labels</label>
+              <LabelPicker
+                boardId={board.id}
+                cardId={cardDetail.id}
+                cardLabels={cardDetail.labels}
+                onToggle={(label, action) => {
+                  if (action === 'add') {
+                    const newLabels = [...cardDetail.labels, label];
+                    setCardDetail({ ...cardDetail, labels: newLabels });
+                    updateCardInStore(cardDetail.id, { labels: newLabels });
+                  } else {
+                    const newLabels = cardDetail.labels.filter((l) => l.id !== label.id);
+                    setCardDetail({ ...cardDetail, labels: newLabels });
+                    updateCardInStore(cardDetail.id, { labels: newLabels });
+                  }
+                }}
+              />
+            </div>
+            {cardDetail.labels.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {cardDetail.labels.map((label) => (
+                  <span
+                    key={label.id}
+                    className="text-xs px-2.5 py-1 rounded-full text-white font-medium"
+                    style={{ backgroundColor: label.color }}
+                  >
+                    {label.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Due Date */}
+          <DueDateSection
+            boardId={board.id}
+            cardDetail={cardDetail}
+            onUpdate={(newDueDate) => {
+              setCardDetail({ ...cardDetail, dueDate: newDueDate });
+              updateCardInStore(cardDetail.id, { dueDate: newDueDate });
+            }}
+          />
+
           {/* Assignees (display only) */}
           {cardDetail.assignees.length > 0 && (
             <div>
@@ -316,6 +364,15 @@ export function CardDetailModal() {
             }}
           />
 
+          {/* Activity section */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <Activity size={16} />
+              Aktivitaet
+            </label>
+            <ActivityFeed cardId={cardDetail.id} boardId={board.id} maxHeight="200px" />
+          </div>
+
           {/* Delete button */}
           <div className="pt-4 border-t border-gray-200">
             <button
@@ -371,7 +428,9 @@ function SubtaskSection({
         cardType: newCard.cardType,
         title: newCard.title,
         position: newCard.position,
+        dueDate: newCard.dueDate ?? null,
         assignees: [],
+        labels: [],
         commentCount: 0,
         subtaskCount: 0,
         subtaskDoneCount: 0,
@@ -535,6 +594,127 @@ function SetParentSection({
       <Button size="sm" variant="ghost" onClick={() => setIsOpen(false)}>
         Abbrechen
       </Button>
+    </div>
+  );
+}
+
+/* ---------- Due Date Section ---------- */
+
+function DueDateSection({
+  boardId,
+  cardDetail,
+  onUpdate,
+}: {
+  boardId: string;
+  cardDetail: CardDetail;
+  onUpdate: (dueDate: string | null) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [dateValue, setDateValue] = useState('');
+
+  // Initialize date input value when editing starts
+  const startEditing = () => {
+    if (cardDetail.dueDate) {
+      // Convert ISO string to datetime-local format
+      const d = new Date(cardDetail.dueDate);
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      setDateValue(local);
+    } else {
+      setDateValue('');
+    }
+    setEditing(true);
+  };
+
+  const handleSave = async () => {
+    const newDueDate = dateValue ? new Date(dateValue).toISOString() : null;
+    try {
+      await cardsApi.updateCard(boardId, cardDetail.id, { dueDate: newDueDate });
+      onUpdate(newDueDate);
+      setEditing(false);
+    } catch {
+      toast.error('Faelligkeitsdatum konnte nicht gespeichert werden');
+    }
+  };
+
+  const handleClear = async () => {
+    try {
+      await cardsApi.updateCard(boardId, cardDetail.id, { dueDate: null });
+      onUpdate(null);
+      setEditing(false);
+    } catch {
+      toast.error('Faelligkeitsdatum konnte nicht entfernt werden');
+    }
+  };
+
+  const formatDueDate = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const getDueDateColor = (iso: string) => {
+    const now = new Date();
+    const due = new Date(iso);
+    const diffMs = due.getTime() - now.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    if (diffMs < 0) return 'text-red-600 bg-red-50';
+    if (diffHours < 24) return 'text-orange-600 bg-orange-50';
+    return 'text-gray-600 bg-gray-50';
+  };
+
+  return (
+    <div>
+      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+        <Calendar size={16} />
+        Faelligkeitsdatum
+      </label>
+      {editing ? (
+        <div className="space-y-2">
+          <input
+            type="datetime-local"
+            value={dateValue}
+            onChange={(e) => setDateValue(e.target.value)}
+            className="w-full rounded border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div className="flex gap-2">
+            <Button size="sm" onClick={handleSave}>
+              Speichern
+            </Button>
+            {cardDetail.dueDate && (
+              <Button size="sm" variant="ghost" onClick={handleClear} className="text-red-600">
+                Entfernen
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+              Abbrechen
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div
+          className={`cursor-pointer rounded-lg p-3 text-sm border border-transparent hover:border-gray-200 ${
+            cardDetail.dueDate ? getDueDateColor(cardDetail.dueDate) : 'text-gray-400 hover:bg-gray-50'
+          }`}
+          onClick={startEditing}
+        >
+          {cardDetail.dueDate ? (
+            <span className="flex items-center gap-2">
+              <Calendar size={14} />
+              {formatDueDate(cardDetail.dueDate)}
+              {new Date(cardDetail.dueDate) < new Date() && (
+                <span className="text-xs font-medium text-red-600">(Ueberfaellig)</span>
+              )}
+            </span>
+          ) : (
+            'Faelligkeitsdatum setzen...'
+          )}
+        </div>
+      )}
     </div>
   );
 }

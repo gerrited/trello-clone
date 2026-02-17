@@ -12,3 +12,16 @@ export function validate(schema: ZodSchema) {
     next();
   };
 }
+
+export function validateQuery(schema: ZodSchema) {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.query);
+    if (!result.success) {
+      next(result.error);
+      return;
+    }
+    // Overwrite req.query with validated/coerced values
+    (req as any).query = result.data;
+    next();
+  };
+}
