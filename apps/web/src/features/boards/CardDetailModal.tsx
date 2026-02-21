@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil, Link2, ListChecks, Calendar, Activity } from 'lucide-react';
-import type { CardDetail, CardType, Comment } from '@trello-clone/shared';
+import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil, Link2, ListChecks, Calendar, Activity, Paperclip } from 'lucide-react';
+import type { CardDetail, CardType, Comment, Attachment } from '@trello-clone/shared';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { LabelPicker } from './LabelPicker.js';
+import { AttachmentSection } from './AttachmentSection.js';
 import { useBoardStore } from '../../stores/boardStore.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import * as cardsApi from '../../api/cards.api.js';
@@ -31,6 +32,10 @@ export function CardDetailModal() {
   const updateCardInStore = useBoardStore((s) => s.updateCard);
   const removeCardFromStore = useBoardStore((s) => s.removeCard);
   const addCardToStore = useBoardStore((s) => s.addCard);
+
+  const permission = board?.permission ?? 'edit';
+  const canEdit = permission === 'edit';
+  const canComment = permission === 'comment' || permission === 'edit';
 
   const [cardDetail, setCardDetail] = useState<CardDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -133,7 +138,7 @@ export function CardDetailModal() {
           {/* Header with close button */}
           <div className="flex items-start justify-between">
             <div className="flex-1 mr-4">
-              {editingTitle ? (
+              {editingTitle && canEdit ? (
                 <input
                   autoFocus
                   value={title}
@@ -150,8 +155,8 @@ export function CardDetailModal() {
                 />
               ) : (
                 <h2
-                  className="text-xl font-bold text-gray-900 cursor-pointer hover:text-blue-600"
-                  onClick={() => setEditingTitle(true)}
+                  className={`text-xl font-bold text-gray-900 ${canEdit ? 'cursor-pointer hover:text-blue-600' : ''}`}
+                  onClick={() => canEdit && setEditingTitle(true)}
                 >
                   {cardDetail.title}
                 </h2>
@@ -185,10 +190,11 @@ export function CardDetailModal() {
                 return (
                   <button
                     key={type}
-                    onClick={() => handleChangeType(type)}
+                    onClick={() => canEdit && handleChangeType(type)}
+                    disabled={!canEdit}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       cardDetail.cardType === type ? TYPE_COLORS[type] : 'text-gray-500 hover:bg-gray-100'
-                    }`}
+                    } ${!canEdit ? 'cursor-default' : ''}`}
                   >
                     {Icon && <Icon size={14} />}
                     {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -201,7 +207,7 @@ export function CardDetailModal() {
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Beschreibung</label>
-            {editingDescription ? (
+            {editingDescription && canEdit ? (
               <div className="space-y-2">
                 <textarea
                   autoFocus
@@ -228,10 +234,10 @@ export function CardDetailModal() {
               </div>
             ) : (
               <div
-                className="text-sm text-gray-600 cursor-pointer hover:bg-gray-50 rounded-lg p-3 border border-transparent hover:border-gray-200 min-h-[3rem]"
-                onClick={() => setEditingDescription(true)}
+                className={`text-sm text-gray-600 rounded-lg p-3 border border-transparent min-h-[3rem] ${canEdit ? 'cursor-pointer hover:bg-gray-50 hover:border-gray-200' : ''}`}
+                onClick={() => canEdit && setEditingDescription(true)}
               >
-                {cardDetail.description || 'Beschreibung hinzufuegen...'}
+                {cardDetail.description || (canEdit ? 'Beschreibung hinzufuegen...' : 'Keine Beschreibung')}
               </div>
             )}
           </div>
@@ -240,7 +246,7 @@ export function CardDetailModal() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <label className="text-sm font-medium text-gray-700">Labels</label>
-              <LabelPicker
+              {canEdit && <LabelPicker
                 boardId={board.id}
                 cardId={cardDetail.id}
                 cardLabels={cardDetail.labels}
@@ -255,7 +261,7 @@ export function CardDetailModal() {
                     updateCardInStore(cardDetail.id, { labels: newLabels });
                   }
                 }}
-              />
+              />}
             </div>
             {cardDetail.labels.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
@@ -341,11 +347,12 @@ export function CardDetailModal() {
               boardId={board!.id}
               card={cardDetail}
               onSubtasksChange={fetchCard}
+              canEdit={canEdit}
             />
           )}
 
-          {/* Set as subtask (only if card has no subtasks and no parent) */}
-          {!cardDetail.parentCardId && cardDetail.subtasks.length === 0 && (
+          {/* Set as subtask (only if card has no subtasks and no parent, and user can edit) */}
+          {canEdit && !cardDetail.parentCardId && cardDetail.subtasks.length === 0 && (
             <SetParentSection
               boardId={board!.id}
               card={cardDetail}
@@ -358,9 +365,22 @@ export function CardDetailModal() {
             boardId={board!.id}
             cardId={cardDetail.id}
             comments={cardDetail.comments}
+            canComment={canComment}
             onCommentsChange={(newComments) => {
               setCardDetail({ ...cardDetail, comments: newComments });
               updateCardInStore(cardDetail.id, { commentCount: newComments.length });
+            }}
+          />
+
+          {/* Attachments section */}
+          <AttachmentSection
+            boardId={board.id}
+            cardId={cardDetail.id}
+            attachments={cardDetail.attachments ?? []}
+            canEdit={canEdit}
+            onAttachmentsChange={(newAttachments) => {
+              setCardDetail({ ...cardDetail, attachments: newAttachments });
+              updateCardInStore(cardDetail.id, { attachmentCount: newAttachments.length });
             }}
           />
 
@@ -374,15 +394,17 @@ export function CardDetailModal() {
           </div>
 
           {/* Delete button */}
-          <div className="pt-4 border-t border-gray-200">
-            <button
-              onClick={handleDelete}
-              className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition-colors"
-            >
-              <Trash2 size={16} />
-              Karte loeschen
-            </button>
-          </div>
+          {canEdit && (
+            <div className="pt-4 border-t border-gray-200">
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition-colors"
+              >
+                <Trash2 size={16} />
+                Karte loeschen
+              </button>
+            </div>
+          )}
         </div>
       )}
     </Modal>
@@ -395,10 +417,12 @@ function SubtaskSection({
   boardId,
   card,
   onSubtasksChange,
+  canEdit = true,
 }: {
   boardId: string;
   card: CardDetail;
   onSubtasksChange: () => void;
+  canEdit?: boolean;
 }) {
   const board = useBoardStore((s) => s.board);
   const openCard = useBoardStore((s) => s.openCard);
@@ -434,6 +458,7 @@ function SubtaskSection({
         commentCount: 0,
         subtaskCount: 0,
         subtaskDoneCount: 0,
+        attachmentCount: 0,
       });
       updateCardInStore(card.id, { subtaskCount: card.subtasks.length + 1 });
       setNewTitle('');
@@ -487,7 +512,7 @@ function SubtaskSection({
       </div>
 
       {/* Add subtask form */}
-      {showAddForm ? (
+      {canEdit && showAddForm ? (
         <div className="mt-2 space-y-2">
           <input
             autoFocus
@@ -725,11 +750,13 @@ function CommentSection({
   boardId,
   cardId,
   comments,
+  canComment = true,
   onCommentsChange,
 }: {
   boardId: string;
   cardId: string;
   comments: Comment[];
+  canComment?: boolean;
   onCommentsChange: (comments: Comment[]) => void;
 }) {
   const currentUser = useAuthStore((s) => s.user);
@@ -851,6 +878,7 @@ function CommentSection({
       </div>
 
       {/* Add comment form */}
+      {canComment && (
       <div className="flex gap-3">
         <div className="w-8 h-8 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center flex-shrink-0">
           {currentUser?.displayName?.charAt(0).toUpperCase() ?? '?'}
@@ -878,6 +906,7 @@ function CommentSection({
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }

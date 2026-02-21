@@ -9,6 +9,7 @@ import { TeamsPage } from './features/teams/TeamsPage.js';
 import { BoardListPage } from './features/boards/BoardListPage.js';
 import { BoardPage } from './features/boards/BoardPage.js';
 import { CalendarPage } from './features/boards/CalendarPage.js';
+import { SharedBoardPage } from './features/boards/SharedBoardPage.js';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuthStore();
@@ -38,6 +39,7 @@ function AppRoutes() {
       <Route path="/teams/:teamId/boards" element={<AuthGuard><BoardListPage /></AuthGuard>} />
       <Route path="/teams/:teamId/boards/:boardId" element={<AuthGuard><BoardPage /></AuthGuard>} />
       <Route path="/teams/:teamId/boards/:boardId/calendar" element={<AuthGuard><CalendarPage /></AuthGuard>} />
+      <Route path="/shared/:token" element={<SharedBoardPage />} />
       <Route path="*" element={<Navigate to="/teams" />} />
     </Routes>
   );

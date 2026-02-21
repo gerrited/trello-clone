@@ -1,28 +1,12 @@
 import { eq, and, asc } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
+import { requireBoardAccess } from '../../middleware/boardAccess.js';
 import { getPositionAfter, getPositionBetween, getPositionBefore } from '../../utils/ordering.js';
 import type { CreateCardInput, UpdateCardInput, MoveCardInput } from '@trello-clone/shared';
 
-async function requireBoardAccess(boardId: string, userId: string) {
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, boardId),
-  });
-  if (!board) throw new AppError(404, 'Board not found');
-
-  const membership = await db.query.teamMemberships.findFirst({
-    where: and(
-      eq(schema.teamMemberships.teamId, board.teamId),
-      eq(schema.teamMemberships.userId, userId),
-    ),
-  });
-  if (!membership) throw new AppError(403, 'Not a member of this team');
-
-  return board;
-}
-
 export async function createCard(boardId: string, userId: string, input: CreateCardInput) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   // Verify the column belongs to this board
   const column = await db.query.columns.findFirst({
@@ -117,6 +101,14 @@ export async function getCard(cardId: string, userId: string) {
           },
         },
       },
+      attachments: {
+        orderBy: [asc(schema.attachments.createdAt)],
+        with: {
+          uploader: {
+            columns: { id: true, displayName: true, avatarUrl: true },
+          },
+        },
+      },
       parentCard: {
         columns: { id: true, title: true, cardType: true },
       },
@@ -125,7 +117,7 @@ export async function getCard(cardId: string, userId: string) {
 
   if (!card) throw new AppError(404, 'Card not found');
 
-  await requireBoardAccess(card.boardId, userId);
+  await requireBoardAccess(card.boardId, userId, 'read');
 
   // Fetch subtasks separately (non-archived only)
   const subtasks = await db.query.cards.findMany({
@@ -160,6 +152,10 @@ export async function getCard(cardId: string, userId: string) {
       updatedAt: c.updatedAt,
       author: c.author,
     })),
+    attachments: card.attachments.map((a) => ({
+      ...a,
+      createdAt: a.createdAt.toISOString(),
+    })),
     subtasks: subtasks.map((s) => ({
       ...s,
       assignees: [] as Array<{ id: string; displayName: string; avatarUrl: string | null }>,
@@ -178,7 +174,7 @@ export async function updateCard(cardId: string, userId: string, input: UpdateCa
   });
   if (!card) throw new AppError(404, 'Card not found');
 
-  await requireBoardAccess(card.boardId, userId);
+  await requireBoardAccess(card.boardId, userId, 'edit');
 
   // Validate parentCardId changes
   if (input.parentCardId !== undefined) {
@@ -226,7 +222,7 @@ export async function moveCard(cardId: string, userId: string, input: MoveCardIn
   });
   if (!card) throw new AppError(404, 'Card not found');
 
-  await requireBoardAccess(card.boardId, userId);
+  await requireBoardAccess(card.boardId, userId, 'edit');
 
   // Verify the target column belongs to the same board
   const targetColumn = await db.query.columns.findFirst({
@@ -289,7 +285,7 @@ export async function deleteCard(cardId: string, userId: string) {
   });
   if (!card) throw new AppError(404, 'Card not found');
 
-  await requireBoardAccess(card.boardId, userId);
+  await requireBoardAccess(card.boardId, userId, 'edit');
 
   await db.delete(schema.cards).where(eq(schema.cards.id, cardId));
 }

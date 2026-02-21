@@ -1,6 +1,7 @@
 import { eq, and, desc, lt } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
+import { requireBoardAccess } from '../../middleware/boardAccess.js';
 import type { ActivityAction } from '@trello-clone/shared';
 import { broadcastToBoard, emitToUser } from '../../ws/emitters.js';
 import { WS_EVENTS } from '@trello-clone/shared';
@@ -109,22 +110,7 @@ export async function listBoardActivities(
   cursor?: string,
   limit = 20,
 ) {
-  // Verify board access
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, boardId),
-    columns: { teamId: true },
-  });
-
-  if (!board) throw new AppError(404, 'Board not found');
-
-  const membership = await db.query.teamMemberships.findFirst({
-    where: and(
-      eq(schema.teamMemberships.teamId, board.teamId),
-      eq(schema.teamMemberships.userId, userId),
-    ),
-  });
-
-  if (!membership) throw new AppError(403, 'Not a member of this team');
+  await requireBoardAccess(boardId, userId, 'read');
 
   const conditions = [eq(schema.activities.boardId, boardId)];
   if (cursor) {
@@ -183,22 +169,7 @@ export async function listCardActivities(
 
   if (!card) throw new AppError(404, 'Card not found');
 
-  // Verify team membership
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, card.boardId),
-    columns: { teamId: true },
-  });
-
-  if (!board) throw new AppError(404, 'Board not found');
-
-  const membership = await db.query.teamMemberships.findFirst({
-    where: and(
-      eq(schema.teamMemberships.teamId, board.teamId),
-      eq(schema.teamMemberships.userId, userId),
-    ),
-  });
-
-  if (!membership) throw new AppError(403, 'Not a member of this team');
+  await requireBoardAccess(card.boardId, userId, 'read');
 
   // Query card-specific activities
   const conditions = [eq(schema.activities.cardId, cardId)];

@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { CollisionPriority } from '@dnd-kit/abstract';
+import { Trash2 } from 'lucide-react';
 import { CardComponent } from './CardComponent.js';
 import { AddCardForm } from './AddCardForm.js';
+import { useBoardStore } from '../../stores/boardStore.js';
+import * as columnsApi from '../../api/columns.api.js';
+import { toast } from 'sonner';
 import type { Column, CardSummary } from '@trello-clone/shared';
 
 interface ColumnComponentProps {
@@ -11,9 +15,14 @@ interface ColumnComponentProps {
   index: number;
   boardId: string;
   swimlaneId: string;
+  canEdit?: boolean;
 }
 
-export const ColumnComponent = React.memo(function ColumnComponent({ column, cards, index, boardId, swimlaneId }: ColumnComponentProps) {
+export const ColumnComponent = React.memo(function ColumnComponent({ column, cards, index, boardId, swimlaneId, canEdit = true }: ColumnComponentProps) {
+  const removeColumn = useBoardStore((s) => s.removeColumn);
+  const totalCardCount = useBoardStore((s) => s.board?.cards.filter((c) => c.columnId === column.id).length ?? 0);
+  const [deleting, setDeleting] = useState(false);
+
   const { ref } = useSortable({
     id: column.id,
     index,
@@ -24,6 +33,25 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
   });
 
   const isOverWipLimit = column.wipLimit !== null && cards.length > column.wipLimit;
+
+  const handleDeleteColumn = async () => {
+    if (totalCardCount > 0) {
+      toast.error('Spalte kann nicht geloescht werden, da sie noch Karten enthaelt');
+      return;
+    }
+    if (!window.confirm(`Spalte "${column.name}" wirklich loeschen?`)) return;
+    setDeleting(true);
+    try {
+      await columnsApi.deleteColumn(boardId, column.id);
+      removeColumn(column.id);
+      toast.success('Spalte geloescht');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? 'Spalte konnte nicht geloescht werden';
+      toast.error(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div
@@ -43,6 +71,16 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
             {column.wipLimit !== null && ` / ${column.wipLimit}`}
           </span>
         </div>
+        {canEdit && (
+          <button
+            onClick={handleDeleteColumn}
+            disabled={deleting}
+            className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+            title="Spalte loeschen"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-2">
@@ -57,9 +95,11 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
         ))}
       </div>
 
-      <div className="p-2">
-        <AddCardForm boardId={boardId} columnId={column.id} swimlaneId={swimlaneId} />
-      </div>
+      {canEdit && (
+        <div className="p-2">
+          <AddCardForm boardId={boardId} columnId={column.id} swimlaneId={swimlaneId} />
+        </div>
+      )}
     </div>
   );
 });

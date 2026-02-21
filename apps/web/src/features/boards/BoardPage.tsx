@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router';
 import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { CollisionPriority } from '@dnd-kit/abstract';
-import { Filter, X, Calendar, Activity, Keyboard } from 'lucide-react';
+import { Filter, X, Calendar, Activity, Keyboard, Share2, Trash2 } from 'lucide-react';
 import { useBoardStore } from '../../stores/boardStore.js';
 import { getBoard } from '../../api/boards.api.js';
 import * as cardsApi from '../../api/cards.api.js';
@@ -19,9 +19,11 @@ import { CardDetailModal } from './CardDetailModal.js';
 import { ActivityFeed } from './ActivityFeed.js';
 import { ShortcutHelpModal } from './ShortcutHelpModal.js';
 import { SaveAsTemplateButton } from './SaveAsTemplateButton.js';
+import { ShareBoardModal } from './ShareBoardModal.js';
 import { ConnectionStatus } from '../../components/ui/ConnectionStatus.js';
 import { useRealtimeBoard } from '../../hooks/useRealtimeBoard.js';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts.js';
+import { toast } from 'sonner';
 import type { Column, CardSummary, CardType, Label } from '@trello-clone/shared';
 
 /** Shape of the DnD event we actually use from @dnd-kit */
@@ -33,7 +35,9 @@ interface DragEndEvent {
   };
 }
 
-const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index }: { column: Column; cardCount: number; index: number }) {
+const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index, boardId, canEdit = true }: { column: Column; cardCount: number; index: number; boardId: string; canEdit?: boolean }) {
+  const removeColumn = useBoardStore((s) => s.removeColumn);
+  const totalCardCount = useBoardStore((s) => s.board?.cards.filter((c) => c.columnId === column.id).length ?? 0);
   const { ref } = useSortable({
     id: column.id,
     index,
@@ -44,6 +48,23 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
   });
 
   const isOverWipLimit = column.wipLimit !== null && cardCount > column.wipLimit;
+
+  const handleDeleteColumn = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (totalCardCount > 0) {
+      toast.error('Spalte kann nicht geloescht werden, da sie noch Karten enthaelt');
+      return;
+    }
+    if (!window.confirm(`Spalte "${column.name}" wirklich loeschen?`)) return;
+    try {
+      await columnsApi.deleteColumn(boardId, column.id);
+      removeColumn(column.id);
+      toast.success('Spalte geloescht');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? 'Spalte konnte nicht geloescht werden';
+      toast.error(msg);
+    }
+  };
 
   return (
     <div
@@ -60,6 +81,15 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
         {cardCount}
         {column.wipLimit !== null && ` / ${column.wipLimit}`}
       </span>
+      {canEdit && (
+        <button
+          onClick={handleDeleteColumn}
+          className="ml-auto p-1 text-gray-400 hover:text-red-600 transition-colors"
+          title="Spalte loeschen"
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
     </div>
   );
 });
@@ -76,8 +106,9 @@ export function BoardPage() {
   const reorderColumns = useBoardStore((s) => s.reorderColumns);
   const clearBoard = useBoardStore((s) => s.clearBoard);
 
-  // Keyboard shortcut modal states
+  // Modal states
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     if (!teamId || !boardId) return;
@@ -341,6 +372,9 @@ export function BoardPage() {
     );
   }
 
+  const permission = board.permission ?? 'edit';
+  const canEdit = permission === 'edit';
+
   const activeColumn = board.columns.find((c) => c.id === activeColumnId) ?? board.columns[0];
 
   return (
@@ -352,7 +386,16 @@ export function BoardPage() {
           </Link>
           <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{board.name}</h1>
           <ConnectionStatus />
-          <SaveAsTemplateButton boardId={board.id} />
+          {canEdit && <SaveAsTemplateButton boardId={board.id} />}
+          {canEdit && (
+            <button
+              onClick={() => setShowShareModal(true)}
+              className="hidden sm:flex items-center gap-1 text-xs px-2 py-1 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              <Share2 size={12} />
+              Teilen
+            </button>
+          )}
           <button
             onClick={() => setShowActivity(!showActivity)}
             className={`hidden sm:flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors ml-auto ${
@@ -537,18 +580,24 @@ export function BoardPage() {
                     />
                   ))}
                 </div>
-                <div className="mt-2">
-                  <AddCardForm boardId={board.id} columnId={activeColumn.id} swimlaneId={defaultSwimlaneId} />
-                </div>
+                {canEdit && (
+                  <div className="mt-2">
+                    <AddCardForm boardId={board.id} columnId={activeColumn.id} swimlaneId={defaultSwimlaneId} />
+                  </div>
+                )}
               </div>
             )}
 
-            <div className="mt-3">
-              <AddColumnForm boardId={board.id} />
-            </div>
-            <div className="mt-2">
-              <AddSwimlaneForm boardId={board.id} />
-            </div>
+            {canEdit && (
+              <>
+                <div className="mt-3">
+                  <AddColumnForm boardId={board.id} />
+                </div>
+                <div className="mt-2">
+                  <AddSwimlaneForm boardId={board.id} />
+                </div>
+              </>
+            )}
           </div>
 
           {/* ---- Desktop: Original layout ---- */}
@@ -571,6 +620,8 @@ export function BoardPage() {
                         column={column}
                         cardCount={(cardsByColumn[column.id] || []).length}
                         index={index}
+                        boardId={board.id}
+                        canEdit={canEdit}
                       />
                     ))}
 
@@ -603,11 +654,13 @@ export function BoardPage() {
                                   swimlaneId={swimlane.id}
                                 />
                               ))}
-                              <AddCardForm
-                                boardId={board.id}
-                                columnId={column.id}
-                                swimlaneId={swimlane.id}
-                              />
+                              {canEdit && (
+                                <AddCardForm
+                                  boardId={board.id}
+                                  columnId={column.id}
+                                  swimlaneId={swimlane.id}
+                                />
+                              )}
                             </div>
                           );
                         })}
@@ -615,14 +668,20 @@ export function BoardPage() {
                     ))}
                   </div>
 
-                  {/* Add swimlane button below the grid */}
-                  <div className="mt-4 max-w-sm">
-                    <AddSwimlaneForm boardId={board.id} />
+                  {canEdit && (
+                    <>
+                      {/* Add swimlane button below the grid */}
+                      <div className="mt-4 max-w-sm">
+                        <AddSwimlaneForm boardId={board.id} />
+                      </div>
+                    </>
+                  )}
+                </div>
+                {canEdit && (
+                  <div className="mt-2">
+                    <AddColumnForm boardId={board.id} />
                   </div>
-                </div>
-                <div className="mt-2">
-                  <AddColumnForm boardId={board.id} />
-                </div>
+                )}
               </>
             ) : (
               /* ---- Single swimlane: flat layout (identical to original) ---- */
@@ -636,13 +695,16 @@ export function BoardPage() {
                       index={index}
                       boardId={board.id}
                       swimlaneId={defaultSwimlaneId}
+                      canEdit={canEdit}
                     />
                   ))}
-                  <AddColumnForm boardId={board.id} />
+                  {canEdit && <AddColumnForm boardId={board.id} />}
                 </div>
-                <div className="mt-4 max-w-sm">
-                  <AddSwimlaneForm boardId={board.id} />
-                </div>
+                {canEdit && (
+                  <div className="mt-4 max-w-sm">
+                    <AddSwimlaneForm boardId={board.id} />
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -671,6 +733,7 @@ export function BoardPage() {
         )}
         </div>
         <CardDetailModal />
+        <ShareBoardModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} boardId={board.id} />
         <ShortcutHelpModal isOpen={showShortcutHelp} onClose={() => setShowShortcutHelp(false)} />
 
         {/* Shortcut help trigger button */}

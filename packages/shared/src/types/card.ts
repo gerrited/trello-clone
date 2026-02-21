@@ -31,6 +31,7 @@ export interface CardSummary {
   commentCount: number;
   subtaskCount: number;
   subtaskDoneCount: number;
+  attachmentCount: number;
 }
 
 export interface CardDetail extends Card {
@@ -39,4 +40,5 @@ export interface CardDetail extends Card {
   comments: import('./comment.js').Comment[];
   subtasks: CardSummary[];
   parentCard: { id: string; title: string; cardType: CardType } | null;
+  attachments: import('./attachment.js').Attachment[];
 }

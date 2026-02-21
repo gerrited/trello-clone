@@ -48,6 +48,7 @@ export function AddCardForm({ boardId, columnId, swimlaneId }: AddCardFormProps)
         commentCount: 0,
         subtaskCount: 0,
         subtaskDoneCount: 0,
+        attachmentCount: 0,
       });
       setTitle('');
       setCardType('task');

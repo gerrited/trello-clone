@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { CardSummary } from '@trello-clone/shared';
-import { BookOpen, Bug, CheckSquare, MessageSquare, Link2, Calendar } from 'lucide-react';
+import { BookOpen, Bug, CheckSquare, MessageSquare, Link2, Calendar, Paperclip } from 'lucide-react';
 import { useBoardStore } from '../../stores/boardStore.js';
 
 interface CardComponentProps {
@@ -55,7 +55,7 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
   });
 
   const dueDateStyle = card.dueDate ? getDueDateStyle(card.dueDate) : null;
-  const hasMetadata = card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId || card.dueDate;
+  const hasMetadata = card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId || card.dueDate || card.attachmentCount > 0;
 
   return (
     <div
@@ -109,6 +109,12 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
             >
               <Calendar size={12} />
               {formatDueDate(card.dueDate)}
+            </span>
+          )}
+          {card.attachmentCount > 0 && (
+            <span className="flex items-center gap-1" title="Anhaenge">
+              <Paperclip size={12} />
+              {card.attachmentCount}
             </span>
           )}
           {card.commentCount > 0 && (
