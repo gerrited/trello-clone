@@ -5,22 +5,22 @@ const ACTION_MESSAGES: Record<ActivityAction, (meta: Record<string, unknown>) =>
   'card.updated': (meta) => `hat Karte "${meta.title || '?'}" bearbeitet`,
   'card.moved': (meta) => `hat Karte "${meta.title || '?'}" verschoben`,
   'card.archived': () => `hat eine Karte archiviert`,
-  'comment.created': () => `hat einen Kommentar hinzugefuegt`,
-  'comment.deleted': () => `hat einen Kommentar geloescht`,
+  'comment.created': () => `hat einen Kommentar hinzugefügt`,
+  'comment.deleted': () => `hat einen Kommentar gelöscht`,
   'assignee.added': (meta) => meta.assigneeDisplayName
     ? `hat ${meta.assigneeDisplayName} zugewiesen`
     : `hat jemanden zugewiesen`,
   'assignee.removed': () => `hat eine Zuweisung entfernt`,
   'label.added': (meta) => meta.labelName
-    ? `hat Label "${meta.labelName}" hinzugefuegt`
-    : `hat ein Label hinzugefuegt`,
+    ? `hat Label "${meta.labelName}" hinzugefügt`
+    : `hat ein Label hinzugefügt`,
   'label.removed': () => `hat ein Label entfernt`,
   'column.created': (meta) => `hat Spalte "${meta.name || '?'}" erstellt`,
-  'column.deleted': () => `hat eine Spalte geloescht`,
+  'column.deleted': () => `hat eine Spalte gelöscht`,
   'swimlane.created': (meta) => `hat Swimlane "${meta.name || '?'}" erstellt`,
-  'swimlane.deleted': () => `hat eine Swimlane geloescht`,
-  'dueDate.set': (meta) => `hat ein Faelligkeitsdatum gesetzt`,
-  'dueDate.cleared': () => `hat das Faelligkeitsdatum entfernt`,
+  'swimlane.deleted': () => `hat eine Swimlane gelöscht`,
+  'dueDate.set': (meta) => `hat ein Fälligkeitsdatum gesetzt`,
+  'dueDate.cleared': () => `hat das Fälligkeitsdatum entfernt`,
 };
 
 export function formatActivityMessage(activity: Activity): string {
@@ -28,5 +28,5 @@ export function formatActivityMessage(activity: Activity): string {
   if (formatter) {
     return formatter(activity.metadata);
   }
-  return `hat eine Aktion ausgefuehrt (${activity.action})`;
+  return `hat eine Aktion ausgeführt (${activity.action})`;
 }

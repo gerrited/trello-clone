@@ -103,13 +103,13 @@ export function CardDetailModal() {
       updateCardInStore(cardDetail.id, { cardType: newType });
       setCardDetail({ ...cardDetail, cardType: newType });
     } catch {
-      toast.error('Kartentyp konnte nicht geaendert werden');
+      toast.error('Kartentyp konnte nicht geändert werden');
     }
   };
 
   const handleDelete = async () => {
     if (!board || !cardDetail) return;
-    if (!window.confirm('Karte wirklich loeschen?')) return;
+    if (!window.confirm('Karte wirklich löschen?')) return;
     try {
       await cardsApi.deleteCard(board.id, cardDetail.id);
       // Clean up subtask references in the store (DB sets parentCardId to null)
@@ -120,9 +120,9 @@ export function CardDetailModal() {
       }
       removeCardFromStore(cardDetail.id);
       closeCard();
-      toast.success('Karte geloescht');
+      toast.success('Karte gelöscht');
     } catch {
-      toast.error('Karte konnte nicht geloescht werden');
+      toast.error('Karte konnte nicht gelöscht werden');
     }
   };
 
@@ -237,7 +237,7 @@ export function CardDetailModal() {
                 className={`text-sm text-gray-600 rounded-lg p-3 border border-transparent min-h-[3rem] ${canEdit ? 'cursor-pointer hover:bg-gray-50 hover:border-gray-200' : ''}`}
                 onClick={() => canEdit && setEditingDescription(true)}
               >
-                {cardDetail.description || (canEdit ? 'Beschreibung hinzufuegen...' : 'Keine Beschreibung')}
+                {cardDetail.description || (canEdit ? 'Beschreibung hinzufügen...' : 'Keine Beschreibung')}
               </div>
             )}
           </div>
@@ -328,13 +328,13 @@ export function CardDetailModal() {
                       }
                     }
                     setCardDetail({ ...cardDetail, parentCardId: null, parentCard: null });
-                    toast.success('Verknuepfung entfernt');
+                    toast.success('Verknüpfung entfernt');
                   } catch {
-                    toast.error('Verknuepfung konnte nicht entfernt werden');
+                    toast.error('Verknüpfung konnte nicht entfernt werden');
                   }
                 }}
                 className="ml-auto text-gray-400 hover:text-red-500 flex-shrink-0"
-                title="Verknuepfung entfernen"
+                title="Verknüpfung entfernen"
               >
                 <X size={14} />
               </button>
@@ -388,7 +388,7 @@ export function CardDetailModal() {
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <Activity size={16} />
-              Aktivitaet
+              Aktivität
             </label>
             <ActivityFeed cardId={cardDetail.id} boardId={board.id} maxHeight="200px" />
           </div>
@@ -401,7 +401,7 @@ export function CardDetailModal() {
                 className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition-colors"
               >
                 <Trash2 size={16} />
-                Karte loeschen
+                Karte löschen
               </button>
             </div>
           )}
@@ -522,12 +522,12 @@ function SubtaskSection({
               if (e.key === 'Enter') handleAddSubtask();
               if (e.key === 'Escape') setShowAddForm(false);
             }}
-            placeholder="Unteraufgabe hinzufuegen..."
+            placeholder="Unteraufgabe hinzufügen..."
             className="w-full rounded border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={handleAddSubtask} disabled={submitting || !newTitle.trim()}>
-              Hinzufuegen
+              Hinzufügen
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setShowAddForm(false)}>
               Abbrechen
@@ -536,7 +536,7 @@ function SubtaskSection({
         </div>
       ) : (
         <button onClick={() => setShowAddForm(true)} className="mt-2 text-sm text-gray-500 hover:text-gray-700">
-          + Unteraufgabe hinzufuegen
+          + Unteraufgabe hinzufügen
         </button>
       )}
     </div>
@@ -575,7 +575,7 @@ function SetParentSection({
       setIsOpen(false);
       onParentSet();
     } catch {
-      toast.error('Verknuepfung konnte nicht gesetzt werden');
+      toast.error('Verknüpfung konnte nicht gesetzt werden');
     }
   };
 
@@ -590,7 +590,7 @@ function SetParentSection({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">Elternkarte waehlen</label>
+      <label className="block text-sm font-medium text-gray-700">Elternkarte wählen</label>
       <input
         autoFocus
         value={search}
@@ -657,7 +657,7 @@ function DueDateSection({
       onUpdate(newDueDate);
       setEditing(false);
     } catch {
-      toast.error('Faelligkeitsdatum konnte nicht gespeichert werden');
+      toast.error('Fälligkeitsdatum konnte nicht gespeichert werden');
     }
   };
 
@@ -667,7 +667,7 @@ function DueDateSection({
       onUpdate(null);
       setEditing(false);
     } catch {
-      toast.error('Faelligkeitsdatum konnte nicht entfernt werden');
+      toast.error('Fälligkeitsdatum konnte nicht entfernt werden');
     }
   };
 
@@ -696,7 +696,7 @@ function DueDateSection({
     <div>
       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
         <Calendar size={16} />
-        Faelligkeitsdatum
+        Fälligkeitsdatum
       </label>
       {editing ? (
         <div className="space-y-2">
@@ -732,11 +732,11 @@ function DueDateSection({
               <Calendar size={14} />
               {formatDueDate(cardDetail.dueDate)}
               {new Date(cardDetail.dueDate) < new Date() && (
-                <span className="text-xs font-medium text-red-600">(Ueberfaellig)</span>
+                <span className="text-xs font-medium text-red-600">(Überfällig)</span>
               )}
             </span>
           ) : (
-            'Faelligkeitsdatum setzen...'
+            'Fälligkeitsdatum setzen...'
           )}
         </div>
       )}
@@ -773,7 +773,7 @@ function CommentSection({
       onCommentsChange([...comments, comment]);
       setNewBody('');
     } catch {
-      toast.error('Kommentar konnte nicht hinzugefuegt werden');
+      toast.error('Kommentar konnte nicht hinzugefügt werden');
     } finally {
       setSubmitting(false);
     }
@@ -795,7 +795,7 @@ function CommentSection({
       await commentsApi.deleteComment(boardId, cardId, commentId);
       onCommentsChange(comments.filter((c) => c.id !== commentId));
     } catch {
-      toast.error('Kommentar konnte nicht geloescht werden');
+      toast.error('Kommentar konnte nicht gelöscht werden');
     }
   };
 
@@ -843,7 +843,7 @@ function CommentSection({
                       <button
                         onClick={() => handleDeleteComment(comment.id)}
                         className="p-1 text-gray-400 hover:text-red-600"
-                        title="Loeschen"
+                        title="Löschen"
                       >
                         <Trash2 size={12} />
                       </button>

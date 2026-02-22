@@ -52,16 +52,16 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
   const handleDeleteColumn = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (totalCardCount > 0) {
-      toast.error('Spalte kann nicht geloescht werden, da sie noch Karten enthaelt');
+      toast.error('Spalte kann nicht gelöscht werden, da sie noch Karten enthält');
       return;
     }
-    if (!window.confirm(`Spalte "${column.name}" wirklich loeschen?`)) return;
+    if (!window.confirm(`Spalte "${column.name}" wirklich löschen?`)) return;
     try {
       await columnsApi.deleteColumn(boardId, column.id);
       removeColumn(column.id);
-      toast.success('Spalte geloescht');
+      toast.success('Spalte gelöscht');
     } catch (err: any) {
-      const msg = err?.response?.data?.message ?? 'Spalte konnte nicht geloescht werden';
+      const msg = err?.response?.data?.message ?? 'Spalte konnte nicht gelöscht werden';
       toast.error(msg);
     }
   };
@@ -85,7 +85,7 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
         <button
           onClick={handleDeleteColumn}
           className="ml-auto p-1 text-gray-400 hover:text-red-600 transition-colors"
-          title="Spalte loeschen"
+          title="Spalte löschen"
         >
           <Trash2 size={14} />
         </button>
@@ -405,7 +405,7 @@ export function BoardPage() {
             }`}
           >
             <Activity size={12} />
-            Aktivitaet
+            Aktivität
           </button>
         </div>
 
@@ -455,7 +455,7 @@ export function BoardPage() {
               onChange={(e) => setFilterAssigneeId(e.target.value || null)}
               className="text-xs px-2 py-1 rounded-full border border-gray-200 bg-white text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
-              <option value="">Alle Zustaendigen</option>
+              <option value="">Alle Zuständigen</option>
               {allAssignees.map((a) => (
                 <option key={a.id} value={a.id}>{a.displayName}</option>
               ))}
@@ -501,7 +501,7 @@ export function BoardPage() {
           {/* Due date filter */}
           <span className="text-xs text-gray-400 hidden sm:inline">|</span>
           {([
-            { key: 'overdue' as const, label: 'Ueberfaellig', color: 'border-red-300 bg-red-50 text-red-700' },
+            { key: 'overdue' as const, label: 'Überfällig', color: 'border-red-300 bg-red-50 text-red-700' },
             { key: 'week' as const, label: 'Diese Woche', color: 'border-orange-300 bg-orange-50 text-orange-700' },
             { key: 'none' as const, label: 'Kein Datum', color: 'border-gray-300 bg-gray-50 text-gray-700' },
           ]).map(({ key, label, color }) => (
@@ -718,7 +718,7 @@ export function BoardPage() {
               <div className="flex items-center justify-between p-3 border-b border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                   <Activity size={14} />
-                  Aktivitaet
+                  Aktivität
                 </h3>
                 <button
                   onClick={() => setShowActivity(false)}
@@ -740,7 +740,7 @@ export function BoardPage() {
         <button
           onClick={() => setShowShortcutHelp(true)}
           className="hidden sm:flex fixed bottom-4 right-4 w-8 h-8 items-center justify-center rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 transition-colors shadow-sm z-40"
-          title="Tastaturkuerzel (?)"
+          title="Tastaturkürzel (?)"
         >
           <Keyboard size={14} />
         </button>

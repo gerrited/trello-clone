@@ -36,17 +36,17 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
 
   const handleDeleteColumn = async () => {
     if (totalCardCount > 0) {
-      toast.error('Spalte kann nicht geloescht werden, da sie noch Karten enthaelt');
+      toast.error('Spalte kann nicht gelöscht werden, da sie noch Karten enthält');
       return;
     }
-    if (!window.confirm(`Spalte "${column.name}" wirklich loeschen?`)) return;
+    if (!window.confirm(`Spalte "${column.name}" wirklich löschen?`)) return;
     setDeleting(true);
     try {
       await columnsApi.deleteColumn(boardId, column.id);
       removeColumn(column.id);
-      toast.success('Spalte geloescht');
+      toast.success('Spalte gelöscht');
     } catch (err: any) {
-      const msg = err?.response?.data?.message ?? 'Spalte konnte nicht geloescht werden';
+      const msg = err?.response?.data?.message ?? 'Spalte konnte nicht gelöscht werden';
       toast.error(msg);
     } finally {
       setDeleting(false);
@@ -76,7 +76,7 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
             onClick={handleDeleteColumn}
             disabled={deleting}
             className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
-            title="Spalte loeschen"
+            title="Spalte löschen"
           >
             <Trash2 size={14} />
           </button>

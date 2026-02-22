@@ -90,7 +90,7 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
           <button
             onClick={handleDelete}
             className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-            title="Loeschen"
+            title="Löschen"
           >
             <Trash2 size={12} />
           </button>

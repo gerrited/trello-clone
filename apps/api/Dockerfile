@@ -49,6 +49,9 @@ COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 # Copy built API from builder
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 
+# Copy migrations (needed by migrate.js at runtime, resolved relative to dist/)
+COPY apps/api/src/db/migrations ./apps/api/dist/migrations
+
 # Copy entrypoint script
 COPY apps/api/docker-entrypoint.sh ./apps/api/
 RUN chmod +x ./apps/api/docker-entrypoint.sh

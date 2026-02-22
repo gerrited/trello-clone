@@ -30,10 +30,10 @@ function getDueDateStyle(dueDate: string): { className: string; label: string } 
   const diffHours = diffMs / (1000 * 60 * 60);
 
   if (diffMs < 0) {
-    return { className: 'bg-red-100 text-red-700', label: 'Ueberfaellig' };
+    return { className: 'bg-red-100 text-red-700', label: 'Überfällig' };
   }
   if (diffHours < 24) {
-    return { className: 'bg-orange-100 text-orange-700', label: 'Bald faellig' };
+    return { className: 'bg-orange-100 text-orange-700', label: 'Bald fällig' };
   }
   return { className: 'bg-gray-100 text-gray-600', label: '' };
 }
@@ -105,14 +105,14 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
           {card.dueDate && dueDateStyle && (
             <span
               className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${dueDateStyle.className}`}
-              title={dueDateStyle.label || `Faellig am ${formatDueDate(card.dueDate)}`}
+              title={dueDateStyle.label || `Fällig am ${formatDueDate(card.dueDate)}`}
             >
               <Calendar size={12} />
               {formatDueDate(card.dueDate)}
             </span>
           )}
           {card.attachmentCount > 0 && (
-            <span className="flex items-center gap-1" title="Anhaenge">
+            <span className="flex items-center gap-1" title="Anhänge">
               <Paperclip size={12} />
               {card.attachmentCount}
             </span>

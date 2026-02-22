@@ -34,7 +34,7 @@ export function AddSwimlaneForm({ boardId }: AddSwimlaneFormProps) {
         onClick={() => setIsOpen(true)}
         className="w-full h-10 rounded-lg border-2 border-dashed border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 flex items-center justify-center text-sm transition-colors"
       >
-        + Swimlane hinzufuegen
+        + Swimlane hinzufügen
       </button>
     );
   }
@@ -54,7 +54,7 @@ export function AddSwimlaneForm({ boardId }: AddSwimlaneFormProps) {
       />
       <div className="flex gap-2">
         <Button size="sm" onClick={handleSubmit} disabled={submitting || !name.trim()}>
-          Hinzufuegen
+          Hinzufügen
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setIsOpen(false)}>
           Abbrechen

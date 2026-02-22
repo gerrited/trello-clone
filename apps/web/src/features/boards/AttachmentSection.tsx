@@ -63,9 +63,9 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
     try {
       await attachmentsApi.deleteAttachment(boardId, cardId, attachmentId);
       onAttachmentsChange(attachments.filter((a) => a.id !== attachmentId));
-      toast.success('Datei geloescht');
+      toast.success('Datei gelöscht');
     } catch {
-      toast.error('Datei konnte nicht geloescht werden');
+      toast.error('Datei konnte nicht gelöscht werden');
     }
   };
 
@@ -74,7 +74,7 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
       <div className="flex items-center justify-between mb-2">
         <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
           <Paperclip size={16} />
-          Anhaenge ({attachments.length})
+          Anhänge ({attachments.length})
         </label>
         {canEdit && (
           <>
@@ -158,7 +158,7 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
                     <button
                       onClick={() => handleDelete(attachment.id)}
                       className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
-                      title="Loeschen"
+                      title="Löschen"
                     >
                       <Trash2 size={14} />
                     </button>
