@@ -15,6 +15,10 @@ COPY tsconfig.base.json ./
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
+# Build shared package first (API depends on it at runtime)
+WORKDIR /app/packages/shared
+RUN pnpm build
+
 # Build the API
 WORKDIR /app/apps/api
 RUN pnpm build
@@ -27,17 +31,27 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy only production dependencies
+# Add build tools required for bcrypt native addon compilation
+RUN apk add --no-cache python3 make g++
+
+# Copy workspace config + API package.json
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY packages ./packages
 COPY apps/api/package.json ./apps/api/
+COPY packages/shared/package.json ./packages/shared/
 COPY tsconfig.base.json ./
 
-# Install only production dependencies
+# Install only production dependencies (will compile bcrypt with build tools above)
 RUN pnpm install --frozen-lockfile --prod
 
-# Copy built application from builder
+# Copy compiled shared package from builder
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+
+# Copy built API from builder
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
+
+# Copy entrypoint script
+COPY apps/api/docker-entrypoint.sh ./apps/api/
+RUN chmod +x ./apps/api/docker-entrypoint.sh
 
 WORKDIR /app/apps/api
 
@@ -45,4 +59,4 @@ EXPOSE 3001
 
 ENV NODE_ENV=production
 
-CMD ["node", "dist/index.js"]
+CMD ["./docker-entrypoint.sh"]
