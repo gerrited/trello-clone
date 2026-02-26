@@ -2,6 +2,9 @@
 
 A modern, full-stack Trello-like project management application built with React, Node.js, Express, and PostgreSQL.
 
+## Demo
+[![Watch the video](https://img.youtube.com/vi/qgaDZsS-stc/0.jpg)](https://www.youtube.com/watch?v=qgaDZsS-stc)
+
 ## Features
 
 - **Board Management**: Create and organize teams and boards
