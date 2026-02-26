@@ -232,6 +232,42 @@ export const boardTemplates = pgTable(
   (t) => [index('idx_templates_team').on(t.teamId)],
 );
 
+// Board Shares
+export const boardShares = pgTable(
+  'board_shares',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    boardId: uuid('board_id').notNull().references(() => boards.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    token: varchar('token', { length: 64 }).unique(),
+    permission: varchar('permission', { length: 20 }).notNull().default('read'),
+    createdBy: uuid('created_by').notNull().references(() => users.id),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('idx_bs_board').on(t.boardId),
+    index('idx_bs_user').on(t.userId),
+    index('idx_bs_token').on(t.token),
+  ],
+);
+
+// Attachments
+export const attachments = pgTable(
+  'attachments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    cardId: uuid('card_id').notNull().references(() => cards.id, { onDelete: 'cascade' }),
+    uploadedBy: uuid('uploaded_by').notNull().references(() => users.id),
+    filename: varchar('filename', { length: 255 }).notNull(),
+    storagePath: varchar('storage_path', { length: 500 }).notNull(),
+    mimeType: varchar('mime_type', { length: 100 }).notNull(),
+    sizeBytes: integer('size_bytes').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('idx_attachments_card').on(t.cardId)],
+);
+
 // Refresh Tokens
 export const refreshTokens = pgTable(
   'refresh_tokens',

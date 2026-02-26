@@ -32,4 +32,7 @@ export const WS_EVENTS = {
 
   ACTIVITY_CREATED: 'activity:created',
   NOTIFICATION_NEW: 'notification:new',
+
+  ATTACHMENT_ADDED: 'attachment:added',
+  ATTACHMENT_REMOVED: 'attachment:removed',
 } as const;

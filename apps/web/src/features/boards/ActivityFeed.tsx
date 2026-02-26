@@ -97,7 +97,7 @@ export function ActivityFeed({ boardId, cardId, maxHeight = '400px' }: ActivityF
   if (activities.length === 0) {
     return (
       <div className="text-sm text-gray-400 text-center py-4">
-        Noch keine Aktivitaet
+        Noch keine Aktivität
       </div>
     );
   }

@@ -14,6 +14,8 @@ import {
   activities,
   notifications,
   boardTemplates,
+  boardShares,
+  attachments,
   refreshTokens,
 } from './schema.js';
 
@@ -46,6 +48,7 @@ export const boardsRelations = relations(boards, ({ one, many }) => ({
   cards: many(cards),
   labels: many(labels),
   activities: many(activities),
+  shares: many(boardShares),
 }));
 
 export const columnsRelations = relations(columns, ({ one, many }) => ({
@@ -68,6 +71,7 @@ export const cardsRelations = relations(cards, ({ one, many }) => ({
   assignees: many(cardAssignees),
   comments: many(comments),
   cardLabels: many(cardLabels),
+  attachments: many(attachments),
 }));
 
 export const cardAssigneesRelations = relations(cardAssignees, ({ one }) => ({
@@ -104,6 +108,17 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 export const boardTemplatesRelations = relations(boardTemplates, ({ one }) => ({
   team: one(teams, { fields: [boardTemplates.teamId], references: [teams.id] }),
   creator: one(users, { fields: [boardTemplates.createdBy], references: [users.id] }),
+}));
+
+export const boardSharesRelations = relations(boardShares, ({ one }) => ({
+  board: one(boards, { fields: [boardShares.boardId], references: [boards.id] }),
+  user: one(users, { fields: [boardShares.userId], references: [users.id], relationName: 'sharedWithUser' }),
+  creator: one(users, { fields: [boardShares.createdBy], references: [users.id], relationName: 'sharedByUser' }),
+}));
+
+export const attachmentsRelations = relations(attachments, ({ one }) => ({
+  card: one(cards, { fields: [attachments.cardId], references: [cards.id] }),
+  uploader: one(users, { fields: [attachments.uploadedBy], references: [users.id] }),
 }));
 
 export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({

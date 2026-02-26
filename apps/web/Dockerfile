@@ -15,6 +15,14 @@ COPY tsconfig.base.json ./
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
+# Build shared package first (tsc -b needs dist/ for type resolution)
+WORKDIR /app/packages/shared
+RUN pnpm build
+
+# VITE_API_URL must be a build arg — Vite bakes import.meta.env.VITE_* at build time
+ARG VITE_API_URL=http://localhost:3001
+ENV VITE_API_URL=$VITE_API_URL
+
 # Build the web app
 WORKDIR /app/apps/web
 RUN pnpm build

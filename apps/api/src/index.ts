@@ -18,8 +18,11 @@ import { labelRoutes } from './modules/labels/labels.routes.js';
 import { boardActivityRoutes, cardActivityRoutes, notificationRoutes } from './modules/activities/activities.routes.js';
 import { searchRoutes } from './modules/search/search.routes.js';
 import { templateRoutes, saveAsTemplateRoutes } from './modules/templates/templates.routes.js';
+import { shareRoutes, sharedBoardRoutes } from './modules/shares/shares.routes.js';
+import { attachmentRoutes } from './modules/attachments/attachments.routes.js';
 import { ensureSystemTemplates } from './modules/templates/templates.service.js';
 import { setupSocketIO } from './ws/socket.js';
+import path from 'node:path';
 
 const logger = pino({ name: 'api' });
 const app: Express = express();
@@ -56,6 +59,12 @@ app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/teams/:teamId/templates', templateRoutes);
 app.use('/api/v1/boards/:boardId/save-as-template', saveAsTemplateRoutes);
+app.use('/api/v1/boards/:boardId/shares', shareRoutes);
+app.use('/api/v1/shared', sharedBoardRoutes);
+app.use('/api/v1/boards/:boardId/cards/:cardId/attachments', attachmentRoutes);
+
+// Static file serving for uploads
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 app.use(errorHandler);
 

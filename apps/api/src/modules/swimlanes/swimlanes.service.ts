@@ -1,28 +1,12 @@
 import { eq, and, asc } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
+import { requireBoardAccess } from '../../middleware/boardAccess.js';
 import { getPositionAfter, getPositionBetween, getPositionBefore } from '../../utils/ordering.js';
 import type { CreateSwimlaneInput, UpdateSwimlaneInput } from '@trello-clone/shared';
 
-async function requireBoardAccess(boardId: string, userId: string) {
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, boardId),
-  });
-  if (!board) throw new AppError(404, 'Board not found');
-
-  const membership = await db.query.teamMemberships.findFirst({
-    where: and(
-      eq(schema.teamMemberships.teamId, board.teamId),
-      eq(schema.teamMemberships.userId, userId),
-    ),
-  });
-  if (!membership) throw new AppError(403, 'Not a member of this team');
-
-  return board;
-}
-
 export async function createSwimlane(boardId: string, userId: string, input: CreateSwimlaneInput) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   const existingSwimlanes = await db.query.swimlanes.findMany({
     where: eq(schema.swimlanes.boardId, boardId),
@@ -52,7 +36,7 @@ export async function updateSwimlane(swimlaneId: string, userId: string, input: 
   });
   if (!swimlane) throw new AppError(404, 'Swimlane not found');
 
-  await requireBoardAccess(swimlane.boardId, userId);
+  await requireBoardAccess(swimlane.boardId, userId, 'edit');
 
   const [updated] = await db
     .update(schema.swimlanes)
@@ -69,7 +53,7 @@ export async function moveSwimlane(swimlaneId: string, userId: string, afterId: 
   });
   if (!swimlane) throw new AppError(404, 'Swimlane not found');
 
-  await requireBoardAccess(swimlane.boardId, userId);
+  await requireBoardAccess(swimlane.boardId, userId, 'edit');
 
   const allSwimlanes = await db.query.swimlanes.findMany({
     where: eq(schema.swimlanes.boardId, swimlane.boardId),
@@ -107,7 +91,7 @@ export async function deleteSwimlane(swimlaneId: string, userId: string) {
   });
   if (!swimlane) throw new AppError(404, 'Swimlane not found');
 
-  await requireBoardAccess(swimlane.boardId, userId);
+  await requireBoardAccess(swimlane.boardId, userId, 'edit');
 
   if (swimlane.isDefault === true) {
     throw new AppError(400, 'Cannot delete the default swimlane');

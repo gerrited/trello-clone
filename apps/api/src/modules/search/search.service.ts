@@ -48,6 +48,15 @@ export async function searchCards(userId: string, input: SearchInput) {
       columns: { id: true },
     });
     accessibleBoardIds = boards.map((b) => b.id);
+
+    // Also include boards shared directly with the user
+    const sharedBoards = await db.query.boardShares.findMany({
+      where: eq(schema.boardShares.userId, userId),
+      columns: { boardId: true },
+    });
+    for (const s of sharedBoards) {
+      if (!accessibleBoardIds.includes(s.boardId)) accessibleBoardIds.push(s.boardId);
+    }
   }
 
   if (accessibleBoardIds.length === 0) return { results: [], total: 0, hasMore: false };

@@ -85,13 +85,13 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
   };
 
   const handleDeleteLabel = async (labelId: string) => {
-    if (!window.confirm('Label wirklich loeschen? Es wird von allen Karten entfernt.')) return;
+    if (!window.confirm('Label wirklich löschen? Es wird von allen Karten entfernt.')) return;
     try {
       await labelsApi.deleteLabel(boardId, labelId);
       removeLabelFromStore(labelId);
       setEditingLabel(null);
     } catch {
-      toast.error('Label konnte nicht geloescht werden');
+      toast.error('Label konnte nicht gelöscht werden');
     }
   };
 

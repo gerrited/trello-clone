@@ -1,27 +1,11 @@
 import { eq, and } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
+import { requireBoardAccess } from '../../middleware/boardAccess.js';
 import type { CreateLabelInput, UpdateLabelInput } from '@trello-clone/shared';
 
-async function requireBoardAccess(boardId: string, userId: string) {
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, boardId),
-  });
-  if (!board) throw new AppError(404, 'Board not found');
-
-  const membership = await db.query.teamMemberships.findFirst({
-    where: and(
-      eq(schema.teamMemberships.teamId, board.teamId),
-      eq(schema.teamMemberships.userId, userId),
-    ),
-  });
-  if (!membership) throw new AppError(403, 'Not a member of this team');
-
-  return board;
-}
-
 export async function listLabels(boardId: string, userId: string) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'read');
 
   return db.query.labels.findMany({
     where: eq(schema.labels.boardId, boardId),
@@ -30,7 +14,7 @@ export async function listLabels(boardId: string, userId: string) {
 }
 
 export async function createLabel(boardId: string, userId: string, input: CreateLabelInput) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   try {
     const [label] = await db
@@ -52,7 +36,7 @@ export async function createLabel(boardId: string, userId: string, input: Create
 }
 
 export async function updateLabel(boardId: string, labelId: string, userId: string, input: UpdateLabelInput) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   const label = await db.query.labels.findFirst({
     where: and(eq(schema.labels.id, labelId), eq(schema.labels.boardId, boardId)),
@@ -76,7 +60,7 @@ export async function updateLabel(boardId: string, labelId: string, userId: stri
 }
 
 export async function deleteLabel(boardId: string, labelId: string, userId: string) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   const label = await db.query.labels.findFirst({
     where: and(eq(schema.labels.id, labelId), eq(schema.labels.boardId, boardId)),
@@ -92,7 +76,7 @@ export async function addCardLabel(boardId: string, cardId: string, userId: stri
   });
   if (!card || card.boardId !== boardId) throw new AppError(404, 'Card not found');
 
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   // Verify label belongs to same board
   const label = await db.query.labels.findFirst({
@@ -118,7 +102,7 @@ export async function removeCardLabel(boardId: string, cardId: string, userId: s
   });
   if (!card || card.boardId !== boardId) throw new AppError(404, 'Card not found');
 
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   await db
     .delete(schema.cardLabels)

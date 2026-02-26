@@ -1,28 +1,12 @@
 import { eq, and, asc } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
+import { requireBoardAccess } from '../../middleware/boardAccess.js';
 import { getPositionAfter, getPositionBetween, getPositionBefore } from '../../utils/ordering.js';
 import type { CreateColumnInput, UpdateColumnInput } from '@trello-clone/shared';
 
-async function requireBoardAccess(boardId: string, userId: string) {
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, boardId),
-  });
-  if (!board) throw new AppError(404, 'Board not found');
-
-  const membership = await db.query.teamMemberships.findFirst({
-    where: and(
-      eq(schema.teamMemberships.teamId, board.teamId),
-      eq(schema.teamMemberships.userId, userId),
-    ),
-  });
-  if (!membership) throw new AppError(403, 'Not a member of this team');
-
-  return board;
-}
-
 export async function createColumn(boardId: string, userId: string, input: CreateColumnInput) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   const existingColumns = await db.query.columns.findMany({
     where: eq(schema.columns.boardId, boardId),
@@ -54,7 +38,7 @@ export async function updateColumn(columnId: string, userId: string, input: Upda
   });
   if (!column) throw new AppError(404, 'Column not found');
 
-  await requireBoardAccess(column.boardId, userId);
+  await requireBoardAccess(column.boardId, userId, 'edit');
 
   const [updated] = await db
     .update(schema.columns)
@@ -71,7 +55,7 @@ export async function moveColumn(columnId: string, userId: string, afterId: stri
   });
   if (!column) throw new AppError(404, 'Column not found');
 
-  await requireBoardAccess(column.boardId, userId);
+  await requireBoardAccess(column.boardId, userId, 'edit');
 
   const allColumns = await db.query.columns.findMany({
     where: eq(schema.columns.boardId, column.boardId),
@@ -109,7 +93,7 @@ export async function deleteColumn(columnId: string, userId: string) {
   });
   if (!column) throw new AppError(404, 'Column not found');
 
-  await requireBoardAccess(column.boardId, userId);
+  await requireBoardAccess(column.boardId, userId, 'edit');
 
   const cardInColumn = await db.query.cards.findFirst({
     where: eq(schema.cards.columnId, columnId),

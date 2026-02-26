@@ -172,6 +172,25 @@ export function useRealtimeBoard(boardId: string | undefined) {
       }
     });
 
+    // --- Attachment events ---
+    socket.on(WS_EVENTS.ATTACHMENT_ADDED, (data: { cardId: string }) => {
+      const card = useBoardStore.getState().board?.cards.find((c) => c.id === data.cardId);
+      if (card) {
+        useBoardStore.getState().updateCard(data.cardId, {
+          attachmentCount: card.attachmentCount + 1,
+        });
+      }
+    });
+
+    socket.on(WS_EVENTS.ATTACHMENT_REMOVED, (data: { cardId: string }) => {
+      const card = useBoardStore.getState().board?.cards.find((c) => c.id === data.cardId);
+      if (card) {
+        useBoardStore.getState().updateCard(data.cardId, {
+          attachmentCount: Math.max(0, card.attachmentCount - 1),
+        });
+      }
+    });
+
     return () => {
       // Leave board room and remove listeners
       if (connectedBoardRef.current) {
@@ -201,6 +220,8 @@ export function useRealtimeBoard(boardId: string | undefined) {
       socket.off(WS_EVENTS.LABEL_DELETED);
       socket.off(WS_EVENTS.CARD_LABEL_ADDED);
       socket.off(WS_EVENTS.CARD_LABEL_REMOVED);
+      socket.off(WS_EVENTS.ATTACHMENT_ADDED);
+      socket.off(WS_EVENTS.ATTACHMENT_REMOVED);
     };
   }, [boardId]);
 }

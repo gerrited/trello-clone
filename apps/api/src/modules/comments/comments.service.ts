@@ -1,24 +1,8 @@
 import { eq, and, asc } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
+import { requireBoardAccess } from '../../middleware/boardAccess.js';
 import type { CreateCommentInput, UpdateCommentInput } from '@trello-clone/shared';
-
-async function requireBoardAccess(boardId: string, userId: string) {
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, boardId),
-  });
-  if (!board) throw new AppError(404, 'Board not found');
-
-  const membership = await db.query.teamMemberships.findFirst({
-    where: and(
-      eq(schema.teamMemberships.teamId, board.teamId),
-      eq(schema.teamMemberships.userId, userId),
-    ),
-  });
-  if (!membership) throw new AppError(403, 'Not a member of this team');
-
-  return board;
-}
 
 async function requireCardOnBoard(cardId: string, boardId: string) {
   const card = await db.query.cards.findFirst({
@@ -29,7 +13,7 @@ async function requireCardOnBoard(cardId: string, boardId: string) {
 }
 
 export async function listComments(boardId: string, cardId: string, userId: string) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'read');
   await requireCardOnBoard(cardId, boardId);
 
   return db.query.comments.findMany({
@@ -44,7 +28,7 @@ export async function listComments(boardId: string, cardId: string, userId: stri
 }
 
 export async function createComment(boardId: string, cardId: string, userId: string, input: CreateCommentInput) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'comment');
   await requireCardOnBoard(cardId, boardId);
 
   const [comment] = await db
@@ -75,7 +59,7 @@ export async function updateComment(
   userId: string,
   input: UpdateCommentInput,
 ) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'comment');
   await requireCardOnBoard(cardId, boardId);
 
   const comment = await db.query.comments.findFirst({
@@ -108,7 +92,7 @@ export async function deleteComment(
   commentId: string,
   userId: string,
 ) {
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'comment');
   await requireCardOnBoard(cardId, boardId);
 
   const comment = await db.query.comments.findFirst({

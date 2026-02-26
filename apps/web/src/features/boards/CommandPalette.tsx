@@ -147,7 +147,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 : 'border-gray-200 text-gray-500 hover:bg-gray-50'
             }`}
           >
-            Mit Faelligkeitsdatum
+            Mit Fälligkeitsdatum
           </button>
           <button
             onClick={() => setFilterHasDueDate(filterHasDueDate === false ? null : false)}
@@ -171,7 +171,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             </div>
           ) : results.length === 0 && query ? (
             <div className="p-6 text-center text-sm text-gray-400">
-              Keine Ergebnisse fuer &quot;{query}&quot;
+              Keine Ergebnisse für &quot;{query}&quot;
             </div>
           ) : (
             <ul className="py-2">
@@ -242,7 +242,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             <kbd className="bg-gray-100 border border-gray-200 rounded px-1">↑↓</kbd> Navigieren
           </span>
           <span>
-            <kbd className="bg-gray-100 border border-gray-200 rounded px-1">Enter</kbd> Oeffnen
+            <kbd className="bg-gray-100 border border-gray-200 rounded px-1">Enter</kbd> Öffnen
           </span>
           <span>
             <kbd className="bg-gray-100 border border-gray-200 rounded px-1">Esc</kbd> Schliessen

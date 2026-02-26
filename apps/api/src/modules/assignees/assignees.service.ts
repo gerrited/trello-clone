@@ -1,24 +1,8 @@
 import { eq, and } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
+import { requireBoardAccess } from '../../middleware/boardAccess.js';
 import type { AddAssigneeInput } from '@trello-clone/shared';
-
-async function requireBoardAccess(boardId: string, userId: string) {
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, boardId),
-  });
-  if (!board) throw new AppError(404, 'Board not found');
-
-  const membership = await db.query.teamMemberships.findFirst({
-    where: and(
-      eq(schema.teamMemberships.teamId, board.teamId),
-      eq(schema.teamMemberships.userId, userId),
-    ),
-  });
-  if (!membership) throw new AppError(403, 'Not a member of this team');
-
-  return board;
-}
 
 export async function addAssignee(boardId: string, cardId: string, userId: string, input: AddAssigneeInput) {
   const card = await db.query.cards.findFirst({
@@ -26,7 +10,7 @@ export async function addAssignee(boardId: string, cardId: string, userId: strin
   });
   if (!card || card.boardId !== boardId) throw new AppError(404, 'Card not found');
 
-  const board = await requireBoardAccess(boardId, userId);
+  const { board } = await requireBoardAccess(boardId, userId, 'edit');
 
   // Verify the target user is a team member
   const targetMembership = await db.query.teamMemberships.findFirst({
@@ -60,7 +44,7 @@ export async function removeAssignee(boardId: string, cardId: string, userId: st
   });
   if (!card || card.boardId !== boardId) throw new AppError(404, 'Card not found');
 
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   await db
     .delete(schema.cardAssignees)
@@ -73,7 +57,7 @@ export async function listAssignees(boardId: string, cardId: string, userId: str
   });
   if (!card || card.boardId !== boardId) throw new AppError(404, 'Card not found');
 
-  await requireBoardAccess(boardId, userId);
+  await requireBoardAccess(boardId, userId, 'read');
 
   const assignments = await db.query.cardAssignees.findMany({
     where: eq(schema.cardAssignees.cardId, cardId),

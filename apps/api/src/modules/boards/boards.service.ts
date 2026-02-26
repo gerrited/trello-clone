@@ -1,24 +1,15 @@
 import { eq, and, asc, sql, inArray } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
+import { requireBoardAccess } from '../../middleware/boardAccess.js';
 import { getPositionAfter } from '../../utils/ordering.js';
 import type { CreateBoardInput, UpdateBoardInput } from '@trello-clone/shared';
 
-async function requireTeamMember(teamId: string, userId: string) {
-  const membership = await db.query.teamMemberships.findFirst({
-    where: and(
-      eq(schema.teamMemberships.teamId, teamId),
-      eq(schema.teamMemberships.userId, userId),
-    ),
-  });
-  if (!membership) {
-    throw new AppError(403, 'Not a member of this team');
-  }
-  return membership;
-}
-
 export async function createBoard(teamId: string, userId: string, input: CreateBoardInput) {
-  await requireTeamMember(teamId, userId);
+  const membership = await db.query.teamMemberships.findFirst({
+    where: and(eq(schema.teamMemberships.teamId, teamId), eq(schema.teamMemberships.userId, userId)),
+  });
+  if (!membership) throw new AppError(403, 'Not a member of this team');
 
   return await db.transaction(async (tx) => {
     const [board] = await tx
@@ -55,7 +46,10 @@ export async function createBoard(teamId: string, userId: string, input: CreateB
 }
 
 export async function listBoards(teamId: string, userId: string) {
-  await requireTeamMember(teamId, userId);
+  const membership = await db.query.teamMemberships.findFirst({
+    where: and(eq(schema.teamMemberships.teamId, teamId), eq(schema.teamMemberships.userId, userId)),
+  });
+  if (!membership) throw new AppError(403, 'Not a member of this team');
 
   return db.query.boards.findMany({
     where: and(eq(schema.boards.teamId, teamId), eq(schema.boards.isArchived, false)),
@@ -64,15 +58,7 @@ export async function listBoards(teamId: string, userId: string) {
 }
 
 export async function getBoard(boardId: string, userId: string) {
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, boardId),
-  });
-
-  if (!board) {
-    throw new AppError(404, 'Board not found');
-  }
-
-  await requireTeamMember(board.teamId, userId);
+  const { board, permission } = await requireBoardAccess(boardId, userId, 'read');
 
   const [columnsResult, swimlanesResult, cardsResult] = await Promise.all([
     db.query.columns.findMany({
@@ -118,6 +104,21 @@ export async function getBoard(boardId: string, userId: string) {
 
     for (const row of counts) {
       commentCounts[row.cardId] = row.count;
+    }
+  }
+
+  const attachmentCounts: Record<string, number> = {};
+  if (cardIds.length > 0) {
+    const attCounts = await db
+      .select({
+        cardId: schema.attachments.cardId,
+        count: sql<number>`count(*)::int`.as('count'),
+      })
+      .from(schema.attachments)
+      .where(inArray(schema.attachments.cardId, cardIds))
+      .groupBy(schema.attachments.cardId);
+    for (const row of attCounts) {
+      attachmentCounts[row.cardId] = row.count;
     }
   }
 
@@ -169,6 +170,7 @@ export async function getBoard(boardId: string, userId: string) {
     })),
     labels: cardLabelMap[card.id] ?? [],
     commentCount: commentCounts[card.id] ?? 0,
+    attachmentCount: attachmentCounts[card.id] ?? 0,
     subtaskCount: subtaskCounts[card.id]?.total ?? 0,
     subtaskDoneCount: subtaskCounts[card.id]?.done ?? 0,
   }));
@@ -179,19 +181,12 @@ export async function getBoard(boardId: string, userId: string) {
     swimlanes: swimlanesResult,
     cards: cardSummaries,
     labels: labelsResult,
+    permission,
   };
 }
 
 export async function updateBoard(boardId: string, userId: string, input: UpdateBoardInput) {
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, boardId),
-  });
-
-  if (!board) {
-    throw new AppError(404, 'Board not found');
-  }
-
-  await requireTeamMember(board.teamId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   const [updated] = await db
     .update(schema.boards)
@@ -203,15 +198,7 @@ export async function updateBoard(boardId: string, userId: string, input: Update
 }
 
 export async function deleteBoard(boardId: string, userId: string) {
-  const board = await db.query.boards.findFirst({
-    where: eq(schema.boards.id, boardId),
-  });
-
-  if (!board) {
-    throw new AppError(404, 'Board not found');
-  }
-
-  await requireTeamMember(board.teamId, userId);
+  await requireBoardAccess(boardId, userId, 'edit');
 
   await db.delete(schema.boards).where(eq(schema.boards.id, boardId));
 }

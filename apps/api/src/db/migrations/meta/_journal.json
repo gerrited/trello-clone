@@ -29,6 +29,13 @@
       "when": 1771334559070,
       "tag": "0003_nifty_salo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771354275509,
+      "tag": "0004_lumpy_shadowcat",
+      "breakpoints": true
     }
   ]
 }
