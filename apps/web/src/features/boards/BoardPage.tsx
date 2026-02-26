@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router';
 import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { CollisionPriority } from '@dnd-kit/abstract';
+import type { DragEndEvent as DragEndFn } from '@dnd-kit/abstract';
 import { Filter, X, Calendar, Activity, Keyboard, Share2, Trash2 } from 'lucide-react';
 import { useBoardStore } from '../../stores/boardStore.js';
 import { getBoard } from '../../api/boards.api.js';
@@ -26,16 +27,7 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts.js';
 import { toast } from 'sonner';
 import type { Column, CardSummary, CardType } from '@trello-clone/shared';
 
-/** Shape of the DnD event we actually use from @dnd-kit */
-interface DragEndEvent {
-  canceled: boolean;
-  operation: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    source: { id: string | number; type?: string | number | symbol; data?: Record<string, any> } | null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    target: { id: string | number; type?: string | number | symbol; data?: Record<string, any> } | null;
-  };
-}
+type DragEndEvent = Parameters<DragEndFn>[0];
 
 const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index, boardId, canEdit = true }: { column: Column; cardCount: number; index: number; boardId: string; canEdit?: boolean }) {
   const removeColumn = useBoardStore((s) => s.removeColumn);
