@@ -33,9 +33,11 @@ export function CardDetailModal() {
   const removeCardFromStore = useBoardStore((s) => s.removeCard);
   const addCardToStore = useBoardStore((s) => s.addCard);
 
+  const currentUser = useAuthStore((s) => s.user);
   const permission = board?.permission ?? 'edit';
   const canEdit = permission === 'edit';
-  const canComment = permission === 'comment' || permission === 'edit';
+  // Can only comment if permission allows AND user is authenticated (authorId is required)
+  const canComment = (permission === 'comment' || permission === 'edit') && !!currentUser;
 
   const [cardDetail, setCardDetail] = useState<CardDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -282,6 +284,7 @@ export function CardDetailModal() {
           <DueDateSection
             boardId={board.id}
             cardDetail={cardDetail}
+            canEdit={canEdit}
             onUpdate={(newDueDate) => {
               setCardDetail({ ...cardDetail, dueDate: newDueDate });
               updateCardInStore(cardDetail.id, { dueDate: newDueDate });
@@ -366,6 +369,7 @@ export function CardDetailModal() {
             cardId={cardDetail.id}
             comments={cardDetail.comments}
             canComment={canComment}
+            showLoginHint={!currentUser && (permission === 'comment' || permission === 'edit')}
             onCommentsChange={(newComments) => {
               setCardDetail({ ...cardDetail, comments: newComments });
               updateCardInStore(cardDetail.id, { commentCount: newComments.length });
@@ -628,10 +632,12 @@ function SetParentSection({
 function DueDateSection({
   boardId,
   cardDetail,
+  canEdit = true,
   onUpdate,
 }: {
   boardId: string;
   cardDetail: CardDetail;
+  canEdit?: boolean;
   onUpdate: (dueDate: string | null) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -722,10 +728,10 @@ function DueDateSection({
         </div>
       ) : (
         <div
-          className={`cursor-pointer rounded-lg p-3 text-sm border border-transparent hover:border-gray-200 ${
-            cardDetail.dueDate ? getDueDateColor(cardDetail.dueDate) : 'text-gray-400 hover:bg-gray-50'
+          className={`rounded-lg p-3 text-sm border border-transparent ${canEdit ? 'cursor-pointer hover:border-gray-200' : ''} ${
+            cardDetail.dueDate ? getDueDateColor(cardDetail.dueDate) : `text-gray-400 ${canEdit ? 'hover:bg-gray-50' : ''}`
           }`}
-          onClick={startEditing}
+          onClick={() => canEdit && startEditing()}
         >
           {cardDetail.dueDate ? (
             <span className="flex items-center gap-2">
@@ -736,7 +742,7 @@ function DueDateSection({
               )}
             </span>
           ) : (
-            'Fälligkeitsdatum setzen...'
+            canEdit ? 'Fälligkeitsdatum setzen...' : 'Kein Fälligkeitsdatum'
           )}
         </div>
       )}
@@ -751,12 +757,14 @@ function CommentSection({
   cardId,
   comments,
   canComment = true,
+  showLoginHint = false,
   onCommentsChange,
 }: {
   boardId: string;
   cardId: string;
   comments: Comment[];
   canComment?: boolean;
+  showLoginHint?: boolean;
   onCommentsChange: (comments: Comment[]) => void;
 }) {
   const currentUser = useAuthStore((s) => s.user);
@@ -906,6 +914,13 @@ function CommentSection({
           )}
         </div>
       </div>
+      )}
+
+      {/* Login hint for anonymous shared-board users */}
+      {showLoginHint && (
+        <p className="text-sm text-gray-500 text-center py-2">
+          <a href="/login" className="text-blue-600 hover:underline">Anmelden</a>, um zu kommentieren.
+        </p>
       )}
     </div>
   );

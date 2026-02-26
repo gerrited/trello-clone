@@ -10,6 +10,11 @@ export const api = axios.create({
 let isRefreshing = false;
 let failedQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
 
+/** Active share token for unauthenticated shared-board access. Set by SharedBoardPage. */
+let activeShareToken: string | null = null;
+export function setActiveShareToken(token: string | null) { activeShareToken = token; }
+export function getActiveShareToken() { return activeShareToken; }
+
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
   if (token) {
@@ -19,6 +24,10 @@ api.interceptors.request.use((config) => {
   const socketId = getSocketId();
   if (socketId) {
     config.headers['X-Socket-Id'] = socketId;
+  }
+  // Pass share token for shared-board access (authenticated or not)
+  if (activeShareToken) {
+    config.headers['X-Share-Token'] = activeShareToken;
   }
   return config;
 });
@@ -59,7 +68,11 @@ api.interceptors.response.use(
         failedQueue = [];
         useAuthStore.getState().logout();
         // Use soft navigation instead of hard reload to prevent infinite reload loops
-        if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        if (
+          window.location.pathname !== '/login' &&
+          window.location.pathname !== '/register' &&
+          !window.location.pathname.startsWith('/shared/')
+        ) {
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);

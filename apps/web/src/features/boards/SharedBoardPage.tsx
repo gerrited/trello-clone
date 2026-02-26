@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
-import type { BoardPermission, CardSummary, Column, Swimlane, Label } from '@trello-clone/shared';
+import type { BoardPermission, CardSummary } from '@trello-clone/shared';
 import { getSharedBoard } from '../../api/shares.api.js';
 import type { BoardDetail } from '../../api/boards.api.js';
+import { useBoardStore } from '../../stores/boardStore.js';
+import { setActiveShareToken } from '../../api/client.js';
+import { CardDetailModal } from './CardDetailModal.js';
 import { BookOpen, Bug, CheckSquare, MessageSquare, Calendar, Link2, Paperclip, Shield } from 'lucide-react';
 
 const TYPE_COLORS: Record<string, string> = {
@@ -24,21 +27,29 @@ const PERM_LABELS: Record<BoardPermission, string> = {
 
 export function SharedBoardPage() {
   const { token } = useParams<{ token: string }>();
-  const [board, setBoard] = useState<(BoardDetail & { permission: BoardPermission }) | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const setBoard = useBoardStore((s) => s.setBoard);
+  const clearBoard = useBoardStore((s) => s.clearBoard);
+  const board = useBoardStore((s) => s.board) as (BoardDetail & { permission: BoardPermission }) | null;
+  const openCard = useBoardStore((s) => s.openCard);
 
   useEffect(() => {
     if (!token) return;
+    setActiveShareToken(token);
     setIsLoading(true);
     getSharedBoard(token)
-      .then(setBoard)
+      .then((data) => setBoard(data))
       .catch((err) => {
         const msg = err?.response?.data?.message ?? 'Board konnte nicht geladen werden';
         setError(msg);
       })
       .finally(() => setIsLoading(false));
-  }, [token]);
+    return () => {
+      setActiveShareToken(null);
+      clearBoard();
+    };
+  }, [token, setBoard, clearBoard]);
 
   if (isLoading) {
     return (
@@ -53,7 +64,7 @@ export function SharedBoardPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Shield size={48} className="mx-auto text-gray-300 mb-4" />
-          <h1 className="text-xl font-bold text-gray-700 mb-2">Zugriff nicht moeglich</h1>
+          <h1 className="text-xl font-bold text-gray-700 mb-2">Zugriff nicht möglich</h1>
           <p className="text-gray-500">{error || 'Board nicht gefunden'}</p>
         </div>
       </div>
@@ -102,7 +113,7 @@ export function SharedBoardPage() {
                 </div>
                 <div className="p-2 space-y-2 flex-1">
                   {cards.map((card) => (
-                    <ReadOnlyCard key={card.id} card={card} />
+                    <ReadOnlyCard key={card.id} card={card} onClick={() => openCard(card.id)} />
                   ))}
                 </div>
               </div>
@@ -110,15 +121,17 @@ export function SharedBoardPage() {
           })}
         </div>
       </div>
+
+      <CardDetailModal />
     </div>
   );
 }
 
-function ReadOnlyCard({ card }: { card: CardSummary }) {
+function ReadOnlyCard({ card, onClick }: { card: CardSummary; onClick: () => void }) {
   const hasMetadata = card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId || card.dueDate || card.attachmentCount > 0;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
+    <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm cursor-pointer hover:border-blue-300 hover:shadow-md transition-all" onClick={onClick}>
       {card.labels.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-1.5">
           {card.labels.map((label) => (

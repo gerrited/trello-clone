@@ -10,7 +10,8 @@ export async function listHandler(req: AuthRequest, res: Response, next: NextFun
     const comments = await service.listComments(
       req.params.boardId as string,
       req.params.cardId as string,
-      req.userId!,
+      req.userId,
+      req.shareToken,
     );
     res.json({ comments });
   } catch (err) {
@@ -22,10 +23,12 @@ export async function createHandler(req: AuthRequest, res: Response, next: NextF
   try {
     const boardId = req.params.boardId as string;
     const cardId = req.params.cardId as string;
-    const comment = await service.createComment(boardId, cardId, req.userId!, req.body);
+    const comment = await service.createComment(boardId, cardId, req.userId, req.shareToken, req.body);
     res.status(201).json({ comment });
     broadcastToBoard(boardId, WS_EVENTS.COMMENT_CREATED, { cardId, comment }, req.socketId);
-    logActivity({ boardId, userId: req.userId!, action: 'comment.created', entityType: 'comment', entityId: comment.id, cardId, excludeSocketId: req.socketId });
+    if (req.userId) {
+      logActivity({ boardId, userId: req.userId, action: 'comment.created', entityType: 'comment', entityId: comment.id, cardId, excludeSocketId: req.socketId });
+    }
   } catch (err) {
     next(err);
   }

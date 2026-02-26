@@ -19,7 +19,7 @@ export async function createHandler(req: AuthRequest, res: Response, next: NextF
 
 export async function getHandler(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const card = await cardsService.getCard(req.params.cardId as string, req.userId!);
+    const card = await cardsService.getCard(req.params.cardId as string, req.userId, req.shareToken);
     res.json({ card });
   } catch (err) {
     next(err);

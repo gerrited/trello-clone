@@ -1,7 +1,7 @@
 import { eq, and, asc } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
-import { requireBoardAccess } from '../../middleware/boardAccess.js';
+import { requireBoardAccess, requireBoardAccessOrToken } from '../../middleware/boardAccess.js';
 import type { CreateCommentInput, UpdateCommentInput } from '@trello-clone/shared';
 
 async function requireCardOnBoard(cardId: string, boardId: string) {
@@ -12,8 +12,8 @@ async function requireCardOnBoard(cardId: string, boardId: string) {
   return card;
 }
 
-export async function listComments(boardId: string, cardId: string, userId: string) {
-  await requireBoardAccess(boardId, userId, 'read');
+export async function listComments(boardId: string, cardId: string, userId: string | undefined, shareToken?: string) {
+  await requireBoardAccessOrToken(boardId, userId, shareToken, 'read');
   await requireCardOnBoard(cardId, boardId);
 
   return db.query.comments.findMany({
@@ -27,15 +27,21 @@ export async function listComments(boardId: string, cardId: string, userId: stri
   });
 }
 
-export async function createComment(boardId: string, cardId: string, userId: string, input: CreateCommentInput) {
-  await requireBoardAccess(boardId, userId, 'comment');
+export async function createComment(boardId: string, cardId: string, userId: string | undefined, shareToken: string | undefined, input: CreateCommentInput) {
+  const { effectiveUserId } = await requireBoardAccessOrToken(boardId, userId, shareToken, 'comment');
+
+  // Anonymous users (no userId, token-only) cannot post comments (authorId is NOT NULL)
+  if (!effectiveUserId) {
+    throw new AppError(403, 'You must be logged in to post comments');
+  }
+
   await requireCardOnBoard(cardId, boardId);
 
   const [comment] = await db
     .insert(schema.comments)
     .values({
       cardId,
-      authorId: userId,
+      authorId: effectiveUserId,
       body: input.body,
     })
     .returning();

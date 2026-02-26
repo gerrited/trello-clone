@@ -1,7 +1,7 @@
 import { eq, and, asc } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
-import { requireBoardAccess } from '../../middleware/boardAccess.js';
+import { requireBoardAccess, requireBoardAccessOrToken } from '../../middleware/boardAccess.js';
 import { getPositionAfter, getPositionBetween, getPositionBefore } from '../../utils/ordering.js';
 import type { CreateCardInput, UpdateCardInput, MoveCardInput } from '@trello-clone/shared';
 
@@ -75,7 +75,7 @@ export async function createCard(boardId: string, userId: string, input: CreateC
   return card;
 }
 
-export async function getCard(cardId: string, userId: string) {
+export async function getCard(cardId: string, userId: string | undefined, shareToken?: string) {
   const card = await db.query.cards.findFirst({
     where: eq(schema.cards.id, cardId),
     with: {
@@ -117,7 +117,7 @@ export async function getCard(cardId: string, userId: string) {
 
   if (!card) throw new AppError(404, 'Card not found');
 
-  await requireBoardAccess(card.boardId, userId, 'read');
+  await requireBoardAccessOrToken(card.boardId, userId, shareToken, 'read');
 
   // Fetch subtasks separately (non-archived only)
   const subtasks = await db.query.cards.findMany({
