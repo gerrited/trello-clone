@@ -72,12 +72,15 @@ export async function searchCards(userId: string, input: SearchInput) {
   ];
 
   if (type) conditions.push(eq(schema.cards.cardType, type));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (hasDueDate === true) conditions.push(sql`${schema.cards.dueDate} IS NOT NULL` as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (hasDueDate === false) conditions.push(sql`${schema.cards.dueDate} IS NULL` as any);
 
   // Step 3: Handle labelId filter with subquery
   if (labelId) {
     conditions.push(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sql`${schema.cards.id} IN (
         SELECT ${schema.cardLabels.cardId} FROM ${schema.cardLabels}
         WHERE ${schema.cardLabels.labelId} = ${labelId}

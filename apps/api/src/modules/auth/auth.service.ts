@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { env } from '../../config/env.js';
 import { AppError } from '../../middleware/error.js';

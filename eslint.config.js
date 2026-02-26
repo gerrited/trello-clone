@@ -14,5 +14,8 @@ export default tseslint.config(
         ...globals.node,
       },
     },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
   }
 );
