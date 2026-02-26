@@ -36,7 +36,8 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
     try {
       await swimlanesApi.deleteSwimlane(boardId, swimlane.id);
       removeSwimlaneFromStore(swimlane.id);
-    } catch (err: any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err: any) {
       alert(err?.response?.data?.message ?? 'Fehler beim Löschen der Swimlane');
     }
   };

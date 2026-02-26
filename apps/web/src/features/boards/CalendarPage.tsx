@@ -53,7 +53,6 @@ export function CalendarPage() {
   const { teamId, boardId } = useParams<{ teamId: string; boardId: string }>();
   const board = useBoardStore((s) => s.board);
   const isLoading = useBoardStore((s) => s.isLoading);
-  const setBoard = useBoardStore((s) => s.setBoard);
   const openCard = useBoardStore((s) => s.openCard);
 
   const [viewYear, setViewYear] = useState(() => new Date().getFullYear());

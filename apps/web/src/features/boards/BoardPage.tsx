@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
@@ -25,9 +25,18 @@ import { ConnectionStatus } from '../../components/ui/ConnectionStatus.js';
 import { useRealtimeBoard } from '../../hooks/useRealtimeBoard.js';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts.js';
 import { toast } from 'sonner';
-import type { Column, CardSummary, CardType, Label } from '@trello-clone/shared';
+import type { Column, CardSummary, CardType } from '@trello-clone/shared';
 
-type DragEndEvent = Parameters<DragEndFn>[0];
+/** Shape of the DnD event we actually use from @dnd-kit */
+interface DragEndEvent {
+  canceled: boolean;
+  operation: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    source: { id: string | number; type?: string | number | symbol; data?: Record<string, any> } | null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    target: { id: string | number; type?: string | number | symbol; data?: Record<string, any> } | null;
+  };
+}
 
 const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index, boardId, canEdit = true }: { column: Column; cardCount: number; index: number; boardId: string; canEdit?: boolean }) {
   const removeColumn = useBoardStore((s) => s.removeColumn);
@@ -54,6 +63,7 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
       await columnsApi.deleteColumn(boardId, column.id);
       removeColumn(column.id);
       toast.success('Spalte gelöscht');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? 'Spalte konnte nicht gelöscht werden';
       toast.error(msg);
@@ -94,11 +104,9 @@ export function BoardPage() {
   const board = useBoardStore((s) => s.board);
   const isLoading = useBoardStore((s) => s.isLoading);
   const setBoard = useBoardStore((s) => s.setBoard);
-  const setLoading = useBoardStore((s) => s.setLoading);
   const moveCardInStore = useBoardStore((s) => s.moveCard);
   const updateColumn = useBoardStore((s) => s.updateColumn);
   const reorderColumns = useBoardStore((s) => s.reorderColumns);
-  const clearBoard = useBoardStore((s) => s.clearBoard);
 
   // Modal states
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);

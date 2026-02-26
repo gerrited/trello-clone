@@ -33,6 +33,8 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
       MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET:-}
+    volumes:
+      - uploads:/app/apps/api/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,3 +57,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:

@@ -19,7 +19,7 @@ const ACTION_MESSAGES: Record<ActivityAction, (meta: Record<string, unknown>) =>
   'column.deleted': () => `hat eine Spalte gelöscht`,
   'swimlane.created': (meta) => `hat Swimlane "${meta.name || '?'}" erstellt`,
   'swimlane.deleted': () => `hat eine Swimlane gelöscht`,
-  'dueDate.set': (meta) => `hat ein Fälligkeitsdatum gesetzt`,
+  'dueDate.set': (_meta) => `hat ein Fälligkeitsdatum gesetzt`,
   'dueDate.cleared': () => `hat das Fälligkeitsdatum entfernt`,
 };
 
