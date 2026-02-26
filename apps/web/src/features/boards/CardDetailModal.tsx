@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil, Link2, ListChecks, Calendar, Activity, Paperclip } from 'lucide-react';
-import type { CardDetail, CardType, Comment, Attachment } from '@trello-clone/shared';
+import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil, Link2, ListChecks, Calendar, Activity } from 'lucide-react';
+import type { CardDetail, CardType, Comment } from '@trello-clone/shared';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { LabelPicker } from './LabelPicker.js';
@@ -31,7 +31,6 @@ export function CardDetailModal() {
   const openCard = useBoardStore((s) => s.openCard);
   const updateCardInStore = useBoardStore((s) => s.updateCard);
   const removeCardFromStore = useBoardStore((s) => s.removeCard);
-  const addCardToStore = useBoardStore((s) => s.addCard);
 
   const permission = board?.permission ?? 'edit';
   const canEdit = permission === 'edit';

@@ -23,8 +23,8 @@ export async function addAssignee(boardId: string, cardId: string, userId: strin
 
   try {
     await db.insert(schema.cardAssignees).values({ cardId, userId: input.userId });
-  } catch (err: any) {
-    if (err?.code === '23505') {
+  } catch (err: unknown) {
+    if (err && typeof err === 'object' && 'code' in err && err.code === '23505') {
       throw new AppError(409, 'User already assigned to this card');
     }
     throw err;

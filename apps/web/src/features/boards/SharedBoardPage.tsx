@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
-import type { BoardPermission, CardSummary, Column, Swimlane, Label } from '@trello-clone/shared';
+import type { BoardPermission, CardSummary } from '@trello-clone/shared';
 import { getSharedBoard } from '../../api/shares.api.js';
 import type { BoardDetail } from '../../api/boards.api.js';
-import { BookOpen, Bug, CheckSquare, MessageSquare, Calendar, Link2, Paperclip, Shield } from 'lucide-react';
+import { CheckSquare, MessageSquare, Calendar, Link2, Paperclip, Shield } from 'lucide-react';
 
 const TYPE_COLORS: Record<string, string> = {
   story: 'bg-green-100 text-green-700',

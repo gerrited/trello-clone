@@ -49,6 +49,7 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
       const attachment = await attachmentsApi.uploadAttachment(boardId, cardId, file);
       onAttachmentsChange([...attachments, attachment]);
       toast.success('Datei hochgeladen');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? 'Upload fehlgeschlagen';
       toast.error(msg);

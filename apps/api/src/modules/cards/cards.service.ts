@@ -209,6 +209,7 @@ export async function updateCard(cardId: string, userId: string, input: UpdateCa
 
   const [updated] = await db
     .update(schema.cards)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .set(updatePayload as any)
     .where(eq(schema.cards.id, cardId))
     .returning();
