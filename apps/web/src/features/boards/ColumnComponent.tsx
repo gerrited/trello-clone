@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDroppable } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { CollisionPriority } from '@dnd-kit/abstract';
 import { Trash2 } from 'lucide-react';
@@ -28,8 +29,16 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
     index,
     type: 'column',
     collisionPriority: CollisionPriority.Low,
-    accept: ['card', 'column'],
+    accept: ['column'],
     data: { columnId: column.id },
+  });
+
+  const { ref: dropRef } = useDroppable({
+    id: `column-drop:${column.id}`,
+    type: 'column-body',
+    accept: ['card'],
+    collisionPriority: CollisionPriority.Low,
+    data: { columnId: column.id, swimlaneId },
   });
 
   const isOverWipLimit = column.wipLimit !== null && cards.length > column.wipLimit;
@@ -83,7 +92,7 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-2">
+      <div ref={dropRef} className="flex-1 overflow-y-auto px-2 pb-2 space-y-2">
         {cards.map((card, cardIndex) => (
           <CardComponent
             key={card.id}
