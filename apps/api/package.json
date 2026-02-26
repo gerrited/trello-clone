@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint src/",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "NODE_OPTIONS='--conditions=source' tsx src/db/migrate.ts",
     "db:seed": "NODE_OPTIONS='--conditions=source' tsx src/db/seed.ts"
