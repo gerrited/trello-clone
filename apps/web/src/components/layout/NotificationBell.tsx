@@ -43,14 +43,18 @@ export function NotificationBell() {
     try {
       await notificationsApi.markAllAsRead();
       useNotificationStore.getState().markAllRead();
-    } catch {}
+    } catch {
+      // noop
+    }
   };
 
   const handleMarkRead = async (notificationId: string) => {
     try {
       await notificationsApi.markAsRead(notificationId);
       useNotificationStore.getState().markRead(notificationId);
-    } catch {}
+    } catch {
+      // noop
+    }
   };
 
   function timeAgo(dateStr: string): string {

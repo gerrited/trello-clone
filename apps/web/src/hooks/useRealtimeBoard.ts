@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { WS_EVENTS } from '@trello-clone/shared';
 import type { CardSummary, Column, Swimlane, Label } from '@trello-clone/shared';
-import { connectSocket, disconnectSocket } from '../api/ws.js';
+import { connectSocket } from '../api/ws.js';
 import { useBoardStore } from '../stores/boardStore.js';
 
 /**

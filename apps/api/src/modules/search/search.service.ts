@@ -79,13 +79,13 @@ export async function searchCards(userId: string, input: SearchInput) {
 
   // Step 3: Handle labelId filter with subquery
   if (labelId) {
-    conditions.push(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sql`${schema.cards.id} IN (
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const labelSubquery = sql`${schema.cards.id} IN (
         SELECT ${schema.cardLabels.cardId} FROM ${schema.cardLabels}
         WHERE ${schema.cardLabels.labelId} = ${labelId}
-      )` as any,
-    );
+      )` as any;
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    conditions.push(labelSubquery);
   }
 
   // Step 4: Execute search query with joins
