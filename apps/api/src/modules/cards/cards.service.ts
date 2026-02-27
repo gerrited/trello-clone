@@ -209,7 +209,7 @@ export async function updateCard(cardId: string, userId: string, input: UpdateCa
 
   const [updated] = await db
     .update(schema.cards)
-    .set(updatePayload as any)
+    .set(updatePayload as unknown as typeof schema.cards.$inferInsert)
     .where(eq(schema.cards.id, cardId))
     .returning();
 

@@ -27,8 +27,8 @@ export async function createLabel(boardId: string, userId: string, input: Create
       .returning();
 
     return label;
-  } catch (err: any) {
-    if (err?.code === '23505') {
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === '23505') {
       throw new AppError(409, 'A label with this name already exists on this board');
     }
     throw err;
@@ -51,8 +51,8 @@ export async function updateLabel(boardId: string, labelId: string, userId: stri
       .returning();
 
     return updated;
-  } catch (err: any) {
-    if (err?.code === '23505') {
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === '23505') {
       throw new AppError(409, 'A label with this name already exists on this board');
     }
     throw err;
@@ -86,8 +86,8 @@ export async function addCardLabel(boardId: string, cardId: string, userId: stri
 
   try {
     await db.insert(schema.cardLabels).values({ cardId, labelId });
-  } catch (err: any) {
-    if (err?.code === '23505') {
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === '23505') {
       throw new AppError(409, 'Label already assigned to this card');
     }
     throw err;

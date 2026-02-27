@@ -21,7 +21,7 @@ export function validateQuery(schema: ZodSchema) {
       return;
     }
     // Overwrite req.query with validated/coerced values
-    (req as any).query = result.data;
+    Object.assign(req, { query: result.data });
     next();
   };
 }
