@@ -45,6 +45,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
       const share = await sharesApi.createUserShare(boardId, { email: email.trim(), permission: invitePermission });
       setShares((prev) => [...prev, share]);
       setEmail('');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setInviteError(err.response?.data?.message || 'Einladung fehlgeschlagen');
     } finally {

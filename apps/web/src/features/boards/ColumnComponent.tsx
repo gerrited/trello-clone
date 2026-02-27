@@ -54,6 +54,7 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
       await columnsApi.deleteColumn(boardId, column.id);
       removeColumn(column.id);
       toast.success('Spalte gelöscht');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? 'Spalte konnte nicht gelöscht werden';
       toast.error(msg);

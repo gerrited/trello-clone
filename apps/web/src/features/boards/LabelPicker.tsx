@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Tag, Plus, X, Check, Pencil, Trash2 } from 'lucide-react';
+import { Tag, Plus, Check, Pencil, Trash2 } from 'lucide-react';
 import { LABEL_COLORS } from '@trello-clone/shared';
 import type { Label } from '@trello-clone/shared';
 import { useBoardStore } from '../../stores/boardStore.js';
@@ -127,7 +127,7 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') editingLabel ? handleUpdateLabel() : handleCreateLabel();
+                  if (e.key === 'Enter') { if (editingLabel) { handleUpdateLabel(); } else { handleCreateLabel(); } }
                   if (e.key === 'Escape') { setShowCreate(false); setEditingLabel(null); }
                 }}
                 placeholder="Label-Name..."
