@@ -1,4 +1,4 @@
-import { and, eq, or, ilike, inArray, sql, desc } from 'drizzle-orm';
+import { and, eq, or, ilike, inArray, sql, desc, type SQL } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
 import type { SearchInput } from '@trello-clone/shared';
@@ -62,7 +62,7 @@ export async function searchCards(userId: string, input: SearchInput) {
   if (accessibleBoardIds.length === 0) return { results: [], total: 0, hasMore: false };
 
   // Step 2: Build base conditions
-  const conditions: ReturnType<typeof eq>[] = [
+  const conditions: SQL[] = [
     inArray(schema.cards.boardId, accessibleBoardIds),
     eq(schema.cards.isArchived, false),
     or(
@@ -72,20 +72,17 @@ export async function searchCards(userId: string, input: SearchInput) {
   ];
 
   if (type) conditions.push(eq(schema.cards.cardType, type));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (hasDueDate === true) conditions.push(sql`${schema.cards.dueDate} IS NOT NULL` as any);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (hasDueDate === false) conditions.push(sql`${schema.cards.dueDate} IS NULL` as any);
+  if (hasDueDate === true) conditions.push(sql`${schema.cards.dueDate} IS NOT NULL`);
+  if (hasDueDate === false) conditions.push(sql`${schema.cards.dueDate} IS NULL`);
 
   // Step 3: Handle labelId filter with subquery
   if (labelId) {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const labelSubquery = sql`${schema.cards.id} IN (
+    conditions.push(
+      sql`${schema.cards.id} IN (
         SELECT ${schema.cardLabels.cardId} FROM ${schema.cardLabels}
         WHERE ${schema.cardLabels.labelId} = ${labelId}
-      )` as any;
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-    conditions.push(labelSubquery);
+      )`,
+    );
   }
 
   // Step 4: Execute search query with joins

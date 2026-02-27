@@ -27,7 +27,15 @@ vi.mock('../../db/index.js', async () => {
 import { db } from '../../db/index.js';
 import { register, login, refreshAccessToken, revokeRefreshToken, getMe } from './auth.service.js';
 
-const dbMock = db as any;
+type MockedDb = {
+  query: {
+    users: { findFirst: ReturnType<typeof vi.fn> };
+    refreshTokens: { findMany: ReturnType<typeof vi.fn> };
+  };
+  insert: ReturnType<typeof vi.fn>;
+  update: ReturnType<typeof vi.fn>;
+};
+const dbMock = db as unknown as MockedDb;
 
 /** Create a promise-like object that is also awaitable and supports .returning() */
 function makeInsertValues(returningData: unknown[]) {

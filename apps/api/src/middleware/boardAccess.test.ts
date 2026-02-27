@@ -24,7 +24,14 @@ vi.mock('../db/index.js', async () => {
 import { db } from '../db/index.js';
 import { requireBoardAccess, resolveBoardToken } from './boardAccess.js';
 
-const dbMock = db as any;
+type MockedDb = {
+  query: {
+    boards: { findFirst: ReturnType<typeof vi.fn> };
+    teamMemberships: { findFirst: ReturnType<typeof vi.fn> };
+    boardShares: { findFirst: ReturnType<typeof vi.fn> };
+  };
+};
+const dbMock = db as unknown as MockedDb;
 
 const mockBoard = { id: 'board-1', teamId: 'team-1', name: 'Test Board' };
 
