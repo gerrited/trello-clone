@@ -63,7 +63,7 @@ describe('errorHandler', () => {
       { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
     ]);
 
-    errorHandler(zodErr, mockReq, res as any, mockNext);
+    errorHandler(zodErr, mockReq, res as unknown as Response, mockNext);
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
