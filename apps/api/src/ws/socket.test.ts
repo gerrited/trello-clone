@@ -60,7 +60,7 @@ function makeMockSocket(overrides: Record<string, unknown> = {}) {
   const eventHandlers: Record<string, EventHandler> = {};
   return {
     handshake: { auth: {} },
-    data: {},
+    data: {} as { userId?: string },
     id: 'socket-1',
     rooms: new Set<string>(['socket-1']),
     join: vi.fn(),

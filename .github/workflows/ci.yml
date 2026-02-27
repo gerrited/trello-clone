@@ -45,7 +45,7 @@ jobs:
         run: pnpm -r lint
 
       - name: Test
-        run: pnpm -r test -- --coverage --reporter=verbose
+        run: pnpm -r test -- --coverage --coverage.reporter=text --reporter=verbose
         env:
           DATABASE_URL: postgresql://trello:trello_secret@localhost:5432/trello_clone
           JWT_SECRET: test_jwt_secret_for_ci_at_least_32_characters
