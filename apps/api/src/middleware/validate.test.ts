@@ -1,12 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { Request, Response } from 'express';
 import { z, ZodError } from 'zod';
 import { validate, validateQuery } from './validate.js';
 
 function makeMockReq(overrides: Record<string, unknown> = {}) {
-  return { body: {}, query: {}, ...overrides } as any;
+  return { body: {}, query: {}, ...overrides } as unknown as Request;
 }
 
-const mockRes = {} as any;
+const mockRes = {} as unknown as Response;
 
 // ---------------------------------------------------------------------------
 // validate (req.body)
