@@ -18,16 +18,28 @@ vi.mock('pino', () => ({
   pino: () => ({ error: vi.fn(), info: vi.fn(), warn: vi.fn() }),
 }));
 
+type MockSocketNext = (err?: Error) => void;
+interface MockSocketLike {
+  handshake: { auth: Record<string, unknown> };
+  data: Record<string, unknown>;
+  id: string;
+  rooms: Set<string>;
+  join: ReturnType<typeof vi.fn>;
+  leave: ReturnType<typeof vi.fn>;
+  on: ReturnType<typeof vi.fn>;
+  _trigger: (event: string, ...args: unknown[]) => void;
+}
+
 // Capture .use() and .on() handlers from the Socket.IO Server constructor
-let capturedAuthMiddleware: ((socket: any, next: any) => void) | null = null;
-let capturedConnectionHandler: ((socket: any) => void) | null = null;
+let capturedAuthMiddleware: ((socket: MockSocketLike, next: MockSocketNext) => void) | null = null;
+let capturedConnectionHandler: ((socket: MockSocketLike) => void) | null = null;
 
 vi.mock('socket.io', () => ({
   Server: vi.fn().mockImplementation(() => ({
-    use: vi.fn().mockImplementation((fn: any) => {
+    use: vi.fn().mockImplementation((fn: (socket: MockSocketLike, next: MockSocketNext) => void) => {
       capturedAuthMiddleware = fn;
     }),
-    on: vi.fn().mockImplementation((event: string, fn: any) => {
+    on: vi.fn().mockImplementation((event: string, fn: (socket: MockSocketLike) => void) => {
       if (event === 'connection') capturedConnectionHandler = fn;
     }),
   })),
@@ -42,8 +54,10 @@ vi.mock('jsonwebtoken', () => ({
 import jwt from 'jsonwebtoken';
 import { setupSocketIO, getIO } from './socket.js';
 
-function makeMockSocket(overrides: Record<string, any> = {}) {
-  const eventHandlers: Record<string, Function> = {};
+type EventHandler = (...args: unknown[]) => void;
+
+function makeMockSocket(overrides: Record<string, unknown> = {}) {
+  const eventHandlers: Record<string, EventHandler> = {};
   return {
     handshake: { auth: {} },
     data: {},
@@ -51,11 +65,11 @@ function makeMockSocket(overrides: Record<string, any> = {}) {
     rooms: new Set<string>(['socket-1']),
     join: vi.fn(),
     leave: vi.fn(),
-    on: vi.fn().mockImplementation((event: string, fn: Function) => {
+    on: vi.fn().mockImplementation((event: string, fn: EventHandler) => {
       eventHandlers[event] = fn;
     }),
     // Helper to trigger registered events in tests
-    _trigger: (event: string, ...args: any[]) => eventHandlers[event]?.(...args),
+    _trigger: (event: string, ...args: unknown[]) => eventHandlers[event]?.(...args),
     ...overrides,
   };
 }
@@ -78,7 +92,7 @@ describe('getIO', () => {
     // test, getIO would succeed. This test verifies the error message pattern.
     // Since setupSocketIO is called in other tests and mutates module state,
     // we just verify getIO returns a Server-like object after setup.
-    const mockHttpServer = {} as any;
+    const mockHttpServer = {} as unknown as import('http').Server;
     setupSocketIO(mockHttpServer);
     expect(() => getIO()).not.toThrow();
   });
@@ -90,7 +104,7 @@ describe('getIO', () => {
 
 describe('setupSocketIO auth middleware', () => {
   beforeEach(() => {
-    const mockHttpServer = {} as any;
+    const mockHttpServer = {} as unknown as import('http').Server;
     setupSocketIO(mockHttpServer);
   });
 
@@ -138,7 +152,7 @@ describe('setupSocketIO auth middleware', () => {
 
 describe('setupSocketIO connection handler', () => {
   beforeEach(() => {
-    const mockHttpServer = {} as any;
+    const mockHttpServer = {} as unknown as import('http').Server;
     setupSocketIO(mockHttpServer);
   });
 

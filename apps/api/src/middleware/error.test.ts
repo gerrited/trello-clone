@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { Request, Response } from 'express';
 import { ZodError } from 'zod';
 
 vi.mock('pino', () => ({
@@ -13,7 +14,7 @@ function makeMockRes() {
   return { status, json } as unknown as { status: ReturnType<typeof vi.fn>; json: ReturnType<typeof vi.fn> };
 }
 
-const mockReq = {} as any;
+const mockReq = {} as unknown as Request;
 const mockNext = vi.fn();
 
 // ---------------------------------------------------------------------------
@@ -50,7 +51,7 @@ describe('errorHandler', () => {
     const res = makeMockRes();
     const err = new AppError(403, 'Forbidden');
 
-    errorHandler(err, mockReq, res as any, mockNext);
+    errorHandler(err, mockReq, res as unknown as Response, mockNext);
 
     expect(res.status).toHaveBeenCalledWith(403);
     expect(res.json).toHaveBeenCalledWith({ error: 'Forbidden' });
@@ -62,7 +63,7 @@ describe('errorHandler', () => {
       { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
     ]);
 
-    errorHandler(zodErr, mockReq, res as any, mockNext);
+    errorHandler(zodErr, mockReq, res as unknown as Response, mockNext);
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
@@ -75,7 +76,7 @@ describe('errorHandler', () => {
     const res = makeMockRes();
     const err = new Error('Something broke');
 
-    errorHandler(err, mockReq, res as any, mockNext);
+    errorHandler(err, mockReq, res as unknown as Response, mockNext);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ error: 'Internal server error' });
