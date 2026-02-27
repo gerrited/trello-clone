@@ -17,5 +17,9 @@ export default defineConfig({
       JWT_SECRET: 'test-jwt-secret-min-10-chars',
       JWT_REFRESH_SECRET: 'test-refresh-secret-min-10-chars',
     },
+    coverage: {
+      enabled: !!process.env.CI,
+      reporter: ['text'],
+    },
   },
 });
