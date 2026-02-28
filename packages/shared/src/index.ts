@@ -23,4 +23,5 @@ export * from './validation/search.schema.js';
 export * from './validation/template.schema.js';
 export * from './validation/share.schema.js';
 export * from './validation/attachment.schema.js';
+export * from './validation/user.schema.js';
 export * from './constants/index.js';
