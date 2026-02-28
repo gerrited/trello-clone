@@ -52,6 +52,7 @@ function makeInsertValues(returningData: unknown[]) {
 const mockUser = {
   id: 'user-123',
   email: 'test@example.com',
+  passwordHash: 'hashed-password',
   displayName: 'Test User',
   avatarUrl: null,
   createdAt: new Date(),
@@ -281,5 +282,18 @@ describe('getMe', () => {
 
     expect(result.id).toBe('user-123');
     expect(result.email).toBe('test@example.com');
+  });
+
+  it('returns hasPassword: true when passwordHash is set', async () => {
+    dbMock.query.users.findFirst.mockResolvedValue({ ...mockUser, passwordHash: 'some-hash' });
+    const result = await getMe('user-123');
+    expect(result.hasPassword).toBe(true);
+    expect(result).not.toHaveProperty('passwordHash');
+  });
+
+  it('returns hasPassword: false when passwordHash is null', async () => {
+    dbMock.query.users.findFirst.mockResolvedValue({ ...mockUser, passwordHash: null });
+    const result = await getMe('user-123');
+    expect(result.hasPassword).toBe(false);
   });
 });

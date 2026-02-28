@@ -20,6 +20,7 @@ import { searchRoutes } from './modules/search/search.routes.js';
 import { templateRoutes, saveAsTemplateRoutes } from './modules/templates/templates.routes.js';
 import { shareRoutes, sharedBoardRoutes } from './modules/shares/shares.routes.js';
 import { attachmentRoutes } from './modules/attachments/attachments.routes.js';
+import { userRoutes } from './modules/users/users.routes.js';
 import { ensureSystemTemplates } from './modules/templates/templates.service.js';
 import { setupSocketIO } from './ws/socket.js';
 import path from 'node:path';
@@ -47,6 +48,7 @@ app.get('/api/v1/health', (_req, res) => {
 });
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/teams', teamRoutes);
 app.use('/api/v1/teams/:teamId/boards', boardRoutes);
 app.use('/api/v1/boards/:boardId/columns', columnRoutes);
