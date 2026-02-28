@@ -83,10 +83,10 @@ export function ActivityFeed({ boardId, cardId, maxHeight = '400px' }: ActivityF
       <div className="space-y-3 animate-pulse p-2">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex items-start gap-2">
-            <div className="w-6 h-6 rounded-full bg-gray-200" />
+            <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700" />
             <div className="flex-1 space-y-1">
-              <div className="h-3 bg-gray-200 rounded w-3/4" />
-              <div className="h-2 bg-gray-100 rounded w-1/4" />
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+              <div className="h-2 bg-gray-100 dark:bg-gray-600 rounded w-1/4" />
             </div>
           </div>
         ))}
@@ -96,7 +96,7 @@ export function ActivityFeed({ boardId, cardId, maxHeight = '400px' }: ActivityF
 
   if (activities.length === 0) {
     return (
-      <div className="text-sm text-gray-400 text-center py-4">
+      <div className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
         Noch keine Aktivität
       </div>
     );
@@ -108,18 +108,18 @@ export function ActivityFeed({ boardId, cardId, maxHeight = '400px' }: ActivityF
         {activities.map((activity) => (
           <div
             key={activity.id}
-            className="flex items-start gap-2 px-2 py-2 hover:bg-gray-50 rounded transition-colors"
+            className="flex items-start gap-2 px-2 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors"
           >
             {/* Avatar */}
             <div className="w-6 h-6 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-blue-700 mt-0.5">
               {activity.user.displayName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-gray-700 leading-relaxed">
+              <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
                 <span className="font-medium">{activity.user.displayName}</span>{' '}
                 {formatActivityMessage(activity)}
               </p>
-              <p className="text-[10px] text-gray-400 mt-0.5">
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
                 {timeAgo(activity.createdAt)}
               </p>
             </div>

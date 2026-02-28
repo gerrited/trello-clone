@@ -137,7 +137,7 @@ export function CardDetailModal() {
   return (
     <Modal isOpen={!!selectedCardId} onClose={closeCard} title="Kartendetails">
       {isLoading || !cardDetail || !board ? (
-        <div className="p-8 text-center text-gray-500">Laden...</div>
+        <div className="p-8 text-center text-gray-500 dark:text-gray-400">Laden...</div>
       ) : (
         <div className="p-6 space-y-6">
           {/* Header with close button */}
@@ -156,24 +156,24 @@ export function CardDetailModal() {
                       setEditingTitle(false);
                     }
                   }}
-                  className="w-full text-xl font-bold text-gray-900 border-b-2 border-blue-500 outline-none pb-1"
+                  className="w-full text-xl font-bold text-gray-900 dark:text-gray-100 bg-transparent border-b-2 border-blue-500 outline-none pb-1"
                 />
               ) : (
                 <h2
-                  className={`text-xl font-bold text-gray-900 ${canEdit ? 'cursor-pointer hover:text-blue-600' : ''}`}
+                  className={`text-xl font-bold text-gray-900 dark:text-gray-100 ${canEdit ? 'cursor-pointer hover:text-blue-600' : ''}`}
                   onClick={() => canEdit && setEditingTitle(true)}
                 >
                   {cardDetail.title}
                 </h2>
               )}
             </div>
-            <button onClick={closeCard} className="p-1 text-gray-400 hover:text-gray-600 flex-shrink-0">
+            <button onClick={closeCard} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
               <X size={20} />
             </button>
           </div>
 
           {/* Metadata row */}
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-gray-400">
             {column && (
               canEdit ? (
                 <MoveCardPopover
@@ -182,7 +182,7 @@ export function CardDetailModal() {
                   currentColumnId={cardDetail.columnId}
                   currentSwimlaneId={cardDetail.swimlaneId}
                   onMoved={handleMoved}
-                  triggerClassName="text-sm text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                  triggerClassName="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
                 >
                   Spalte: <strong>{column.name}</strong>
                 </MoveCardPopover>
@@ -198,7 +198,7 @@ export function CardDetailModal() {
                   currentColumnId={cardDetail.columnId}
                   currentSwimlaneId={cardDetail.swimlaneId}
                   onMoved={handleMoved}
-                  triggerClassName="text-sm text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                  triggerClassName="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
                 >
                   Swimlane: <strong>{swimlane.name}</strong>
                 </MoveCardPopover>
@@ -210,7 +210,7 @@ export function CardDetailModal() {
 
           {/* Card type selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Kartentyp</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kartentyp</label>
             <div className="flex gap-2">
               {(['task', 'story', 'bug'] as const).map((type) => {
                 const Icon = TYPE_ICONS[type];
@@ -220,7 +220,7 @@ export function CardDetailModal() {
                     onClick={() => canEdit && handleChangeType(type)}
                     disabled={!canEdit}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      cardDetail.cardType === type ? TYPE_COLORS[type] : 'text-gray-500 hover:bg-gray-100'
+                      cardDetail.cardType === type ? TYPE_COLORS[type] : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                     } ${!canEdit ? 'cursor-default' : ''}`}
                   >
                     {Icon && <Icon size={14} />}
@@ -233,14 +233,14 @@ export function CardDetailModal() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Beschreibung</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Beschreibung</label>
             {editingDescription && canEdit ? (
               <div className="space-y-2">
                 <textarea
                   autoFocus
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={4}
                 />
                 <div className="flex gap-2">
@@ -261,7 +261,7 @@ export function CardDetailModal() {
               </div>
             ) : (
               <div
-                className={`text-sm text-gray-600 rounded-lg p-3 border border-transparent min-h-[3rem] ${canEdit ? 'cursor-pointer hover:bg-gray-50 hover:border-gray-200' : ''}`}
+                className={`text-sm text-gray-600 dark:text-gray-400 rounded-lg p-3 border border-transparent min-h-[3rem] ${canEdit ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-200 dark:hover:border-gray-600' : ''}`}
                 onClick={() => canEdit && setEditingDescription(true)}
               >
                 {cardDetail.description || (canEdit ? 'Beschreibung hinzufügen...' : 'Keine Beschreibung')}
@@ -272,7 +272,7 @@ export function CardDetailModal() {
           {/* Labels */}
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <label className="text-sm font-medium text-gray-700">Labels</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Labels</label>
               {canEdit && <LabelPicker
                 boardId={board.id}
                 cardId={cardDetail.id}
@@ -318,14 +318,14 @@ export function CardDetailModal() {
           {/* Assignees (display only) */}
           {cardDetail.assignees.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Zugewiesen</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Zugewiesen</label>
               <div className="flex flex-wrap gap-2">
                 {cardDetail.assignees.map((a) => (
-                  <div key={a.id} className="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1">
+                  <div key={a.id} className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-full px-3 py-1">
                     <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
                       {a.displayName.charAt(0).toUpperCase()}
                     </div>
-                    <span className="text-sm text-gray-700">{a.displayName}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{a.displayName}</span>
                   </div>
                 ))}
               </div>
@@ -334,9 +334,9 @@ export function CardDetailModal() {
 
           {/* Parent card link */}
           {cardDetail.parentCard && (
-            <div className="flex items-center gap-2 text-sm bg-gray-50 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
               <Link2 size={14} className="text-gray-400 flex-shrink-0" />
-              <span className="text-gray-600">Unteraufgabe von:</span>
+              <span className="text-gray-600 dark:text-gray-400">Unteraufgabe von:</span>
               <button
                 onClick={() => openCard(cardDetail.parentCard!.id)}
                 className="font-medium text-blue-600 hover:underline truncate"
@@ -360,7 +360,7 @@ export function CardDetailModal() {
                     toast.error('Verknüpfung konnte nicht entfernt werden');
                   }
                 }}
-                className="ml-auto text-gray-400 hover:text-red-500 flex-shrink-0"
+                className="ml-auto text-gray-400 dark:text-gray-500 hover:text-red-500 flex-shrink-0"
                 title="Verknüpfung entfernen"
               >
                 <X size={14} />
@@ -413,7 +413,7 @@ export function CardDetailModal() {
 
           {/* Activity section */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <Activity size={16} />
               Aktivität
             </label>
@@ -422,7 +422,7 @@ export function CardDetailModal() {
 
           {/* Delete button */}
           {canEdit && (
-            <div className="pt-4 border-t border-gray-200">
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={handleDelete}
                 className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition-colors"
@@ -500,14 +500,14 @@ function SubtaskSection({
 
   return (
     <div>
-      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         <ListChecks size={16} />
         Unteraufgaben {card.subtasks.length > 0 && `(${doneCount}/${card.subtasks.length})`}
       </label>
 
       {/* Progress bar */}
       {card.subtasks.length > 0 && (
-        <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mb-3">
           <div
             className="bg-green-500 h-2 rounded-full transition-all"
             style={{ width: `${(doneCount / card.subtasks.length) * 100}%` }}
@@ -522,17 +522,17 @@ function SubtaskSection({
           return (
             <div
               key={subtask.id}
-              className="flex items-center gap-2 text-sm p-2 rounded hover:bg-gray-50 cursor-pointer"
+              className="flex items-center gap-2 text-sm p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
               onClick={() => openCard(subtask.id)}
             >
               <div
                 className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center ${
-                  isDone ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'
+                  isDone ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 dark:border-gray-500'
                 }`}
               >
                 {isDone && <CheckSquare size={10} />}
               </div>
-              <span className={isDone ? 'line-through text-gray-400' : 'text-gray-700'}>{subtask.title}</span>
+              <span className={isDone ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}>{subtask.title}</span>
             </div>
           );
         })}
@@ -550,7 +550,7 @@ function SubtaskSection({
               if (e.key === 'Escape') setShowAddForm(false);
             }}
             placeholder="Unteraufgabe hinzufügen..."
-            className="w-full rounded border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={handleAddSubtask} disabled={submitting || !newTitle.trim()}>
@@ -562,7 +562,7 @@ function SubtaskSection({
           </div>
         </div>
       ) : (
-        <button onClick={() => setShowAddForm(true)} className="mt-2 text-sm text-gray-500 hover:text-gray-700">
+        <button onClick={() => setShowAddForm(true)} className="mt-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
           + Unteraufgabe hinzufügen
         </button>
       )}
@@ -608,7 +608,7 @@ function SetParentSection({
 
   if (!isOpen) {
     return (
-      <button onClick={() => setIsOpen(true)} className="text-sm text-gray-500 hover:text-gray-700">
+      <button onClick={() => setIsOpen(true)} className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
         <Link2 size={14} className="inline mr-1" />
         Als Unteraufgabe zuweisen...
       </button>
@@ -617,23 +617,23 @@ function SetParentSection({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">Elternkarte wählen</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Elternkarte wählen</label>
       <input
         autoFocus
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Karte suchen..."
-        className="w-full rounded border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-      <div className="max-h-40 overflow-y-auto border border-gray-200 rounded">
+      <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded">
         {candidates.length === 0 ? (
-          <div className="p-3 text-sm text-gray-400 text-center">Keine passenden Karten gefunden</div>
+          <div className="p-3 text-sm text-gray-400 dark:text-gray-500 text-center">Keine passenden Karten gefunden</div>
         ) : (
           candidates.slice(0, 20).map((c) => (
             <button
               key={c.id}
               onClick={() => handleSetParent(c.id)}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 hover:text-blue-700 border-b border-gray-100 last:border-b-0"
+              className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-700 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
             >
               <span className={`inline-block text-xs px-1 py-0.5 rounded mr-2 ${TYPE_COLORS[c.cardType]}`}>
                 {c.cardType.charAt(0).toUpperCase() + c.cardType.slice(1)}
@@ -714,14 +714,14 @@ function DueDateSection({
     const due = new Date(iso);
     const diffMs = due.getTime() - now.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
-    if (diffMs < 0) return 'text-red-600 bg-red-50';
-    if (diffHours < 24) return 'text-orange-600 bg-orange-50';
-    return 'text-gray-600 bg-gray-50';
+    if (diffMs < 0) return 'text-red-600 bg-red-50 dark:bg-red-900/20';
+    if (diffHours < 24) return 'text-orange-600 bg-orange-50 dark:bg-orange-900/20';
+    return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700';
   };
 
   return (
     <div>
-      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         <Calendar size={16} />
         Fälligkeitsdatum
       </label>
@@ -731,7 +731,7 @@ function DueDateSection({
             type="datetime-local"
             value={dateValue}
             onChange={(e) => setDateValue(e.target.value)}
-            className="w-full rounded border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={handleSave}>
@@ -750,7 +750,7 @@ function DueDateSection({
       ) : (
         <div
           className={`cursor-pointer rounded-lg p-3 text-sm border border-transparent hover:border-gray-200 ${
-            cardDetail.dueDate ? getDueDateColor(cardDetail.dueDate) : 'text-gray-400 hover:bg-gray-50'
+            cardDetail.dueDate ? getDueDateColor(cardDetail.dueDate) : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
           }`}
           onClick={startEditing}
         >
@@ -833,7 +833,7 @@ function CommentSection({
 
   return (
     <div>
-      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
         <MessageSquare size={16} />
         Kommentare ({comments.length})
       </label>
@@ -851,10 +851,10 @@ function CommentSection({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {comment.author?.displayName ?? 'Unbekannt'}
                   </span>
-                  <span className="text-xs text-gray-400">{formatTime(comment.createdAt)}</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{formatTime(comment.createdAt)}</span>
                   {isOwn && !isEditing && (
                     <div className="flex gap-1 ml-auto">
                       <button
@@ -883,7 +883,7 @@ function CommentSection({
                       autoFocus
                       value={editBody}
                       onChange={(e) => setEditBody(e.target.value)}
-                      className="w-full rounded border border-gray-300 p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows={2}
                     />
                     <div className="flex gap-2">
@@ -896,7 +896,7 @@ function CommentSection({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-700 mt-0.5 whitespace-pre-wrap">{comment.body}</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5 whitespace-pre-wrap">{comment.body}</p>
                 )}
               </div>
             </div>
@@ -915,7 +915,7 @@ function CommentSection({
             value={newBody}
             onChange={(e) => setNewBody(e.target.value)}
             placeholder="Kommentar schreiben..."
-            className="w-full rounded-lg border border-gray-300 p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={2}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
