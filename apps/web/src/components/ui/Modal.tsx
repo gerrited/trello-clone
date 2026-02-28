@@ -76,7 +76,7 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[calc(100vh-8rem)] overflow-y-auto z-10"
+        className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[calc(100vh-8rem)] overflow-y-auto z-10"
       >
         {children}
       </div>
