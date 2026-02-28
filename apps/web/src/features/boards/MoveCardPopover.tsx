@@ -107,12 +107,12 @@ export function MoveCardPopover({
 
       {isOpen && dropdownPos && (
         <div
-          className="fixed z-50 w-52 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
+          className="fixed z-50 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
           style={{ top: dropdownPos.top, left: dropdownPos.left }}
         >
           {/* Column section */}
-          <div className="px-3 py-2 border-b border-gray-100">
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Spalte wechseln</h4>
+          <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
+            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Spalte wechseln</h4>
           </div>
           <div className="max-h-48 overflow-y-auto py-1">
             {columns.map((column) => {
@@ -126,13 +126,13 @@ export function MoveCardPopover({
                   className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors ${
                     isCurrent
                       ? 'text-blue-700 font-medium cursor-default'
-                      : 'text-gray-700 hover:bg-gray-50 cursor-pointer'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'
                   } disabled:opacity-60`}
                 >
                   {isCurrent ? (
                     <Check size={14} className="text-blue-600 flex-shrink-0" />
                   ) : (
-                    <ArrowRight size={14} className="text-gray-400 flex-shrink-0" />
+                    <ArrowRight size={14} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
                   )}
                   <span className="truncate">{column.name}</span>
                 </button>
@@ -143,8 +143,8 @@ export function MoveCardPopover({
           {/* Swimlane section — only for multi-swimlane boards */}
           {isMultiSwimlane && (
             <>
-              <div className="px-3 py-2 border-t border-b border-gray-100">
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Swimlane wechseln</h4>
+              <div className="px-3 py-2 border-t border-b border-gray-100 dark:border-gray-700">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Swimlane wechseln</h4>
               </div>
               <div className="max-h-48 overflow-y-auto py-1">
                 {swimlanes.map((swimlane) => {
@@ -158,13 +158,13 @@ export function MoveCardPopover({
                       className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors ${
                         isCurrent
                           ? 'text-blue-700 font-medium cursor-default'
-                          : 'text-gray-700 hover:bg-gray-50 cursor-pointer'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'
                       } disabled:opacity-60`}
                     >
                       {isCurrent ? (
                         <Check size={14} className="text-blue-600 flex-shrink-0" />
                       ) : (
-                        <ArrowRight size={14} className="text-gray-400 flex-shrink-0" />
+                        <ArrowRight size={14} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
                       )}
                       <span className="truncate">{swimlane.name}</span>
                     </button>

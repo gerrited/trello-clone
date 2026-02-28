@@ -64,14 +64,14 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
   return (
     <div
       ref={ref}
-      className="p-3 flex items-center gap-2 bg-white sticky top-0 z-10 border-b border-gray-200 cursor-grab active:cursor-grabbing"
+      className="p-3 flex items-center gap-2 bg-white dark:bg-gray-800 sticky top-0 z-10 border-b border-gray-200 dark:border-gray-700 cursor-grab active:cursor-grabbing"
     >
       {column.color && (
         <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: column.color }} />
       )}
-      <h3 className="font-semibold text-sm text-gray-700 truncate">{column.name}</h3>
+      <h3 className="font-semibold text-sm text-gray-700 dark:text-gray-300 truncate">{column.name}</h3>
       <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-        isOverWipLimit ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
+        isOverWipLimit ? 'bg-red-100 text-red-700' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
       }`}>
         {cardCount}
         {column.wipLimit !== null && ` / ${column.wipLimit}`}
@@ -79,7 +79,7 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
       {canEdit && (
         <button
           onClick={handleDeleteColumn}
-          className="ml-auto p-1 text-gray-400 hover:text-red-600 transition-colors"
+          className="ml-auto p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
           title="Spalte löschen"
         >
           <Trash2 size={14} />
@@ -340,21 +340,21 @@ export function BoardPage() {
         <div className="px-2 sm:px-4 py-2 sm:py-4 animate-pulse">
           {/* Header skeleton */}
           <div className="flex items-center gap-4 mb-4">
-            <div className="h-4 w-16 bg-gray-200 rounded" />
-            <div className="h-6 w-48 bg-gray-200 rounded" />
+            <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded" />
           </div>
           {/* Column skeletons */}
           <div className="flex gap-4 overflow-hidden">
             {[1, 2, 3].map((col) => (
-              <div key={col} className="flex-shrink-0 w-72 bg-gray-100 rounded-lg p-3">
+              <div key={col} className="flex-shrink-0 w-72 bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="h-4 w-24 bg-gray-200 rounded" />
-                  <div className="h-5 w-8 bg-gray-200 rounded-full" />
+                  <div className="h-4 w-24 bg-gray-200 dark:bg-gray-600 rounded" />
+                  <div className="h-5 w-8 bg-gray-200 dark:bg-gray-600 rounded-full" />
                 </div>
                 {[1, 2, 3].slice(0, col === 2 ? 2 : 3).map((card) => (
-                  <div key={card} className="bg-white rounded-lg border border-gray-200 p-3 mb-2">
-                    <div className="h-4 w-16 bg-gray-200 rounded mb-2" />
-                    <div className="h-4 w-full bg-gray-200 rounded" />
+                  <div key={card} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-3 mb-2">
+                    <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+                    <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded" />
                   </div>
                 ))}
               </div>
@@ -377,13 +377,13 @@ export function BoardPage() {
           <Link to={`/teams/${teamId}/boards`} className="text-sm text-blue-600 hover:underline">
             &larr; Boards
           </Link>
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{board.name}</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">{board.name}</h1>
           <ConnectionStatus />
           {canEdit && <SaveAsTemplateButton boardId={board.id} />}
           {canEdit && (
             <button
               onClick={() => setShowShareModal(true)}
-              className="hidden sm:flex items-center gap-1 text-xs px-2 py-1 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+              className="hidden sm:flex items-center gap-1 text-xs px-2 py-1 rounded-full border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <Share2 size={12} />
               Teilen
@@ -393,8 +393,8 @@ export function BoardPage() {
             onClick={() => setShowActivity(!showActivity)}
             className={`hidden sm:flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors ml-auto ${
               showActivity
-                ? 'border-blue-300 bg-blue-50 text-blue-700'
-                : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                ? 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 text-blue-700'
+                : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
             <Activity size={12} />
@@ -415,8 +415,8 @@ export function BoardPage() {
             }}
             className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors ${
               hasFilters
-                ? 'border-blue-300 bg-blue-50 text-blue-700'
-                : 'border-gray-200 text-gray-500'
+                ? 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 text-blue-700'
+                : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400'
             }`}
           >
             <Filter size={12} />
@@ -434,7 +434,7 @@ export function BoardPage() {
                   ? type === 'task' ? 'border-blue-300 bg-blue-50 text-blue-700'
                     : type === 'story' ? 'border-green-300 bg-green-50 text-green-700'
                     : 'border-red-300 bg-red-50 text-red-700'
-                  : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                  : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -446,7 +446,7 @@ export function BoardPage() {
             <select
               value={filterAssigneeId ?? ''}
               onChange={(e) => setFilterAssigneeId(e.target.value || null)}
-              className="text-xs px-2 py-1 rounded-full border border-gray-200 bg-white text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="text-xs px-2 py-1 rounded-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Alle Zuständigen</option>
               {allAssignees.map((a) => (
@@ -458,7 +458,7 @@ export function BoardPage() {
           {/* Label filter pills */}
           {(board.labels ?? []).length > 0 && (
             <>
-              <span className="text-xs text-gray-400 hidden sm:inline">|</span>
+              <span className="text-xs text-gray-400 dark:text-gray-600 hidden sm:inline">|</span>
               {(board.labels ?? []).map((label) => {
                 const isActive = filterLabelIds.includes(label.id);
                 return (
@@ -474,7 +474,7 @@ export function BoardPage() {
                     className={`text-xs px-2 py-1 rounded-full border transition-colors ${
                       isActive
                         ? 'text-white border-transparent'
-                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                     style={isActive ? { backgroundColor: label.color, borderColor: label.color } : undefined}
                   >
@@ -492,7 +492,7 @@ export function BoardPage() {
           )}
 
           {/* Due date filter */}
-          <span className="text-xs text-gray-400 hidden sm:inline">|</span>
+          <span className="text-xs text-gray-400 dark:text-gray-600 hidden sm:inline">|</span>
           {([
             { key: 'overdue' as const, label: 'Überfällig', color: 'border-red-300 bg-red-50 text-red-700' },
             { key: 'week' as const, label: 'Diese Woche', color: 'border-orange-300 bg-orange-50 text-orange-700' },
@@ -502,7 +502,7 @@ export function BoardPage() {
               key={key}
               onClick={() => setFilterDueDate(filterDueDate === key ? null : key)}
               className={`text-xs px-2 py-1 rounded-full border transition-colors ${
-                filterDueDate === key ? color : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                filterDueDate === key ? color : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               {key === 'overdue' || key === 'week' ? <Calendar size={10} className="inline mr-1" /> : null}
@@ -513,14 +513,14 @@ export function BoardPage() {
           {/* Calendar link */}
           <Link
             to={`/teams/${teamId}/boards/${boardId}/calendar`}
-            className="text-xs px-2 py-1 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors inline-flex items-center gap-1"
+            className="text-xs px-2 py-1 rounded-full border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors inline-flex items-center gap-1"
           >
             <Calendar size={10} />
             Kalender
           </Link>
 
           {hasFilters && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-400 dark:text-gray-500">
               {filteredCards.length}/{board.cards.length} Karten
             </span>
           )}
@@ -543,8 +543,8 @@ export function BoardPage() {
                     onClick={() => setActiveColumnId(column.id)}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                       isActive
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
                     {column.color && (
@@ -561,7 +561,7 @@ export function BoardPage() {
 
             {/* Active column content */}
             {activeColumn && (
-              <div className="bg-gray-100 rounded-lg p-2 min-h-[50vh]">
+              <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-2 min-h-[50vh]">
                 <div className="space-y-2">
                   {(cardsByColumn[activeColumn.id] || []).map((card, cardIndex) => (
                     <CardComponent
@@ -607,7 +607,7 @@ export function BoardPage() {
                     }}
                   >
                     {/* Header row: empty top-left corner + column headers */}
-                    <div className="sticky top-0 bg-white z-10" />
+                    <div className="sticky top-0 bg-white dark:bg-gray-800 z-10" />
                     {board.columns.map((column, index) => (
                       <ColumnHeader
                         key={column.id}
@@ -624,7 +624,7 @@ export function BoardPage() {
                       <React.Fragment key={swimlane.id}>
                         {/* Swimlane header cell */}
                         <div
-                          className="border-t border-gray-200 bg-gray-50 flex items-start pt-2"
+                          className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-start pt-2"
                           style={{ minHeight: '120px' }}
                         >
                           <SwimlaneRowHeader swimlane={swimlane} boardId={board.id} />
@@ -636,7 +636,7 @@ export function BoardPage() {
                           return (
                             <div
                               key={cellKey}
-                              className="border-t border-l border-gray-200 bg-gray-50 p-2 space-y-2"
+                              className="border-t border-l border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-2 space-y-2"
                               style={{ minHeight: '120px' }}
                             >
                               {cellCards.map((card, cardIndex) => (
@@ -709,15 +709,15 @@ export function BoardPage() {
         {/* Activity Sidebar */}
         {showActivity && (
           <div className="hidden sm:block w-72 flex-shrink-0">
-            <div className="sticky top-0 bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between p-3 border-b border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-700">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                   <Activity size={14} />
                   Aktivität
                 </h3>
                 <button
                   onClick={() => setShowActivity(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
                   <X size={14} />
                 </button>
@@ -734,7 +734,7 @@ export function BoardPage() {
         {/* Shortcut help trigger button */}
         <button
           onClick={() => setShowShortcutHelp(true)}
-          className="hidden sm:flex fixed bottom-4 right-4 w-8 h-8 items-center justify-center rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 transition-colors shadow-sm z-40"
+          className="hidden sm:flex fixed bottom-4 right-4 w-8 h-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors shadow-sm z-40"
           title="Tastaturkürzel (?)"
         >
           <Keyboard size={14} />

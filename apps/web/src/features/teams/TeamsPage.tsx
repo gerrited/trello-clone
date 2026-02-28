@@ -46,14 +46,14 @@ export function TeamsPage() {
     <AppLayout>
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Meine Teams</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Meine Teams</h1>
           <Button size="sm" onClick={() => setShowForm(!showForm)}>
             + Team erstellen
           </Button>
         </div>
 
         {showForm && (
-          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-white rounded-lg border border-gray-200">
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row gap-2">
               <Input
                 placeholder="Team Name"
@@ -73,10 +73,10 @@ export function TeamsPage() {
         )}
 
         {loading ? (
-          <p className="text-gray-500">Laden...</p>
+          <p className="text-gray-500 dark:text-gray-400">Laden...</p>
         ) : teams.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">Du bist noch in keinem Team.</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">Du bist noch in keinem Team.</p>
             <Button onClick={() => setShowForm(true)}>Erstes Team erstellen</Button>
           </div>
         ) : (
@@ -84,11 +84,11 @@ export function TeamsPage() {
             {teams.map((team) => (
               <div
                 key={team.id}
-                className="relative group p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all"
+                className="relative group p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm transition-all"
               >
                 <Link to={`/teams/${team.id}/boards`} className="block">
-                  <h3 className="font-semibold text-gray-900">{team.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1 capitalize">{team.role}</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">{team.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 capitalize">{team.role}</p>
                 </Link>
                 {team.role === 'owner' && (
                   <button

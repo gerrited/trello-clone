@@ -34,9 +34,9 @@ export function RegisterPage() {
 
   return (
     <AuthLayout>
-      <h2 className="text-xl font-semibold mb-6">Registrieren</h2>
+      <h2 className="text-xl font-semibold dark:text-gray-100 mb-6">Registrieren</h2>
 
-      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
+      {error && <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-sm">{error}</div>}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input label="Name" {...register('displayName')} error={errors.displayName?.message} />
@@ -47,7 +47,7 @@ export function RegisterPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-600">
+      <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
         Bereits ein Konto?{' '}
         <Link to="/login" className="text-blue-600 hover:underline">
           Anmelden

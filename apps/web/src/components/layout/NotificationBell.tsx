@@ -75,10 +75,10 @@ export function NotificationBell() {
     <div className="relative" ref={popoverRef}>
       <button
         onClick={handleOpen}
-        className="relative p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+        className="relative p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         aria-label="Benachrichtigungen"
       >
-        <Bell size={18} className="text-gray-600" />
+        <Bell size={18} className="text-gray-600 dark:text-gray-400" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white bg-red-500 rounded-full px-1">
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -87,10 +87,10 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[70vh] flex flex-col">
+        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-[70vh] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-3 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-800">Benachrichtigungen</h3>
+          <div className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">Benachrichtigungen</h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
@@ -104,9 +104,9 @@ export function NotificationBell() {
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
             {isLoading ? (
-              <div className="p-4 text-center text-sm text-gray-400">Laden...</div>
+              <div className="p-4 text-center text-sm text-gray-400 dark:text-gray-500">Laden...</div>
             ) : notifications.length === 0 ? (
-              <div className="p-6 text-center text-sm text-gray-400">
+              <div className="p-6 text-center text-sm text-gray-400 dark:text-gray-500">
                 Keine Benachrichtigungen
               </div>
             ) : (
@@ -116,8 +116,8 @@ export function NotificationBell() {
                   onClick={() => {
                     if (!notif.isRead) handleMarkRead(notif.id);
                   }}
-                  className={`w-full text-left px-3 py-2.5 hover:bg-gray-50 transition-colors border-b border-gray-50 ${
-                    !notif.isRead ? 'bg-blue-50/50' : ''
+                  className={`w-full text-left px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-50 dark:border-gray-700 ${
+                    !notif.isRead ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -126,11 +126,11 @@ export function NotificationBell() {
                       {notif.activity.user.displayName.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-gray-700 leading-relaxed">
+                      <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
                         <span className="font-medium">{notif.activity.user.displayName}</span>{' '}
                         {formatActivityMessage(notif.activity)}
                       </p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
                         {timeAgo(notif.createdAt)}
                       </p>
                     </div>

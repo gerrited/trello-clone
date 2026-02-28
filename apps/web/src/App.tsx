@@ -10,6 +10,7 @@ import { BoardListPage } from './features/boards/BoardListPage.js';
 import { BoardPage } from './features/boards/BoardPage.js';
 import { CalendarPage } from './features/boards/CalendarPage.js';
 import { SharedBoardPage } from './features/boards/SharedBoardPage.js';
+import { ThemeProvider } from './components/layout/ThemeProvider.js';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuthStore();
@@ -57,8 +58,10 @@ export function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

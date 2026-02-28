@@ -6,9 +6,9 @@ import * as cardsApi from '../../api/cards.api.js';
 import { Button } from '../../components/ui/Button.js';
 
 const TYPE_PILL_COLORS: Record<string, { active: string; inactive: string }> = {
-  task: { active: 'bg-blue-100 text-blue-700', inactive: 'text-gray-500 hover:bg-gray-100' },
-  story: { active: 'bg-green-100 text-green-700', inactive: 'text-gray-500 hover:bg-gray-100' },
-  bug: { active: 'bg-red-100 text-red-700', inactive: 'text-gray-500 hover:bg-gray-100' },
+  task: { active: 'bg-blue-100 text-blue-700', inactive: 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600' },
+  story: { active: 'bg-green-100 text-green-700', inactive: 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600' },
+  bug: { active: 'bg-red-100 text-red-700', inactive: 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600' },
 };
 
 interface AddCardFormProps {
@@ -64,7 +64,7 @@ export function AddCardForm({ boardId, columnId, swimlaneId }: AddCardFormProps)
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full text-left text-sm text-gray-500 hover:text-gray-700 py-1 px-2 rounded hover:bg-gray-200 transition-colors"
+        className="w-full text-left text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 py-1 px-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
       >
         + Karte hinzufügen
       </button>
@@ -85,7 +85,7 @@ export function AddCardForm({ boardId, columnId, swimlaneId }: AddCardFormProps)
           if (e.key === 'Escape') setIsOpen(false);
         }}
         placeholder="Kartentitel eingeben..."
-        className="w-full rounded border border-gray-300 p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
         rows={2}
       />
       <div className="flex gap-1">

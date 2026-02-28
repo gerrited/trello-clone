@@ -27,12 +27,12 @@ function TemplateCard({
       onClick={onSelect}
       className={`text-left p-3 rounded-lg border-2 transition-colors ${
         isSelected
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-200 hover:border-gray-300 bg-white'
+          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
       }`}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <h3 className="text-sm font-semibold text-gray-900">{template.name}</h3>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{template.name}</h3>
         {template.isSystem && (
           <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium flex-shrink-0">
             System
@@ -40,21 +40,21 @@ function TemplateCard({
         )}
       </div>
       {template.description && (
-        <p className="text-xs text-gray-500 mb-2 line-clamp-2">{template.description}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">{template.description}</p>
       )}
       {/* Column preview */}
       <div className="flex gap-1 flex-wrap">
         {config.columns.slice(0, 5).map((col, i) => (
-          <span key={i} className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">
+          <span key={i} className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">
             {col.name}
           </span>
         ))}
         {config.columns.length > 5 && (
-          <span className="text-[10px] text-gray-400">+{config.columns.length - 5}</span>
+          <span className="text-[10px] text-gray-400 dark:text-gray-500">+{config.columns.length - 5}</span>
         )}
       </div>
       {config.swimlanes.length > 0 && (
-        <p className="text-[10px] text-gray-400 mt-1">
+        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
           {config.swimlanes.length} Swimlane{config.swimlanes.length > 1 ? 's' : ''}
         </p>
       )}
@@ -109,13 +109,13 @@ export function TemplatePicker({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Board erstellen">
       <div className="p-4 sm:p-6">
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Waehle eine Vorlage oder erstelle ein leeres Board.
         </p>
 
         {/* Board name input */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Board-Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Board-Name</label>
           <Input
             placeholder="Mein Board"
             value={boardName}
@@ -131,24 +131,24 @@ export function TemplatePicker({
             onClick={() => setSelectedId(null)}
             className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${
               selectedId === null
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300 bg-white'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
             }`}
           >
-            <h3 className="text-sm font-semibold text-gray-900">Leeres Board</h3>
-            <p className="text-xs text-gray-500">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Leeres Board</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Beginne mit einem leeren Board (To Do, In Progress, Done)
             </p>
           </button>
         </div>
 
         {loading ? (
-          <p className="text-sm text-gray-400">Vorlagen laden...</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">Vorlagen laden...</p>
         ) : (
           <>
             {systemTemplates.length > 0 && (
               <>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
                   System-Vorlagen
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -165,7 +165,7 @@ export function TemplatePicker({
             )}
             {teamTemplates.length > 0 && (
               <>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
                   Team-Vorlagen
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -183,7 +183,7 @@ export function TemplatePicker({
           </>
         )}
 
-        <div className="flex gap-2 justify-end mt-4 pt-4 border-t border-gray-100">
+        <div className="flex gap-2 justify-end mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
           <Button variant="ghost" onClick={onClose}>
             Abbrechen
           </Button>

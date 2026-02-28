@@ -73,7 +73,7 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           <Paperclip size={16} />
           Anhänge ({attachments.length})
         </label>
@@ -106,19 +106,19 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
             const downloadUrl = `/uploads/${attachment.storagePath}`;
 
             return (
-              <div key={attachment.id} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
+              <div key={attachment.id} className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                 {/* Thumbnail or icon */}
                 {isImage ? (
                   <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
                     <img
                       src={downloadUrl}
                       alt={attachment.filename}
-                      className="w-12 h-12 object-cover rounded border border-gray-200"
+                      className="w-12 h-12 object-cover rounded border border-gray-200 dark:border-gray-600"
                     />
                   </a>
                 ) : (
-                  <div className="w-12 h-12 flex items-center justify-center bg-gray-200 rounded flex-shrink-0">
-                    <FileIcon size={20} className="text-gray-500" />
+                  <div className="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-600 rounded flex-shrink-0">
+                    <FileIcon size={20} className="text-gray-500 dark:text-gray-400" />
                   </div>
                 )}
 
@@ -128,11 +128,11 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
                     href={downloadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-medium text-gray-800 hover:text-blue-600 truncate block"
+                    className="text-sm font-medium text-gray-800 dark:text-gray-200 hover:text-blue-600 truncate block"
                   >
                     {attachment.filename}
                   </a>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                     <span>{formatFileSize(attachment.sizeBytes)}</span>
                     <span>&middot;</span>
                     <span>{formatDate(attachment.createdAt)}</span>

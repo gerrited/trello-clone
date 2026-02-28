@@ -44,7 +44,7 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
 
   if (isEditing) {
     return (
-      <div className="flex items-center gap-1 py-2 px-3 bg-gray-50 rounded">
+      <div className="flex items-center gap-1 py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded">
         <input
           autoFocus
           value={editName}
@@ -56,7 +56,7 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
               setIsEditing(false);
             }
           }}
-          className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={handleSave}
@@ -67,7 +67,7 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
         </button>
         <button
           onClick={() => { setEditName(swimlane.name); setIsEditing(false); }}
-          className="p-1 text-gray-500 hover:bg-gray-100 rounded"
+          className="p-1 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
           title="Abbrechen"
         >
           <X size={14} />
@@ -78,11 +78,11 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
 
   return (
     <div className="flex items-center gap-2 py-2 px-3 group">
-      <h4 className="font-semibold text-sm text-gray-700 truncate">{swimlane.name}</h4>
+      <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300 truncate">{swimlane.name}</h4>
       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={() => { setEditName(swimlane.name); setIsEditing(true); }}
-          className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
           title="Umbenennen"
         >
           <Pencil size={12} />

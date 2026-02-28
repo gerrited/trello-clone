@@ -68,7 +68,7 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
       onClick={() => {
         if (!isDragging) openCard(card.id);
       }}
-      className={`relative group bg-white rounded-lg border border-gray-200 p-3 shadow-sm cursor-pointer transition-shadow hover:shadow-md ${
+      className={`relative group bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-3 shadow-sm cursor-pointer transition-shadow hover:shadow-md ${
         isDragging ? 'opacity-50 shadow-lg cursor-grabbing' : ''
       }`}
     >
@@ -81,7 +81,7 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
           currentSwimlaneId={swimlaneId}
           onMoved={() => setMovedAway(true)}
           stopPropagation
-          triggerClassName="p-1 rounded bg-white/80 hover:bg-white text-gray-400 hover:text-gray-600 shadow-sm"
+          triggerClassName="p-1 rounded bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 shadow-sm"
         >
           <MoreVertical size={14} />
         </MoveCardPopover>
@@ -113,10 +113,10 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
           );
         })()}
       </div>
-      <p className="text-sm text-gray-900 mt-1">{card.title}</p>
+      <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">{card.title}</p>
       {/* Metadata badges */}
       {hasMetadata && (
-        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 flex-wrap">
+        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
           {card.parentCardId && (
             <span className="flex items-center gap-0.5" title="Unteraufgabe">
               <Link2 size={12} />
@@ -158,7 +158,7 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
           {card.assignees.map((assignee) => (
             <div
               key={assignee.id}
-              className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center ring-2 ring-white"
+              className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center ring-2 ring-white dark:ring-gray-800"
               title={assignee.displayName}
             >
               {assignee.displayName.charAt(0).toUpperCase()}

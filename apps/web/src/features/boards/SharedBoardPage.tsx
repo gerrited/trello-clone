@@ -42,19 +42,19 @@ export function SharedBoardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Laden...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <p className="text-gray-500 dark:text-gray-400">Laden...</p>
       </div>
     );
   }
 
   if (error || !board) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <Shield size={48} className="mx-auto text-gray-300 mb-4" />
-          <h1 className="text-xl font-bold text-gray-700 mb-2">Zugriff nicht moeglich</h1>
-          <p className="text-gray-500">{error || 'Board nicht gefunden'}</p>
+          <Shield size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+          <h1 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">Zugriff nicht moeglich</h1>
+          <p className="text-gray-500 dark:text-gray-400">{error || 'Board nicht gefunden'}</p>
         </div>
       </div>
     );
@@ -75,7 +75,7 @@ export function SharedBoardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Banner */}
       <div className="bg-blue-600 text-white px-4 py-2 flex items-center gap-2 text-sm">
         <Shield size={16} />
@@ -84,19 +84,19 @@ export function SharedBoardPage() {
       </div>
 
       <div className="px-4 py-4">
-        <h1 className="text-xl font-bold text-gray-900 mb-4">{board.name}</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">{board.name}</h1>
 
         <div className="flex gap-4 overflow-x-auto pb-4">
           {board.columns.map((column) => {
             const cards = cardsByColumn[column.id] || [];
             return (
-              <div key={column.id} className="flex-shrink-0 w-72 bg-gray-100 rounded-lg flex flex-col">
-                <div className="p-3 flex items-center gap-2 border-b border-gray-200">
+              <div key={column.id} className="flex-shrink-0 w-72 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-col">
+                <div className="p-3 flex items-center gap-2 border-b border-gray-200 dark:border-gray-600">
                   {column.color && (
                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: column.color }} />
                   )}
-                  <h3 className="font-semibold text-sm text-gray-700 truncate">{column.name}</h3>
-                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-600">
+                  <h3 className="font-semibold text-sm text-gray-700 dark:text-gray-300 truncate">{column.name}</h3>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
                     {cards.length}
                   </span>
                 </div>
@@ -118,7 +118,7 @@ function ReadOnlyCard({ card }: { card: CardSummary }) {
   const hasMetadata = card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId || card.dueDate || card.attachmentCount > 0;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-3 shadow-sm">
       {card.labels.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-1.5">
           {card.labels.map((label) => (
@@ -135,9 +135,9 @@ function ReadOnlyCard({ card }: { card: CardSummary }) {
       <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium ${TYPE_COLORS[card.cardType]}`}>
         {card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1)}
       </span>
-      <p className="text-sm text-gray-900 mt-1">{card.title}</p>
+      <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">{card.title}</p>
       {hasMetadata && (
-        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 flex-wrap">
+        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
           {card.parentCardId && <Link2 size={12} />}
           {card.dueDate && (
             <span className="flex items-center gap-1">
@@ -170,7 +170,7 @@ function ReadOnlyCard({ card }: { card: CardSummary }) {
           {card.assignees.map((a) => (
             <div
               key={a.id}
-              className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center ring-2 ring-white"
+              className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center ring-2 ring-white dark:ring-gray-800"
               title={a.displayName}
             >
               {a.displayName.charAt(0).toUpperCase()}
