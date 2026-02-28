@@ -66,16 +66,16 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
   return (
     <div
       ref={ref}
-      className="flex-shrink-0 w-full sm:w-72 bg-gray-100 rounded-lg flex flex-col max-h-[calc(100vh-14rem)] sm:max-h-[calc(100vh-10rem)]"
+      className="flex-shrink-0 w-full sm:w-72 bg-gray-100 dark:bg-gray-700 rounded-lg flex flex-col max-h-[calc(100vh-14rem)] sm:max-h-[calc(100vh-10rem)]"
     >
       <div className="p-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {column.color && (
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: column.color }} />
           )}
-          <h3 className="font-semibold text-sm text-gray-700">{column.name}</h3>
+          <h3 className="font-semibold text-sm text-gray-700 dark:text-gray-300">{column.name}</h3>
           <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-            isOverWipLimit ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
+            isOverWipLimit ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
           }`}>
             {cards.length}
             {column.wipLimit !== null && ` / ${column.wipLimit}`}
