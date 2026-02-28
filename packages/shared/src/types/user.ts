@@ -3,6 +3,7 @@ export interface User {
   email: string;
   displayName: string;
   avatarUrl: string | null;
+  hasPassword: boolean;
   createdAt: string;
   updatedAt: string;
 }
