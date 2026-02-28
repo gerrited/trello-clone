@@ -1,17 +1,13 @@
 import { useState, useMemo, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { Search } from 'lucide-react';
-import { useAuthStore } from '../../stores/authStore.js';
-import { logoutUser } from '../../api/auth.api.js';
-import { Button } from '../ui/Button.js';
 import { NotificationBell } from './NotificationBell.js';
 import { useNotifications } from '../../hooks/useNotifications.js';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts.js';
 import { CommandPalette } from '../../features/boards/CommandPalette.js';
+import { UserMenu } from '../../features/auth/UserMenu.js';
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
   const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   // Initialize global notification listener
@@ -25,12 +21,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
     [],
   );
   useKeyboardShortcuts(shortcutHandlers);
-
-  const handleLogout = async () => {
-    await logoutUser();
-    logout();
-    navigate('/login');
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -52,10 +42,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </kbd>
             </button>
             <NotificationBell />
-            <span className="text-sm text-gray-600 hidden sm:inline">{user?.displayName}</span>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              Abmelden
-            </Button>
+            <UserMenu />
           </div>
         </div>
       </header>
