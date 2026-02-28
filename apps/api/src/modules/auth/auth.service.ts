@@ -59,7 +59,7 @@ export async function register(input: RegisterInput) {
   const accessToken = generateAccessToken(user.id);
   const refreshToken = await generateRefreshToken(user.id);
 
-  return { user, accessToken, refreshToken };
+  return { user: { ...user, hasPassword: true }, accessToken, refreshToken };
 }
 
 export async function login(input: LoginInput) {
@@ -85,6 +85,7 @@ export async function login(input: LoginInput) {
       email: user.email,
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
+      hasPassword: user.passwordHash !== null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     },
@@ -149,6 +150,7 @@ export async function getMe(userId: string) {
       email: true,
       displayName: true,
       avatarUrl: true,
+      passwordHash: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -158,7 +160,8 @@ export async function getMe(userId: string) {
     throw new AppError(404, 'User not found');
   }
 
-  return user;
+  const { passwordHash, ...rest } = user;
+  return { ...rest, hasPassword: passwordHash !== null };
 }
 
 export async function findOrCreateOAuthUser(
@@ -175,7 +178,19 @@ export async function findOrCreateOAuthUser(
   if (user) {
     const accessToken = generateAccessToken(user.id);
     const refreshToken = await generateRefreshToken(user.id);
-    return { user, accessToken, refreshToken };
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        hasPassword: user.passwordHash !== null,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      accessToken,
+      refreshToken,
+    };
   }
 
   // Check if user exists with same email (account linking)
@@ -193,7 +208,19 @@ export async function findOrCreateOAuthUser(
 
     const accessToken = generateAccessToken(user.id);
     const refreshToken = await generateRefreshToken(user.id);
-    return { user, accessToken, refreshToken };
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        hasPassword: user.passwordHash !== null,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      accessToken,
+      refreshToken,
+    };
   }
 
   // Create new user
@@ -210,5 +237,17 @@ export async function findOrCreateOAuthUser(
 
   const accessToken = generateAccessToken(newUser.id);
   const refreshToken = await generateRefreshToken(newUser.id);
-  return { user: newUser, accessToken, refreshToken };
+  return {
+    user: {
+      id: newUser.id,
+      email: newUser.email,
+      displayName: newUser.displayName,
+      avatarUrl: newUser.avatarUrl,
+      hasPassword: false,
+      createdAt: newUser.createdAt,
+      updatedAt: newUser.updatedAt,
+    },
+    accessToken,
+    refreshToken,
+  };
 }
