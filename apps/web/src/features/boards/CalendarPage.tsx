@@ -106,8 +106,8 @@ export function CalendarPage() {
     return (
       <AppLayout>
         <div className="px-4 py-4 animate-pulse">
-          <div className="h-6 w-48 bg-gray-200 rounded mb-4" />
-          <div className="h-96 bg-gray-100 rounded-lg" />
+          <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
+          <div className="h-96 bg-gray-100 dark:bg-gray-700 rounded-lg" />
         </div>
       </AppLayout>
     );
@@ -121,7 +121,7 @@ export function CalendarPage() {
           <Link to={`/teams/${teamId}/boards/${boardId}`} className="text-sm text-blue-600 hover:underline">
             &larr; Board
           </Link>
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
             {board.name} — Kalender
           </h1>
         </div>
@@ -130,12 +130,12 @@ export function CalendarPage() {
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => navigateMonth(-1)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <ChevronLeft size={20} />
           </button>
           <div className="text-center">
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
               {MONTH_NAMES[viewMonth]} {viewYear}
             </h2>
             <button
@@ -150,17 +150,17 @@ export function CalendarPage() {
           </div>
           <button
             onClick={() => navigateMonth(1)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <ChevronRight size={20} />
           </button>
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden">
+        <div className="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
           {/* Weekday headers */}
           {WEEKDAYS.map((day) => (
-            <div key={day} className="bg-gray-50 p-2 text-center text-xs font-medium text-gray-500">
+            <div key={day} className="bg-gray-50 dark:bg-gray-800 p-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
               {day}
             </div>
           ))}
@@ -174,14 +174,14 @@ export function CalendarPage() {
             return (
               <div
                 key={index}
-                className={`bg-white min-h-[80px] sm:min-h-[100px] p-1 sm:p-2 ${
+                className={`bg-white dark:bg-gray-800 min-h-[80px] sm:min-h-[100px] p-1 sm:p-2 ${
                   !dayInfo.isCurrentMonth ? 'opacity-40' : ''
                 }`}
               >
                 <div className={`text-xs mb-1 ${
                   isToday
                     ? 'bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold'
-                    : 'text-gray-500'
+                    : 'text-gray-500 dark:text-gray-400'
                 }`}>
                   {dayInfo.date.getDate()}
                 </div>
@@ -194,8 +194,8 @@ export function CalendarPage() {
                         onClick={() => openCard(card.id)}
                         className={`w-full text-left text-[10px] sm:text-xs px-1 py-0.5 rounded truncate cursor-pointer transition-colors ${
                           isOverdue
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                            ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/60'
+                            : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
                         }`}
                         title={card.title}
                       >
@@ -210,7 +210,7 @@ export function CalendarPage() {
                     );
                   })}
                   {dayCards.length > 3 && (
-                    <div className="text-[10px] text-gray-400 pl-1">
+                    <div className="text-[10px] text-gray-400 dark:text-gray-500 pl-1">
                       +{dayCards.length - 3} weitere
                     </div>
                   )}

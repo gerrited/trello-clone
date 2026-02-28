@@ -41,7 +41,7 @@ export function SaveAsTemplateButton({ boardId }: SaveAsTemplateButtonProps) {
             if (e.key === 'Escape') setIsOpen(false);
           }}
           autoFocus
-          className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-36"
+          className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-36"
         />
         <button
           onClick={handleSave}
@@ -52,7 +52,7 @@ export function SaveAsTemplateButton({ boardId }: SaveAsTemplateButtonProps) {
         </button>
         <button
           onClick={() => setIsOpen(false)}
-          className="text-xs px-1.5 py-1 text-gray-400 hover:text-gray-600"
+          className="text-xs px-1.5 py-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
         >
           ✕
         </button>
@@ -66,7 +66,7 @@ export function SaveAsTemplateButton({ boardId }: SaveAsTemplateButtonProps) {
       className={`hidden sm:flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors ${
         saved
           ? 'border-green-300 bg-green-50 text-green-700'
-          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+          : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
       }`}
       title="Als Vorlage speichern"
     >

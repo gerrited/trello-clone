@@ -88,15 +88,15 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
     <Modal isOpen={isOpen} onClose={onClose} title="Board teilen">
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Board teilen</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Board teilen</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <X size={20} />
           </button>
         </div>
 
         {/* Invite by email */}
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
             <UserPlus size={14} />
             Per Email einladen
           </h3>
@@ -106,13 +106,13 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email@example.com"
-              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
             />
             <select
               value={invitePermission}
               onChange={(e) => setInvitePermission(e.target.value as BoardPermission)}
-              className="px-2 py-2 text-sm border border-gray-300 rounded-lg bg-white"
+              className="px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="read">Lesen</option>
               <option value="comment">Kommentieren</option>
@@ -131,7 +131,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
 
         {/* Link sharing */}
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
             <Link2 size={14} />
             Link erstellen
           </h3>
@@ -139,7 +139,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
             <select
               value={linkPermission}
               onChange={(e) => setLinkPermission(e.target.value as BoardPermission)}
-              className="px-2 py-2 text-sm border border-gray-300 rounded-lg bg-white"
+              className="px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="read">Lesen</option>
               <option value="comment">Kommentieren</option>
@@ -157,16 +157,16 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
 
         {/* Existing shares list */}
         {loading ? (
-          <p className="text-sm text-gray-400">Laden...</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">Laden...</p>
         ) : (
           <div className="space-y-4">
             {/* User shares */}
             {userShares.length > 0 && (
               <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Eingeladene Benutzer</h4>
+                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">Eingeladene Benutzer</h4>
                 <div className="space-y-2">
                   {userShares.map((share) => (
-                    <div key={share.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                    <div key={share.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center gap-2">
                         {share.user?.avatarUrl ? (
                           <img src={share.user.avatarUrl} alt="" className="w-6 h-6 rounded-full" />
@@ -176,19 +176,19 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
                           </div>
                         )}
                         <div>
-                          <span className="text-sm text-gray-800">{share.user?.displayName ?? share.user?.email ?? 'Unbekannt'}</span>
+                          <span className="text-sm text-gray-800 dark:text-gray-200">{share.user?.displayName ?? share.user?.email ?? 'Unbekannt'}</span>
                           {share.user?.email && (
-                            <span className="text-xs text-gray-400 ml-2">{share.user.email}</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">{share.user.email}</span>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
                           {PERMISSION_LABELS[share.permission]}
                         </span>
                         <button
                           onClick={() => handleDelete(share.id)}
-                          className="text-gray-400 hover:text-red-600 transition-colors"
+                          className="text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -202,30 +202,30 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
             {/* Link shares */}
             {linkShares.length > 0 && (
               <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Geteilte Links</h4>
+                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">Geteilte Links</h4>
                 <div className="space-y-2">
                   {linkShares.map((share) => (
-                    <div key={share.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                    <div key={share.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center gap-2">
                         <Link2 size={14} className="text-gray-400" />
                         <span className="text-sm text-gray-600 font-mono">
                           ...{share.token?.slice(-8)}
                         </span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
                           {PERMISSION_LABELS[share.permission]}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleCopyLink(share.token!, share.id)}
-                          className="text-gray-400 hover:text-blue-600 transition-colors"
+                          className="text-gray-400 dark:text-gray-500 hover:text-blue-600 transition-colors"
                           title="Link kopieren"
                         >
                           {copiedId === share.id ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
                         </button>
                         <button
                           onClick={() => handleDelete(share.id)}
-                          className="text-gray-400 hover:text-red-600 transition-colors"
+                          className="text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -237,7 +237,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
             )}
 
             {userShares.length === 0 && linkShares.length === 0 && (
-              <p className="text-sm text-gray-400 text-center py-4">
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
                 Noch keine Freigaben. Laden Sie Benutzer ein oder erstellen Sie einen Link.
               </p>
             )}
