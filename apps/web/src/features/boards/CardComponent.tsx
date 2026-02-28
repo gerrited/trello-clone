@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { CardSummary } from '@trello-clone/shared';
-import { BookOpen, Bug, CheckSquare, MessageSquare, Link2, Calendar, Paperclip } from 'lucide-react';
+import { BookOpen, Bug, CheckSquare, MessageSquare, Link2, Calendar, Paperclip, MoreVertical } from 'lucide-react';
 import { useBoardStore } from '../../stores/boardStore.js';
+import { MoveCardPopover } from './MoveCardPopover.js';
 
 interface CardComponentProps {
   card: CardSummary;
   index: number;
   columnId: string;
   swimlaneId: string;
+  boardId: string;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -43,8 +45,9 @@ function formatDueDate(dueDate: string): string {
   return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
 }
 
-export const CardComponent = React.memo(function CardComponent({ card, index, columnId, swimlaneId }: CardComponentProps) {
+export const CardComponent = React.memo(function CardComponent({ card, index, columnId, swimlaneId, boardId }: CardComponentProps) {
   const openCard = useBoardStore((s) => s.openCard);
+  const [movedAway, setMovedAway] = useState(false);
   const { ref, isDragging } = useSortable({
     id: card.id,
     index,
@@ -57,16 +60,33 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
   const dueDateStyle = card.dueDate ? getDueDateStyle(card.dueDate) : null;
   const hasMetadata = card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId || card.dueDate || card.attachmentCount > 0;
 
+  if (movedAway) return null;
+
   return (
     <div
       ref={ref}
       onClick={() => {
         if (!isDragging) openCard(card.id);
       }}
-      className={`bg-white rounded-lg border border-gray-200 p-3 shadow-sm cursor-pointer transition-shadow hover:shadow-md ${
+      className={`relative group bg-white rounded-lg border border-gray-200 p-3 shadow-sm cursor-pointer transition-shadow hover:shadow-md ${
         isDragging ? 'opacity-50 shadow-lg cursor-grabbing' : ''
       }`}
     >
+      {/* Move card button — always visible on mobile, hover-visible on desktop */}
+      <div className="absolute top-1.5 right-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+        <MoveCardPopover
+          boardId={boardId}
+          cardId={card.id}
+          currentColumnId={columnId}
+          currentSwimlaneId={swimlaneId}
+          onMoved={() => setMovedAway(true)}
+          stopPropagation
+          triggerClassName="p-1 rounded bg-white/80 hover:bg-white text-gray-400 hover:text-gray-600 shadow-sm"
+        >
+          <MoreVertical size={14} />
+        </MoveCardPopover>
+      </div>
+
       {/* Label chips */}
       {card.labels.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-1.5">

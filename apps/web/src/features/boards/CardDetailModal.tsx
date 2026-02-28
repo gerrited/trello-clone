@@ -4,6 +4,7 @@ import type { CardDetail, CardType, Comment } from '@trello-clone/shared';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { LabelPicker } from './LabelPicker.js';
+import { MoveCardPopover } from './MoveCardPopover.js';
 import { AttachmentSection } from './AttachmentSection.js';
 import { useBoardStore } from '../../stores/boardStore.js';
 import { useAuthStore } from '../../stores/authStore.js';
@@ -125,6 +126,11 @@ export function CardDetailModal() {
     }
   };
 
+  const handleMoved = (toColumnId: string, toSwimlaneId: string) => {
+    if (!cardDetail) return;
+    setCardDetail({ ...cardDetail, columnId: toColumnId, swimlaneId: toSwimlaneId });
+  };
+
   const column = board?.columns.find((c) => c.id === cardDetail?.columnId);
   const swimlane = board?.swimlanes.find((s) => s.id === cardDetail?.swimlaneId);
 
@@ -169,14 +175,36 @@ export function CardDetailModal() {
           {/* Metadata row */}
           <div className="flex flex-wrap gap-3 text-sm text-gray-600">
             {column && (
-              <span>
-                Spalte: <strong>{column.name}</strong>
-              </span>
+              canEdit ? (
+                <MoveCardPopover
+                  boardId={board.id}
+                  cardId={cardDetail.id}
+                  currentColumnId={cardDetail.columnId}
+                  currentSwimlaneId={cardDetail.swimlaneId}
+                  onMoved={handleMoved}
+                  triggerClassName="text-sm text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                >
+                  Spalte: <strong>{column.name}</strong>
+                </MoveCardPopover>
+              ) : (
+                <span>Spalte: <strong>{column.name}</strong></span>
+              )
             )}
             {swimlane && !swimlane.isDefault && (
-              <span>
-                Swimlane: <strong>{swimlane.name}</strong>
-              </span>
+              canEdit ? (
+                <MoveCardPopover
+                  boardId={board.id}
+                  cardId={cardDetail.id}
+                  currentColumnId={cardDetail.columnId}
+                  currentSwimlaneId={cardDetail.swimlaneId}
+                  onMoved={handleMoved}
+                  triggerClassName="text-sm text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                >
+                  Swimlane: <strong>{swimlane.name}</strong>
+                </MoveCardPopover>
+              ) : (
+                <span>Swimlane: <strong>{swimlane.name}</strong></span>
+              )
             )}
           </div>
 
