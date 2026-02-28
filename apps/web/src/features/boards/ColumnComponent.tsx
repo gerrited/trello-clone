@@ -101,6 +101,7 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
             index={cardIndex}
             columnId={column.id}
             swimlaneId={swimlaneId}
+            boardId={boardId}
           />
         ))}
       </div>

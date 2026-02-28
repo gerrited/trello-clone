@@ -69,7 +69,7 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+      <div className="fixed inset-0 bg-black/50" aria-hidden="true" onClick={onClose} />
       <div
         ref={contentRef}
         role="dialog"

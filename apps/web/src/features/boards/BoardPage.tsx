@@ -570,6 +570,7 @@ export function BoardPage() {
                       index={cardIndex}
                       columnId={activeColumn.id}
                       swimlaneId={defaultSwimlaneId}
+                      boardId={board.id}
                     />
                   ))}
                 </div>
@@ -645,6 +646,7 @@ export function BoardPage() {
                                   index={cardIndex}
                                   columnId={column.id}
                                   swimlaneId={swimlane.id}
+                                  boardId={board.id}
                                 />
                               ))}
                               {canEdit && (
