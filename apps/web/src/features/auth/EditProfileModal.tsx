@@ -49,7 +49,7 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Profil bearbeiten">
       <div className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Profil bearbeiten</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Profil bearbeiten</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input label="Name" {...register('displayName')} error={errors.displayName?.message} />
           <Input label="E-Mail" type="email" {...register('email')} error={errors.email?.message} />
