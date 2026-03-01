@@ -18,9 +18,9 @@ function getFileIcon(mimeType: string) {
   return File;
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleString('de-DE', {
+  return d.toLocaleString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -38,7 +38,7 @@ interface AttachmentSectionProps {
 }
 
 export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAttachmentsChange }: AttachmentSectionProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -137,7 +137,7 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
                   <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                     <span>{formatFileSize(attachment.sizeBytes)}</span>
                     <span>&middot;</span>
-                    <span>{formatDate(attachment.createdAt)}</span>
+                    <span>{formatDate(attachment.createdAt, i18n.language)}</span>
                     {attachment.uploader && (
                       <>
                         <span>&middot;</span>

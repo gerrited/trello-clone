@@ -106,8 +106,8 @@ export function TemplatePicker({
   };
 
   // Group: system first, then team templates
-  const systemTemplates = templates.filter((t) => t.isSystem);
-  const teamTemplates = templates.filter((t) => !t.isSystem);
+  const systemTemplates = templates.filter((tmpl) => tmpl.isSystem);
+  const teamTemplates = templates.filter((tmpl) => !tmpl.isSystem);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('template.createBoard')}>
@@ -155,12 +155,12 @@ export function TemplatePicker({
                   {t('template.systemTemplates')}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                  {systemTemplates.map((t) => (
+                  {systemTemplates.map((tmpl) => (
                     <TemplateCard
-                      key={t.id}
-                      template={t}
-                      isSelected={selectedId === t.id}
-                      onSelect={() => setSelectedId(selectedId === t.id ? null : t.id)}
+                      key={tmpl.id}
+                      template={tmpl}
+                      isSelected={selectedId === tmpl.id}
+                      onSelect={() => setSelectedId(selectedId === tmpl.id ? null : tmpl.id)}
                     />
                   ))}
                 </div>
@@ -172,12 +172,12 @@ export function TemplatePicker({
                   {t('template.teamTemplates')}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                  {teamTemplates.map((t) => (
+                  {teamTemplates.map((tmpl) => (
                     <TemplateCard
-                      key={t.id}
-                      template={t}
-                      isSelected={selectedId === t.id}
-                      onSelect={() => setSelectedId(selectedId === t.id ? null : t.id)}
+                      key={tmpl.id}
+                      template={tmpl}
+                      isSelected={selectedId === tmpl.id}
+                      onSelect={() => setSelectedId(selectedId === tmpl.id ? null : tmpl.id)}
                     />
                   ))}
                 </div>

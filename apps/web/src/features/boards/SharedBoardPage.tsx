@@ -12,13 +12,13 @@ const TYPE_COLORS: Record<string, string> = {
   task: 'bg-blue-100 text-blue-700',
 };
 
-function formatDueDate(dueDate: string): string {
+function formatDueDate(dueDate: string, locale: string): string {
   const d = new Date(dueDate);
-  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+  return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' });
 }
 
 export function SharedBoardPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const [board, setBoard] = useState<(BoardDetail & { permission: BoardPermission }) | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export function SharedBoardPage() {
     getSharedBoard(token)
       .then(setBoard)
       .catch((err) => {
-        const msg = err?.response?.data?.message ?? 'Board konnte nicht geladen werden';
+        const msg = err?.response?.data?.message ?? t('sharedBoard.notFound');
         setError(msg);
       })
       .finally(() => setIsLoading(false));
@@ -117,6 +117,7 @@ export function SharedBoardPage() {
 }
 
 function ReadOnlyCard({ card }: { card: CardSummary }) {
+  const { i18n } = useTranslation();
   const hasMetadata = card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId || card.dueDate || card.attachmentCount > 0;
 
   return (
@@ -144,7 +145,7 @@ function ReadOnlyCard({ card }: { card: CardSummary }) {
           {card.dueDate && (
             <span className="flex items-center gap-1">
               <Calendar size={12} />
-              {formatDueDate(card.dueDate)}
+              {formatDueDate(card.dueDate, i18n.language)}
             </span>
           )}
           {card.commentCount > 0 && (
