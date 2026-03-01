@@ -7,6 +7,7 @@ const LANGUAGES = [
   { code: 'en', label: 'EN' },
   { code: 'fr', label: 'FR' },
   { code: 'it', label: 'IT' },
+  { code: 'nl', label: 'NL' },
 ] as const;
 
 interface LanguageSelectorProps {
@@ -24,7 +25,7 @@ export function LanguageSelector({ className }: LanguageSelectorProps) {
         const { user: updated } = await updateProfile({
           displayName: user.displayName,
           email: user.email,
-          language: code as 'en' | 'de' | 'fr' | 'it',
+          language: code as 'en' | 'de' | 'fr' | 'it' | 'nl',
         });
         setUser(updated);
       } catch {

@@ -6,6 +6,7 @@ import enTranslation from './locales/en/translation.json';
 import deTranslation from './locales/de/translation.json';
 import frTranslation from './locales/fr/translation.json';
 import itTranslation from './locales/it/translation.json';
+import nlTranslation from './locales/nl/translation.json';
 
 i18n
   .use(LanguageDetector)
@@ -16,8 +17,9 @@ i18n
       de: { translation: deTranslation },
       fr: { translation: frTranslation },
       it: { translation: itTranslation },
+      nl: { translation: nlTranslation },
     },
-    supportedLngs: ['en', 'de', 'fr', 'it'],
+    supportedLngs: ['en', 'de', 'fr', 'it', 'nl'],
     fallbackLng: 'en',
     detection: {
       order: ['localStorage', 'navigator'],

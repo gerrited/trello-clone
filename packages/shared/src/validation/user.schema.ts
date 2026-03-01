@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const SUPPORTED_LANGS = ['en', 'de', 'fr', 'it'] as const;
+const SUPPORTED_LANGS = ['en', 'de', 'fr', 'it', 'nl'] as const;
 
 export const updateProfileSchema = z.object({
   displayName: z.string().min(1, 'Display name is required').max(100),

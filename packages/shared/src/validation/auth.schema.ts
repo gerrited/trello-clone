@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const SUPPORTED_LANGS = ['en', 'de', 'fr', 'it'] as const;
+const SUPPORTED_LANGS = ['en', 'de', 'fr', 'it', 'nl'] as const;
 
 export const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
