@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { CardSummary } from '@trello-clone/shared';
 import { BookOpen, Bug, CheckSquare, MessageSquare, Link2, Calendar, Paperclip, MoreVertical } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useBoardStore } from '../../stores/boardStore.js';
 import { MoveCardPopover } from './MoveCardPopover.js';
 
@@ -25,17 +26,17 @@ const TYPE_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   task: CheckSquare,
 };
 
-function getDueDateStyle(dueDate: string): { className: string; label: string } {
+function getDueDateStyle(dueDate: string, overdue: string, soon: string): { className: string; label: string } {
   const now = new Date();
   const due = new Date(dueDate);
   const diffMs = due.getTime() - now.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
 
   if (diffMs < 0) {
-    return { className: 'bg-red-100 text-red-700', label: 'Überfällig' };
+    return { className: 'bg-red-100 text-red-700', label: overdue };
   }
   if (diffHours < 24) {
-    return { className: 'bg-orange-100 text-orange-700', label: 'Bald fällig' };
+    return { className: 'bg-orange-100 text-orange-700', label: soon };
   }
   return { className: 'bg-gray-100 text-gray-600', label: '' };
 }
@@ -46,6 +47,7 @@ function formatDueDate(dueDate: string): string {
 }
 
 export const CardComponent = React.memo(function CardComponent({ card, index, columnId, swimlaneId, boardId }: CardComponentProps) {
+  const { t } = useTranslation();
   const openCard = useBoardStore((s) => s.openCard);
   const [movedAway, setMovedAway] = useState(false);
   const { ref, isDragging } = useSortable({
@@ -57,7 +59,7 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
     data: { columnId, swimlaneId },
   });
 
-  const dueDateStyle = card.dueDate ? getDueDateStyle(card.dueDate) : null;
+  const dueDateStyle = card.dueDate ? getDueDateStyle(card.dueDate, t('board.overdue'), t('card.soon')) : null;
   const hasMetadata = card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId || card.dueDate || card.attachmentCount > 0;
 
   if (movedAway) return null;
@@ -118,33 +120,33 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
       {hasMetadata && (
         <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
           {card.parentCardId && (
-            <span className="flex items-center gap-0.5" title="Unteraufgabe">
+            <span className="flex items-center gap-0.5" title={t('card.tooltipSubtask')}>
               <Link2 size={12} />
             </span>
           )}
           {card.dueDate && dueDateStyle && (
             <span
               className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${dueDateStyle.className}`}
-              title={dueDateStyle.label || `Fällig am ${formatDueDate(card.dueDate)}`}
+              title={dueDateStyle.label || formatDueDate(card.dueDate)}
             >
               <Calendar size={12} />
               {formatDueDate(card.dueDate)}
             </span>
           )}
           {card.attachmentCount > 0 && (
-            <span className="flex items-center gap-1" title="Anhänge">
+            <span className="flex items-center gap-1" title={t('card.tooltipAttachments')}>
               <Paperclip size={12} />
               {card.attachmentCount}
             </span>
           )}
           {card.commentCount > 0 && (
-            <span className="flex items-center gap-1" title="Kommentare">
+            <span className="flex items-center gap-1" title={t('card.tooltipComments')}>
               <MessageSquare size={12} />
               {card.commentCount}
             </span>
           )}
           {card.subtaskCount > 0 && (
-            <span className="flex items-center gap-1" title="Unteraufgaben">
+            <span className="flex items-center gap-1" title={t('card.tooltipSubtasks')}>
               <CheckSquare size={12} />
               <span>
                 {card.subtaskDoneCount}/{card.subtaskCount}
