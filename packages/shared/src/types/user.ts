@@ -4,6 +4,7 @@ export interface User {
   displayName: string;
   avatarUrl: string | null;
   hasPassword: boolean;
+  language: string;
   createdAt: string;
   updatedAt: string;
 }
