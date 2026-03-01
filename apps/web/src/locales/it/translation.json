@@ -185,7 +185,8 @@
     "invitedUsers": "Utenti invitati",
     "sharedLinks": "Link condivisi",
     "copyLink": "Copia link",
-    "noShares": "Nessuna condivisione. Invita utenti o crea un link."
+    "noShares": "Nessuna condivisione. Invita utenti o crea un link.",
+    "inviteFailed": "Invito fallito"
   },
   "calendar": {
     "today": "Oggi",

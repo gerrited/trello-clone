@@ -185,7 +185,8 @@
     "invitedUsers": "Eingeladene Benutzer",
     "sharedLinks": "Geteilte Links",
     "copyLink": "Link kopieren",
-    "noShares": "Noch keine Freigaben. Laden Sie Benutzer ein oder erstellen Sie einen Link."
+    "noShares": "Noch keine Freigaben. Laden Sie Benutzer ein oder erstellen Sie einen Link.",
+    "inviteFailed": "Einladung fehlgeschlagen"
   },
   "calendar": {
     "today": "Heute",

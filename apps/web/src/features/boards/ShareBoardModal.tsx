@@ -49,7 +49,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
       setEmail('');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      setInviteError(err.response?.data?.message || 'Einladung fehlgeschlagen');
+      setInviteError(err.response?.data?.message || t('share.inviteFailed'));
     } finally {
       setInviteLoading(false);
     }
