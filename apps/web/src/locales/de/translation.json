@@ -6,6 +6,7 @@
     "delete": "Löschen",
     "edit": "Bearbeiten",
     "add": "Hinzufügen",
+    "remove": "Entfernen",
     "loading": "Laden...",
     "create": "Erstellen",
     "creating": "Erstellen...",
@@ -17,7 +18,8 @@
     "search": "Suche",
     "back": "Zurück",
     "invite": "Einladen",
-    "confirm": "Bestätigen"
+    "confirm": "Bestätigen",
+    "unknown": "Unbekannt"
   },
   "auth": {
     "signIn": "Anmelden",
@@ -131,6 +133,7 @@
     "searchCards": "Karte suchen...",
     "noMatchingCards": "Keine passenden Karten gefunden",
     "assignAsSubtask": "Als Unteraufgabe zuweisen...",
+    "removeLink": "Verknüpfung entfernen",
     "deleteCard": "Karte löschen",
     "tooltipSubtask": "Unteraufgabe",
     "tooltipComments": "Kommentare",

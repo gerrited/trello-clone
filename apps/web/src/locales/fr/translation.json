@@ -6,6 +6,7 @@
     "delete": "Supprimer",
     "edit": "Modifier",
     "add": "Ajouter",
+    "remove": "Supprimer",
     "loading": "Chargement...",
     "create": "Créer",
     "creating": "Création...",
@@ -17,7 +18,8 @@
     "search": "Rechercher",
     "back": "Retour",
     "invite": "Inviter",
-    "confirm": "Confirmer"
+    "confirm": "Confirmer",
+    "unknown": "Inconnu"
   },
   "auth": {
     "signIn": "Se connecter",
@@ -131,6 +133,7 @@
     "searchCards": "Rechercher une carte...",
     "noMatchingCards": "Aucune carte correspondante",
     "assignAsSubtask": "Assigner comme sous-tâche...",
+    "removeLink": "Supprimer le lien",
     "deleteCard": "Supprimer la carte",
     "tooltipSubtask": "Sous-tâche",
     "tooltipComments": "Commentaires",

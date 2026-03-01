@@ -6,6 +6,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "add": "Add",
+    "remove": "Remove",
     "loading": "Loading...",
     "create": "Create",
     "creating": "Creating...",
@@ -17,7 +18,8 @@
     "search": "Search",
     "back": "Back",
     "invite": "Invite",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "unknown": "Unknown"
   },
   "auth": {
     "signIn": "Sign In",
@@ -131,6 +133,7 @@
     "searchCards": "Search cards...",
     "noMatchingCards": "No matching cards found",
     "assignAsSubtask": "Assign as subtask...",
+    "removeLink": "Remove link",
     "deleteCard": "Delete Card",
     "tooltipSubtask": "Subtask",
     "tooltipComments": "Comments",

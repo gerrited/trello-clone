@@ -6,6 +6,7 @@
     "delete": "Elimina",
     "edit": "Modifica",
     "add": "Aggiungi",
+    "remove": "Rimuovi",
     "loading": "Caricamento...",
     "create": "Crea",
     "creating": "Creazione...",
@@ -17,7 +18,8 @@
     "search": "Cerca",
     "back": "Indietro",
     "invite": "Invita",
-    "confirm": "Conferma"
+    "confirm": "Conferma",
+    "unknown": "Sconosciuto"
   },
   "auth": {
     "signIn": "Accedi",
@@ -131,6 +133,7 @@
     "searchCards": "Cerca schede...",
     "noMatchingCards": "Nessuna scheda corrispondente trovata",
     "assignAsSubtask": "Assegna come sottoattività...",
+    "removeLink": "Rimuovi collegamento",
     "deleteCard": "Elimina scheda",
     "tooltipSubtask": "Sottoattività",
     "tooltipComments": "Commenti",
