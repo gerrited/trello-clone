@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BookmarkPlus } from 'lucide-react';
 import { saveAsTemplate } from '../../api/templates.api.js';
 
@@ -7,6 +8,7 @@ interface SaveAsTemplateButtonProps {
 }
 
 export function SaveAsTemplateButton({ boardId }: SaveAsTemplateButtonProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -33,7 +35,7 @@ export function SaveAsTemplateButton({ boardId }: SaveAsTemplateButtonProps) {
       <div className="hidden sm:flex items-center gap-1">
         <input
           type="text"
-          placeholder="Vorlagenname..."
+          placeholder={t('template.namePlaceholder')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
@@ -48,7 +50,7 @@ export function SaveAsTemplateButton({ boardId }: SaveAsTemplateButtonProps) {
           disabled={saving || !name.trim()}
           className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
         >
-          {saving ? '...' : 'Speichern'}
+          {saving ? t('template.saving') : t('common.save')}
         </button>
         <button
           onClick={() => setIsOpen(false)}
@@ -68,10 +70,10 @@ export function SaveAsTemplateButton({ boardId }: SaveAsTemplateButtonProps) {
           ? 'border-green-300 bg-green-50 text-green-700'
           : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
       }`}
-      title="Als Vorlage speichern"
+      title={t('template.saveAsTemplate')}
     >
       <BookmarkPlus size={12} />
-      {saved ? 'Gespeichert!' : 'Vorlage'}
+      {saved ? t('template.saved') : t('template.template')}
     </button>
   );
 }

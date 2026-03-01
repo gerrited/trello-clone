@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Paperclip, Upload, Trash2, Download, FileText, Image, File } from 'lucide-react';
 import type { Attachment } from '@trello-clone/shared';
 import * as attachmentsApi from '../../api/attachments.api.js';
@@ -37,6 +38,7 @@ interface AttachmentSectionProps {
 }
 
 export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAttachmentsChange }: AttachmentSectionProps) {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -48,10 +50,10 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
     try {
       const attachment = await attachmentsApi.uploadAttachment(boardId, cardId, file);
       onAttachmentsChange([...attachments, attachment]);
-      toast.success('Datei hochgeladen');
+      toast.success(t('attachment.uploaded'));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      const msg = err?.response?.data?.message ?? 'Upload fehlgeschlagen';
+      const msg = err?.response?.data?.message ?? t('attachment.uploadError');
       toast.error(msg);
     } finally {
       setUploading(false);
@@ -64,9 +66,9 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
     try {
       await attachmentsApi.deleteAttachment(boardId, cardId, attachmentId);
       onAttachmentsChange(attachments.filter((a) => a.id !== attachmentId));
-      toast.success('Datei gelöscht');
+      toast.success(t('attachment.deleted'));
     } catch {
-      toast.error('Datei konnte nicht gelöscht werden');
+      toast.error(t('attachment.deleteError'));
     }
   };
 
@@ -75,7 +77,7 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
       <div className="flex items-center justify-between mb-2">
         <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           <Paperclip size={16} />
-          Anhänge ({attachments.length})
+          {t('attachment.title', { count: attachments.length })}
         </label>
         {canEdit && (
           <>
@@ -86,7 +88,7 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
               disabled={uploading}
             >
               <Upload size={14} className="mr-1" />
-              {uploading ? 'Hochladen...' : 'Datei hochladen'}
+              {uploading ? t('attachment.uploading') : t('attachment.upload')}
             </Button>
             <input
               ref={fileInputRef}
@@ -151,7 +153,7 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
                     href={downloadUrl}
                     download={attachment.filename}
                     className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
-                    title="Herunterladen"
+                    title={t('attachment.download')}
                   >
                     <Download size={14} />
                   </a>
@@ -159,7 +161,7 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
                     <button
                       onClick={() => handleDelete(attachment.id)}
                       className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
-                      title="Löschen"
+                      title={t('attachment.delete')}
                     >
                       <Trash2 size={14} />
                     </button>
