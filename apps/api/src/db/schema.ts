@@ -26,6 +26,7 @@ export const users = pgTable('users', {
   avatarUrl: varchar('avatar_url', { length: 500 }),
   googleId: varchar('google_id', { length: 255 }).unique(),
   microsoftId: varchar('microsoft_id', { length: 255 }).unique(),
+  language: varchar('language', { length: 5 }).notNull().default('en'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
