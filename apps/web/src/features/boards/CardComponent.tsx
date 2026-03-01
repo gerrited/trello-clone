@@ -41,13 +41,13 @@ function getDueDateStyle(dueDate: string, overdue: string, soon: string): { clas
   return { className: 'bg-gray-100 text-gray-600', label: '' };
 }
 
-function formatDueDate(dueDate: string): string {
+function formatDueDate(dueDate: string, locale: string): string {
   const d = new Date(dueDate);
-  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+  return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' });
 }
 
 export const CardComponent = React.memo(function CardComponent({ card, index, columnId, swimlaneId, boardId }: CardComponentProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const openCard = useBoardStore((s) => s.openCard);
   const [movedAway, setMovedAway] = useState(false);
   const { ref, isDragging } = useSortable({
@@ -127,10 +127,10 @@ export const CardComponent = React.memo(function CardComponent({ card, index, co
           {card.dueDate && dueDateStyle && (
             <span
               className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${dueDateStyle.className}`}
-              title={dueDateStyle.label || formatDueDate(card.dueDate)}
+              title={dueDateStyle.label || formatDueDate(card.dueDate, i18n.language)}
             >
               <Calendar size={12} />
-              {formatDueDate(card.dueDate)}
+              {formatDueDate(card.dueDate, i18n.language)}
             </span>
           )}
           {card.attachmentCount > 0 && (
