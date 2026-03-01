@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Search, X } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal.js';
 import { searchCards } from '../../api/search.api.js';
@@ -19,6 +20,7 @@ const CARD_TYPE_COLORS: Record<CardType, string> = {
 
 export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useState('');
@@ -103,7 +105,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   }, {});
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Suche">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('common.search')}>
       <div className="flex flex-col" style={{ minHeight: '400px', maxHeight: '70vh' }}>
         {/* Search input */}
         <div className="flex items-center gap-2 p-3 border-b border-gray-200 dark:border-gray-700">
@@ -111,7 +113,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           <input
             ref={inputRef}
             type="text"
-            placeholder="Karten suchen..."
+            placeholder={t('search.searchCards')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -147,7 +149,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
-            Mit Fälligkeitsdatum
+            {t('search.withDueDate')}
           </button>
           <button
             onClick={() => setFilterHasDueDate(filterHasDueDate === false ? null : false)}
@@ -157,21 +159,21 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
-            Ohne Datum
+            {t('search.withoutDate')}
           </button>
         </div>
 
         {/* Results area */}
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="p-6 text-center text-sm text-gray-400 dark:text-gray-500">Suche...</div>
+            <div className="p-6 text-center text-sm text-gray-400 dark:text-gray-500">{t('search.searchPlaceholder')}</div>
           ) : query.length < 2 ? (
             <div className="p-6 text-center text-sm text-gray-400 dark:text-gray-500">
-              Mindestens 2 Zeichen eingeben, um zu suchen
+              {t('search.minChars')}
             </div>
           ) : results.length === 0 && query ? (
             <div className="p-6 text-center text-sm text-gray-400 dark:text-gray-500">
-              Keine Ergebnisse für &quot;{query}&quot;
+              {t('search.noResults', { query })}
             </div>
           ) : (
             <ul className="py-2">
@@ -239,13 +241,13 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         {/* Footer hint */}
         <div className="px-3 py-2 border-t border-gray-100 dark:border-gray-700 flex items-center gap-4 text-[10px] text-gray-400 dark:text-gray-500">
           <span>
-            <kbd className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-1">↑↓</kbd> Navigieren
+            <kbd className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-1">↑↓</kbd> {t('search.navigate')}
           </span>
           <span>
-            <kbd className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-1">Enter</kbd> Öffnen
+            <kbd className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-1">Enter</kbd> {t('search.open')}
           </span>
           <span>
-            <kbd className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-1">Esc</kbd> Schliessen
+            <kbd className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-1">Esc</kbd> {t('search.close')}
           </span>
         </div>
       </div>
