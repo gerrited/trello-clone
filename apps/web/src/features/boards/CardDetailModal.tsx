@@ -274,7 +274,7 @@ export function CardDetailModal() {
           {/* Labels */}
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Labels</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('card.labels')}</label>
               {canEdit && <LabelPicker
                 boardId={board.id}
                 cardId={cardDetail.id}
@@ -665,7 +665,7 @@ function DueDateSection({
   cardDetail: CardDetail;
   onUpdate: (dueDate: string | null) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [dateValue, setDateValue] = useState('');
 
@@ -705,7 +705,7 @@ function DueDateSection({
 
   const formatDueDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleString('de-DE', {
+    return d.toLocaleString(i18n.language, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -791,7 +791,7 @@ function CommentSection({
   canComment?: boolean;
   onCommentsChange: (comments: Comment[]) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const currentUser = useAuthStore((s) => s.user);
   const [newBody, setNewBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -834,7 +834,7 @@ function CommentSection({
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString(i18n.language, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   return (
