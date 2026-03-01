@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from './stores/authStore.js';
 import { getMe } from './api/auth.api.js';
 import { LoginPage } from './features/auth/LoginPage.js';
@@ -13,12 +14,13 @@ import { SharedBoardPage } from './features/boards/SharedBoardPage.js';
 import { ThemeProvider } from './components/layout/ThemeProvider.js';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   const { user, isLoading } = useAuthStore();
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Laden...</p>
+        <p className="text-gray-500">{t('common.loading')}</p>
       </div>
     );
   }
