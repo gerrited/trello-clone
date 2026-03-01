@@ -14,9 +14,9 @@ export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
       <div className="p-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">{t('shortcuts.title')}</h2>
         <div className="space-y-2">
-          {SHORTCUT_LIST.map(({ keys, description }) => (
+          {SHORTCUT_LIST.map(({ keys, descriptionKey }) => (
             <div key={keys} className="flex items-center justify-between py-1.5">
-              <span className="text-sm text-gray-600 dark:text-gray-400">{description}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">{t(descriptionKey)}</span>
               <kbd className="px-2 py-1 text-xs font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300">
                 {keys}
               </kbd>

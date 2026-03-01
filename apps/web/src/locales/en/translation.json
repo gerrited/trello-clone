@@ -217,7 +217,14 @@
   },
   "shortcuts": {
     "title": "Keyboard Shortcuts",
-    "description": "Press ? on the board to open this dialog"
+    "description": "Press ? on the board to open this dialog",
+    "showShortcuts": "Show keyboard shortcuts",
+    "newCard": "Create new card",
+    "backToBoards": "Back to board list",
+    "focusFilter": "Focus filter",
+    "toggleActivity": "Toggle activity panel",
+    "openSearch": "Open search",
+    "closeModals": "Close modals"
   },
   "team": {
     "myTeams": "My Teams",

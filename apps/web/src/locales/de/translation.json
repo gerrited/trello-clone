@@ -217,7 +217,14 @@
   },
   "shortcuts": {
     "title": "Tastaturkürzel",
-    "description": "Drücke ? auf dem Board um diesen Dialog zu öffnen"
+    "description": "Drücke ? auf dem Board um diesen Dialog zu öffnen",
+    "showShortcuts": "Tastaturkürzel anzeigen",
+    "newCard": "Neue Karte erstellen",
+    "backToBoards": "Zurück zur Board-Liste",
+    "focusFilter": "Filter fokussieren",
+    "toggleActivity": "Aktivität ein-/ausblenden",
+    "openSearch": "Suche öffnen",
+    "closeModals": "Modals schließen"
   },
   "team": {
     "myTeams": "Meine Teams",

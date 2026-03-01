@@ -217,7 +217,14 @@
   },
   "shortcuts": {
     "title": "Scorciatoie da tastiera",
-    "description": "Premi ? sulla bacheca per aprire questa finestra"
+    "description": "Premi ? sulla bacheca per aprire questa finestra",
+    "showShortcuts": "Mostra scorciatoie da tastiera",
+    "newCard": "Crea nuova scheda",
+    "backToBoards": "Torna alla lista delle bacheche",
+    "focusFilter": "Metti a fuoco il filtro",
+    "toggleActivity": "Mostra/nascondi attività",
+    "openSearch": "Apri ricerca",
+    "closeModals": "Chiudi finestre"
   },
   "team": {
     "myTeams": "I miei team",

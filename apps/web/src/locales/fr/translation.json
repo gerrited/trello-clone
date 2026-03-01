@@ -217,7 +217,14 @@
   },
   "shortcuts": {
     "title": "Raccourcis clavier",
-    "description": "Appuyez sur ? sur le tableau pour ouvrir cette boîte de dialogue"
+    "description": "Appuyez sur ? sur le tableau pour ouvrir cette boîte de dialogue",
+    "showShortcuts": "Afficher les raccourcis clavier",
+    "newCard": "Créer une nouvelle carte",
+    "backToBoards": "Retour à la liste des tableaux",
+    "focusFilter": "Mettre le filtre en focus",
+    "toggleActivity": "Afficher/masquer l'activité",
+    "openSearch": "Ouvrir la recherche",
+    "closeModals": "Fermer les fenêtres"
   },
   "team": {
     "myTeams": "Mes équipes",
