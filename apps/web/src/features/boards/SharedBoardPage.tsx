@@ -18,7 +18,7 @@ function formatDueDate(dueDate: string, locale: string): string {
 }
 
 export function SharedBoardPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const [board, setBoard] = useState<(BoardDetail & { permission: BoardPermission }) | null>(null);
   const [error, setError] = useState<string | null>(null);
