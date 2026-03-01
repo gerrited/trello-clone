@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { CollisionPriority } from '@dnd-kit/abstract';
@@ -30,6 +31,7 @@ import type { Column, CardSummary, CardType } from '@trello-clone/shared';
 type DragEndEvent = Parameters<DragEndFn>[0];
 
 const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index, boardId, canEdit = true }: { column: Column; cardCount: number; index: number; boardId: string; canEdit?: boolean }) {
+  const { t } = useTranslation();
   const removeColumn = useBoardStore((s) => s.removeColumn);
   const totalCardCount = useBoardStore((s) => s.board?.cards.filter((c) => c.columnId === column.id).length ?? 0);
   const { ref } = useSortable({
@@ -46,17 +48,17 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
   const handleDeleteColumn = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (totalCardCount > 0) {
-      toast.error('Spalte kann nicht gelöscht werden, da sie noch Karten enthält');
+      toast.error(t('board.columnNotEmpty'));
       return;
     }
-    if (!window.confirm(`Spalte "${column.name}" wirklich löschen?`)) return;
+    if (!window.confirm(t('board.confirmDeleteColumn', { name: column.name }))) return;
     try {
       await columnsApi.deleteColumn(boardId, column.id);
       removeColumn(column.id);
-      toast.success('Spalte gelöscht');
+      toast.success(t('board.columnDeleted'));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      const msg = err?.response?.data?.message ?? 'Spalte konnte nicht gelöscht werden';
+      const msg = err?.response?.data?.message ?? t('board.columnDeleteError');
       toast.error(msg);
     }
   };
@@ -80,7 +82,7 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
         <button
           onClick={handleDeleteColumn}
           className="ml-auto p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
-          title="Spalte löschen"
+          title={t('board.deleteColumn')}
         >
           <Trash2 size={14} />
         </button>
@@ -90,6 +92,7 @@ const ColumnHeader = React.memo(function ColumnHeader({ column, cardCount, index
 });
 
 export function BoardPage() {
+  const { t } = useTranslation();
   const { teamId, boardId } = useParams<{ teamId: string; boardId: string }>();
   const navigate = useNavigate();
   const board = useBoardStore((s) => s.board);
@@ -375,7 +378,7 @@ export function BoardPage() {
       <div className="px-2 sm:px-4 py-2 sm:py-4">
         <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
           <Link to={`/teams/${teamId}/boards`} className="text-sm text-blue-600 hover:underline">
-            &larr; Boards
+            &larr; {t('board.backToBoards')}
           </Link>
           <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">{board.name}</h1>
           <ConnectionStatus />
@@ -386,7 +389,7 @@ export function BoardPage() {
               className="hidden sm:flex items-center gap-1 text-xs px-2 py-1 rounded-full border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <Share2 size={12} />
-              Teilen
+              {t('board.share')}
             </button>
           )}
           <button
@@ -398,7 +401,7 @@ export function BoardPage() {
             }`}
           >
             <Activity size={12} />
-            Aktivität
+            {t('board.activity')}
           </button>
         </div>
 
@@ -420,7 +423,7 @@ export function BoardPage() {
             }`}
           >
             <Filter size={12} />
-            Filter
+            {t('board.filter')}
             {hasFilters && <X size={12} />}
           </button>
 
@@ -448,7 +451,7 @@ export function BoardPage() {
               onChange={(e) => setFilterAssigneeId(e.target.value || null)}
               className="text-xs px-2 py-1 rounded-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
-              <option value="">Alle Zuständigen</option>
+              <option value="">{t('board.allAssignees')}</option>
               {allAssignees.map((a) => (
                 <option key={a.id} value={a.id}>{a.displayName}</option>
               ))}
@@ -494,9 +497,9 @@ export function BoardPage() {
           {/* Due date filter */}
           <span className="text-xs text-gray-400 dark:text-gray-600 hidden sm:inline">|</span>
           {([
-            { key: 'overdue' as const, label: 'Überfällig', color: 'border-red-300 bg-red-50 text-red-700' },
-            { key: 'week' as const, label: 'Diese Woche', color: 'border-orange-300 bg-orange-50 text-orange-700' },
-            { key: 'none' as const, label: 'Kein Datum', color: 'border-gray-300 bg-gray-50 text-gray-700' },
+            { key: 'overdue' as const, label: t('board.overdue'), color: 'border-red-300 bg-red-50 text-red-700' },
+            { key: 'week' as const, label: t('board.thisWeek'), color: 'border-orange-300 bg-orange-50 text-orange-700' },
+            { key: 'none' as const, label: t('board.noDate'), color: 'border-gray-300 bg-gray-50 text-gray-700' },
           ]).map(({ key, label, color }) => (
             <button
               key={key}
@@ -516,12 +519,12 @@ export function BoardPage() {
             className="text-xs px-2 py-1 rounded-full border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors inline-flex items-center gap-1"
           >
             <Calendar size={10} />
-            Kalender
+            {t('board.calendar')}
           </Link>
 
           {hasFilters && (
             <span className="text-xs text-gray-400 dark:text-gray-500">
-              {filteredCards.length}/{board.cards.length} Karten
+              {t('board.cardsCount', { filtered: filteredCards.length, total: board.cards.length })}
             </span>
           )}
         </div>
@@ -713,7 +716,7 @@ export function BoardPage() {
               <div className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-700">
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                   <Activity size={14} />
-                  Aktivität
+                  {t('board.activity')}
                 </h3>
                 <button
                   onClick={() => setShowActivity(false)}
@@ -735,7 +738,7 @@ export function BoardPage() {
         <button
           onClick={() => setShowShortcutHelp(true)}
           className="hidden sm:flex fixed bottom-4 right-4 w-8 h-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors shadow-sm z-40"
-          title="Tastaturkürzel (?)"
+          title={t('board.shortcuts')}
         >
           <Keyboard size={14} />
         </button>
