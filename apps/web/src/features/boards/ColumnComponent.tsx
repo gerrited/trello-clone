@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { CollisionPriority } from '@dnd-kit/abstract';
 import { Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { CardComponent } from './CardComponent.js';
 import { AddCardForm } from './AddCardForm.js';
 import { useBoardStore } from '../../stores/boardStore.js';
@@ -20,6 +21,7 @@ interface ColumnComponentProps {
 }
 
 export const ColumnComponent = React.memo(function ColumnComponent({ column, cards, index, boardId, swimlaneId, canEdit = true }: ColumnComponentProps) {
+  const { t } = useTranslation();
   const removeColumn = useBoardStore((s) => s.removeColumn);
   const totalCardCount = useBoardStore((s) => s.board?.cards.filter((c) => c.columnId === column.id).length ?? 0);
   const [deleting, setDeleting] = useState(false);
@@ -45,18 +47,18 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
 
   const handleDeleteColumn = async () => {
     if (totalCardCount > 0) {
-      toast.error('Spalte kann nicht gelöscht werden, da sie noch Karten enthält');
+      toast.error(t('board.columnNotEmpty'));
       return;
     }
-    if (!window.confirm(`Spalte "${column.name}" wirklich löschen?`)) return;
+    if (!window.confirm(t('board.confirmDeleteColumn', { name: column.name }))) return;
     setDeleting(true);
     try {
       await columnsApi.deleteColumn(boardId, column.id);
       removeColumn(column.id);
-      toast.success('Spalte gelöscht');
+      toast.success(t('board.columnDeleted'));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      const msg = err?.response?.data?.message ?? 'Spalte konnte nicht gelöscht werden';
+      const msg = err?.response?.data?.message ?? t('board.columnDeleteError');
       toast.error(msg);
     } finally {
       setDeleting(false);
@@ -86,7 +88,7 @@ export const ColumnComponent = React.memo(function ColumnComponent({ column, car
             onClick={handleDeleteColumn}
             disabled={deleting}
             className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
-            title="Spalte löschen"
+            title={t('board.deleteColumn')}
           >
             <Trash2 size={14} />
           </button>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Swimlane } from '@trello-clone/shared';
 import { useBoardStore } from '../../stores/boardStore.js';
 import * as swimlanesApi from '../../api/swimlanes.api.js';
@@ -10,6 +11,7 @@ interface SwimlaneRowHeaderProps {
 }
 
 export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(swimlane.name);
   const updateSwimlaneInStore = useBoardStore((s) => s.updateSwimlane);
@@ -38,7 +40,7 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
       removeSwimlaneFromStore(swimlane.id);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Fehler beim Löschen der Swimlane');
+      alert(err?.response?.data?.message ?? t('swimlane.deleteError'));
     }
   };
 
@@ -61,14 +63,14 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
         <button
           onClick={handleSave}
           className="p-1 text-green-600 hover:bg-green-50 rounded"
-          title="Speichern"
+          title={t('common.save')}
         >
           <Check size={14} />
         </button>
         <button
           onClick={() => { setEditName(swimlane.name); setIsEditing(false); }}
           className="p-1 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
-          title="Abbrechen"
+          title={t('common.cancel')}
         >
           <X size={14} />
         </button>
@@ -83,7 +85,7 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
         <button
           onClick={() => { setEditName(swimlane.name); setIsEditing(true); }}
           className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
-          title="Umbenennen"
+          title={t('common.rename')}
         >
           <Pencil size={12} />
         </button>
@@ -91,7 +93,7 @@ export function SwimlaneRowHeader({ swimlane, boardId }: SwimlaneRowHeaderProps)
           <button
             onClick={handleDelete}
             className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-            title="Löschen"
+            title={t('common.delete')}
           >
             <Trash2 size={12} />
           </button>

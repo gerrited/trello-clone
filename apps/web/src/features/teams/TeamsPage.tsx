@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { listTeams, createTeam, deleteTeam } from '../../api/teams.api.js';
 import { AppLayout } from '../../components/layout/AppLayout.js';
 import { Button } from '../../components/ui/Button.js';
@@ -7,6 +8,7 @@ import { Input } from '../../components/ui/Input.js';
 import type { Team } from '@trello-clone/shared';
 
 export function TeamsPage() {
+  const { t } = useTranslation();
   const [teams, setTeams] = useState<(Team & { role: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -33,7 +35,7 @@ export function TeamsPage() {
   };
 
   const handleDeleteTeam = async (teamId: string) => {
-    if (!confirm('Möchtest du dieses Team wirklich löschen?')) return;
+    if (!confirm(t('team.confirmDelete'))) return;
     try {
       await deleteTeam(teamId);
       setTeams((prev) => prev.filter((t) => t.id !== teamId));
@@ -46,9 +48,9 @@ export function TeamsPage() {
     <AppLayout>
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Meine Teams</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{t('team.myTeams')}</h1>
           <Button size="sm" onClick={() => setShowForm(!showForm)}>
-            + Team erstellen
+            {t('team.createTeam')}
           </Button>
         </div>
 
@@ -56,28 +58,28 @@ export function TeamsPage() {
           <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row gap-2">
               <Input
-                placeholder="Team Name"
+                placeholder={t('team.teamName')}
                 value={newTeamName}
                 onChange={(e) => setNewTeamName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleCreateTeam()}
                 autoFocus
               />
               <Button onClick={handleCreateTeam} disabled={creating || !newTeamName.trim()}>
-                {creating ? 'Erstellen...' : 'Erstellen'}
+                {creating ? t('common.creating') : t('common.create')}
               </Button>
               <Button variant="ghost" onClick={() => setShowForm(false)}>
-                Abbrechen
+                {t('common.cancel')}
               </Button>
             </div>
           </div>
         )}
 
         {loading ? (
-          <p className="text-gray-500 dark:text-gray-400">Laden...</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
         ) : teams.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400 mb-4">Du bist noch in keinem Team.</p>
-            <Button onClick={() => setShowForm(true)}>Erstes Team erstellen</Button>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">{t('team.noTeams')}</p>
+            <Button onClick={() => setShowForm(true)}>{t('team.createFirstTeam')}</Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -94,7 +96,7 @@ export function TeamsPage() {
                   <button
                     onClick={() => handleDeleteTeam(team.id)}
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-1"
-                    title="Team löschen"
+                    title={t('team.deleteTeam')}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                       <path

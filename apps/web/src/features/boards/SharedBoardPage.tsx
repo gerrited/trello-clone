@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import type { BoardPermission, CardSummary } from '@trello-clone/shared';
 import { getSharedBoard } from '../../api/shares.api.js';
@@ -11,22 +12,23 @@ const TYPE_COLORS: Record<string, string> = {
   task: 'bg-blue-100 text-blue-700',
 };
 
-function formatDueDate(dueDate: string): string {
+function formatDueDate(dueDate: string, locale: string): string {
   const d = new Date(dueDate);
-  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+  return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' });
 }
 
-const PERM_LABELS: Record<BoardPermission, string> = {
-  read: 'Nur lesen',
-  comment: 'Kommentieren',
-  edit: 'Bearbeiten',
-};
-
 export function SharedBoardPage() {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const [board, setBoard] = useState<(BoardDetail & { permission: BoardPermission }) | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const permLabels: Record<BoardPermission, string> = {
+    read: t('share.read'),
+    comment: t('share.comment'),
+    edit: t('share.edit'),
+  };
 
   useEffect(() => {
     if (!token) return;
@@ -34,7 +36,7 @@ export function SharedBoardPage() {
     getSharedBoard(token)
       .then(setBoard)
       .catch((err) => {
-        const msg = err?.response?.data?.message ?? 'Board konnte nicht geladen werden';
+        const msg = err?.response?.data?.message ?? t('sharedBoard.notFound');
         setError(msg);
       })
       .finally(() => setIsLoading(false));
@@ -43,7 +45,7 @@ export function SharedBoardPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">Laden...</p>
+        <p className="text-gray-500 dark:text-gray-400">{t('sharedBoard.loading')}</p>
       </div>
     );
   }
@@ -53,8 +55,8 @@ export function SharedBoardPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Shield size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h1 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">Zugriff nicht moeglich</h1>
-          <p className="text-gray-500 dark:text-gray-400">{error || 'Board nicht gefunden'}</p>
+          <h1 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">{t('sharedBoard.accessDenied')}</h1>
+          <p className="text-gray-500 dark:text-gray-400">{error || t('sharedBoard.notFound')}</p>
         </div>
       </div>
     );
@@ -79,8 +81,8 @@ export function SharedBoardPage() {
       {/* Banner */}
       <div className="bg-blue-600 text-white px-4 py-2 flex items-center gap-2 text-sm">
         <Shield size={16} />
-        <span>Geteilte Ansicht &mdash; {PERM_LABELS[board.permission]}</span>
-        <span className="ml-auto text-blue-200 text-xs">Kein Echtzeit-Update</span>
+        <span>{t('sharedBoard.sharedView', { permission: permLabels[board.permission] })}</span>
+        <span className="ml-auto text-blue-200 text-xs">{t('sharedBoard.noRealtime')}</span>
       </div>
 
       <div className="px-4 py-4">
@@ -115,6 +117,7 @@ export function SharedBoardPage() {
 }
 
 function ReadOnlyCard({ card }: { card: CardSummary }) {
+  const { i18n } = useTranslation();
   const hasMetadata = card.commentCount > 0 || card.subtaskCount > 0 || card.parentCardId || card.dueDate || card.attachmentCount > 0;
 
   return (
@@ -142,7 +145,7 @@ function ReadOnlyCard({ card }: { card: CardSummary }) {
           {card.dueDate && (
             <span className="flex items-center gap-1">
               <Calendar size={12} />
-              {formatDueDate(card.dueDate)}
+              {formatDueDate(card.dueDate, i18n.language)}
             </span>
           )}
           {card.commentCount > 0 && (

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
@@ -21,6 +22,7 @@ function TemplateCard({
   isSelected: boolean;
   onSelect: () => void;
 }) {
+  const { t } = useTranslation();
   const config = template.config as BoardTemplateConfig;
   return (
     <button
@@ -55,7 +57,7 @@ function TemplateCard({
       </div>
       {config.swimlanes.length > 0 && (
         <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
-          {config.swimlanes.length} Swimlane{config.swimlanes.length > 1 ? 's' : ''}
+          {t('template.swimlaneCount', { count: config.swimlanes.length })}
         </p>
       )}
       {config.labels.length > 0 && (
@@ -80,6 +82,7 @@ export function TemplatePicker({
   teamId,
   onSelectTemplate,
 }: TemplatePickerProps) {
+  const { t } = useTranslation();
   const [templates, setTemplates] = useState<BoardTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -103,21 +106,21 @@ export function TemplatePicker({
   };
 
   // Group: system first, then team templates
-  const systemTemplates = templates.filter((t) => t.isSystem);
-  const teamTemplates = templates.filter((t) => !t.isSystem);
+  const systemTemplates = templates.filter((tmpl) => tmpl.isSystem);
+  const teamTemplates = templates.filter((tmpl) => !tmpl.isSystem);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Board erstellen">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('template.createBoard')}>
       <div className="p-4 sm:p-6">
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Waehle eine Vorlage oder erstelle ein leeres Board.
+          {t('template.selectTemplate')}
         </p>
 
         {/* Board name input */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Board-Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('template.boardName')}</label>
           <Input
-            placeholder="Mein Board"
+            placeholder={t('template.defaultBoardName')}
             value={boardName}
             onChange={(e) => setBoardName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleConfirm()}
@@ -135,29 +138,29 @@ export function TemplatePicker({
                 : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
             }`}
           >
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Leeres Board</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('template.emptyBoard')}</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Beginne mit einem leeren Board (To Do, In Progress, Done)
+              {t('template.emptyBoardDesc')}
             </p>
           </button>
         </div>
 
         {loading ? (
-          <p className="text-sm text-gray-400 dark:text-gray-500">Vorlagen laden...</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">{t('template.loadingTemplates')}</p>
         ) : (
           <>
             {systemTemplates.length > 0 && (
               <>
                 <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-                  System-Vorlagen
+                  {t('template.systemTemplates')}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                  {systemTemplates.map((t) => (
+                  {systemTemplates.map((tmpl) => (
                     <TemplateCard
-                      key={t.id}
-                      template={t}
-                      isSelected={selectedId === t.id}
-                      onSelect={() => setSelectedId(selectedId === t.id ? null : t.id)}
+                      key={tmpl.id}
+                      template={tmpl}
+                      isSelected={selectedId === tmpl.id}
+                      onSelect={() => setSelectedId(selectedId === tmpl.id ? null : tmpl.id)}
                     />
                   ))}
                 </div>
@@ -166,15 +169,15 @@ export function TemplatePicker({
             {teamTemplates.length > 0 && (
               <>
                 <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-                  Team-Vorlagen
+                  {t('template.teamTemplates')}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                  {teamTemplates.map((t) => (
+                  {teamTemplates.map((tmpl) => (
                     <TemplateCard
-                      key={t.id}
-                      template={t}
-                      isSelected={selectedId === t.id}
-                      onSelect={() => setSelectedId(selectedId === t.id ? null : t.id)}
+                      key={tmpl.id}
+                      template={tmpl}
+                      isSelected={selectedId === tmpl.id}
+                      onSelect={() => setSelectedId(selectedId === tmpl.id ? null : tmpl.id)}
                     />
                   ))}
                 </div>
@@ -185,10 +188,10 @@ export function TemplatePicker({
 
         <div className="flex gap-2 justify-end mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
           <Button variant="ghost" onClick={onClose}>
-            Abbrechen
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleConfirm} disabled={!boardName.trim()}>
-            Board erstellen
+            {t('template.createBoard')}
           </Button>
         </div>
       </div>

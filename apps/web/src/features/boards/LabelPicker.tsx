@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Tag, Plus, Check, Pencil, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { LABEL_COLORS } from '@trello-clone/shared';
 import type { Label } from '@trello-clone/shared';
 import { useBoardStore } from '../../stores/boardStore.js';
@@ -14,6 +15,7 @@ interface LabelPickerProps {
 }
 
 export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPickerProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [editingLabel, setEditingLabel] = useState<Label | null>(null);
@@ -51,7 +53,7 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
         onToggle({ id: label.id, name: label.name, color: label.color }, 'add');
       }
     } catch {
-      toast.error('Label konnte nicht aktualisiert werden');
+      toast.error(t('label.updateError'));
     }
   };
 
@@ -64,7 +66,7 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
       setNewColor(LABEL_COLORS[0]);
       setShowCreate(false);
     } catch {
-      toast.error('Label konnte nicht erstellt werden');
+      toast.error(t('label.createError'));
     }
   };
 
@@ -80,18 +82,18 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
       setNewName('');
       setNewColor(LABEL_COLORS[0]);
     } catch {
-      toast.error('Label konnte nicht aktualisiert werden');
+      toast.error(t('label.updateError'));
     }
   };
 
   const handleDeleteLabel = async (labelId: string) => {
-    if (!window.confirm('Label wirklich löschen? Es wird von allen Karten entfernt.')) return;
+    if (!window.confirm(t('label.confirmDelete'))) return;
     try {
       await labelsApi.deleteLabel(boardId, labelId);
       removeLabelFromStore(labelId);
       setEditingLabel(null);
     } catch {
-      toast.error('Label konnte nicht gelöscht werden');
+      toast.error(t('label.deleteError'));
     }
   };
 
@@ -110,13 +112,13 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
         className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
       >
         <Tag size={14} />
-        Labels
+        {t('label.labels')}
       </button>
 
       {isOpen && (
         <div className="absolute z-50 top-full left-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="p-3 border-b border-gray-100 dark:border-gray-700">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Labels</h4>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('label.labels')}</h4>
           </div>
 
           {/* Edit / Create form */}
@@ -130,7 +132,7 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
                   if (e.key === 'Enter') { if (editingLabel) { handleUpdateLabel(); } else { handleCreateLabel(); } }
                   if (e.key === 'Escape') { setShowCreate(false); setEditingLabel(null); }
                 }}
-                placeholder="Label-Name..."
+                placeholder={t('label.namePlaceholder')}
                 className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <div className="grid grid-cols-6 gap-1.5">
@@ -150,7 +152,7 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
               {/* Preview */}
               {newName.trim() && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 dark:text-gray-500">Vorschau:</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{t('label.preview')}</span>
                   <span
                     className="text-xs px-2 py-0.5 rounded-full text-white font-medium"
                     style={{ backgroundColor: newColor }}
@@ -165,7 +167,7 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
                   disabled={!newName.trim()}
                   className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 >
-                  {editingLabel ? 'Speichern' : 'Erstellen'}
+                  {editingLabel ? t('common.save') : t('label.create')}
                 </button>
                 {editingLabel && (
                   <button
@@ -179,7 +181,7 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
                   onClick={() => { setShowCreate(false); setEditingLabel(null); setNewName(''); }}
                   className="px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  Abbrechen
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -188,7 +190,7 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
               {/* Board labels list */}
               <div className="max-h-56 overflow-y-auto p-2">
                 {boardLabels.length === 0 ? (
-                  <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-3">Noch keine Labels vorhanden</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-3">{t('label.noLabels')}</p>
                 ) : (
                   boardLabels.map((label) => {
                     const isAssigned = cardLabels.some((l) => l.id === label.id);
@@ -228,7 +230,7 @@ export function LabelPicker({ boardId, cardId, cardLabels, onToggle }: LabelPick
                   className="w-full flex items-center justify-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
                 >
                   <Plus size={14} />
-                  Neues Label erstellen
+                  {t('label.newLabel')}
                 </button>
               </div>
             </>

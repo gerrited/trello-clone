@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Check, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useBoardStore } from '../../stores/boardStore.js';
 import * as cardsApi from '../../api/cards.api.js';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ export function MoveCardPopover({
   children,
   triggerClassName,
 }: MoveCardPopoverProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
@@ -60,7 +62,7 @@ export function MoveCardPopover({
       onMoved?.(moved.columnId, moved.swimlaneId, moved.position);
       setIsOpen(false);
     } catch {
-      toast.error('Karte konnte nicht verschoben werden');
+      toast.error(t('card.moveError'));
     } finally {
       setIsMoving(false);
     }
@@ -79,7 +81,7 @@ export function MoveCardPopover({
       onMoved?.(moved.columnId, moved.swimlaneId, moved.position);
       setIsOpen(false);
     } catch {
-      toast.error('Karte konnte nicht verschoben werden');
+      toast.error(t('card.moveError'));
     } finally {
       setIsMoving(false);
     }
@@ -100,7 +102,7 @@ export function MoveCardPopover({
           setDropdownPos({ top: rect.bottom + 4, left: rect.left });
           setIsOpen((prev) => !prev);
         }}
-        title="Karte verschieben"
+        title={t('card.move')}
       >
         {children}
       </button>
@@ -112,7 +114,7 @@ export function MoveCardPopover({
         >
           {/* Column section */}
           <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
-            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Spalte wechseln</h4>
+            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('card.changeColumn')}</h4>
           </div>
           <div className="max-h-48 overflow-y-auto py-1">
             {columns.map((column) => {
@@ -144,7 +146,7 @@ export function MoveCardPopover({
           {isMultiSwimlane && (
             <>
               <div className="px-3 py-2 border-t border-b border-gray-100 dark:border-gray-700">
-                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Swimlane wechseln</h4>
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('card.changeSwimlane')}</h4>
               </div>
               <div className="max-h-48 overflow-y-auto py-1">
                 {swimlanes.map((swimlane) => {

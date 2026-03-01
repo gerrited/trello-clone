@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Link2, Trash2, Copy, Check, UserPlus } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal.js';
 import * as sharesApi from '../../api/shares.api.js';
@@ -10,13 +11,14 @@ interface Props {
   boardId: string;
 }
 
-const PERMISSION_LABELS: Record<BoardPermission, string> = {
-  read: 'Lesen',
-  comment: 'Kommentieren',
-  edit: 'Bearbeiten',
-};
-
 export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
+  const { t } = useTranslation();
+
+  const PERMISSION_LABELS: Record<BoardPermission, string> = {
+    read: t('share.read'),
+    comment: t('share.comment'),
+    edit: t('share.edit'),
+  };
   const [shares, setShares] = useState<BoardShare[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -47,7 +49,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
       setEmail('');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      setInviteError(err.response?.data?.message || 'Einladung fehlgeschlagen');
+      setInviteError(err.response?.data?.message || t('share.inviteFailed'));
     } finally {
       setInviteLoading(false);
     }
@@ -85,10 +87,10 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
   const linkShares = shares.filter((s) => s.token !== null);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Board teilen">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('share.shareBoard')}>
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Board teilen</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('share.shareBoard')}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <X size={20} />
           </button>
@@ -98,14 +100,14 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
         <div className="mb-6">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
             <UserPlus size={14} />
-            Per Email einladen
+            {t('share.inviteByEmail')}
           </h3>
           <div className="flex gap-2">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="email@example.com"
+              placeholder={t('share.emailPlaceholder')}
               className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
             />
@@ -114,16 +116,16 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
               onChange={(e) => setInvitePermission(e.target.value as BoardPermission)}
               className="px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
-              <option value="read">Lesen</option>
-              <option value="comment">Kommentieren</option>
-              <option value="edit">Bearbeiten</option>
+              <option value="read">{t('share.read')}</option>
+              <option value="comment">{t('share.comment')}</option>
+              <option value="edit">{t('share.edit')}</option>
             </select>
             <button
               onClick={handleInvite}
               disabled={inviteLoading || !email.trim()}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              Einladen
+              {t('common.invite')}
             </button>
           </div>
           {inviteError && <p className="text-xs text-red-600 mt-1">{inviteError}</p>}
@@ -133,7 +135,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
         <div className="mb-6">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
             <Link2 size={14} />
-            Link erstellen
+            {t('share.createLink')}
           </h3>
           <div className="flex gap-2">
             <select
@@ -141,29 +143,29 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
               onChange={(e) => setLinkPermission(e.target.value as BoardPermission)}
               className="px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
-              <option value="read">Lesen</option>
-              <option value="comment">Kommentieren</option>
-              <option value="edit">Bearbeiten</option>
+              <option value="read">{t('share.read')}</option>
+              <option value="comment">{t('share.comment')}</option>
+              <option value="edit">{t('share.edit')}</option>
             </select>
             <button
               onClick={handleCreateLink}
               disabled={linkLoading}
               className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
             >
-              Link erstellen
+              {t('share.createLink')}
             </button>
           </div>
         </div>
 
         {/* Existing shares list */}
         {loading ? (
-          <p className="text-sm text-gray-400 dark:text-gray-500">Laden...</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">{t('common.loading')}</p>
         ) : (
           <div className="space-y-4">
             {/* User shares */}
             {userShares.length > 0 && (
               <div>
-                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">Eingeladene Benutzer</h4>
+                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">{t('share.invitedUsers')}</h4>
                 <div className="space-y-2">
                   {userShares.map((share) => (
                     <div key={share.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -176,7 +178,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
                           </div>
                         )}
                         <div>
-                          <span className="text-sm text-gray-800 dark:text-gray-200">{share.user?.displayName ?? share.user?.email ?? 'Unbekannt'}</span>
+                          <span className="text-sm text-gray-800 dark:text-gray-200">{share.user?.displayName ?? share.user?.email ?? t('common.unknown')}</span>
                           {share.user?.email && (
                             <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">{share.user.email}</span>
                           )}
@@ -202,7 +204,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
             {/* Link shares */}
             {linkShares.length > 0 && (
               <div>
-                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">Geteilte Links</h4>
+                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">{t('share.sharedLinks')}</h4>
                 <div className="space-y-2">
                   {linkShares.map((share) => (
                     <div key={share.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -219,7 +221,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
                         <button
                           onClick={() => handleCopyLink(share.token!, share.id)}
                           className="text-gray-400 dark:text-gray-500 hover:text-blue-600 transition-colors"
-                          title="Link kopieren"
+                          title={t('share.copyLink')}
                         >
                           {copiedId === share.id ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
                         </button>
@@ -238,7 +240,7 @@ export function ShareBoardModal({ isOpen, onClose, boardId }: Props) {
 
             {userShares.length === 0 && linkShares.length === 0 && (
               <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
-                Noch keine Freigaben. Laden Sie Benutzer ein oder erstellen Sie einen Link.
+                {t('share.noShares')}
               </p>
             )}
           </div>

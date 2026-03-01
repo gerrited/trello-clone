@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { X, BookOpen, Bug, CheckSquare, Trash2, MessageSquare, Pencil, Link2, ListChecks, Calendar, Activity } from 'lucide-react';
 import type { CardDetail, CardType, Comment } from '@trello-clone/shared';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { LabelPicker } from './LabelPicker.js';
@@ -26,6 +27,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export function CardDetailModal() {
+  const { t } = useTranslation();
   const board = useBoardStore((s) => s.board);
   const selectedCardId = useBoardStore((s) => s.selectedCardId);
   const closeCard = useBoardStore((s) => s.closeCard);
@@ -55,12 +57,12 @@ export function CardDetailModal() {
       setTitle(detail.title);
       setDescription(detail.description ?? '');
     } catch {
-      toast.error('Karte konnte nicht geladen werden');
+      toast.error(t('card.loadError'));
       useBoardStore.getState().closeCard();
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (selectedCardId) {
@@ -80,7 +82,7 @@ export function CardDetailModal() {
       updateCardInStore(cardDetail.id, { title: title.trim() });
       setCardDetail({ ...cardDetail, title: title.trim() });
     } catch {
-      toast.error('Titel konnte nicht gespeichert werden');
+      toast.error(t('card.titleSaveError'));
     }
   };
 
@@ -92,7 +94,7 @@ export function CardDetailModal() {
       setCardDetail({ ...cardDetail, description: desc });
       setEditingDescription(false);
     } catch {
-      toast.error('Beschreibung konnte nicht gespeichert werden');
+      toast.error(t('card.descriptionSaveError'));
     }
   };
 
@@ -103,13 +105,13 @@ export function CardDetailModal() {
       updateCardInStore(cardDetail.id, { cardType: newType });
       setCardDetail({ ...cardDetail, cardType: newType });
     } catch {
-      toast.error('Kartentyp konnte nicht geändert werden');
+      toast.error(t('card.typeChangeError'));
     }
   };
 
   const handleDelete = async () => {
     if (!board || !cardDetail) return;
-    if (!window.confirm('Karte wirklich löschen?')) return;
+    if (!window.confirm(t('card.confirmDelete'))) return;
     try {
       await cardsApi.deleteCard(board.id, cardDetail.id);
       // Clean up subtask references in the store (DB sets parentCardId to null)
@@ -120,9 +122,9 @@ export function CardDetailModal() {
       }
       removeCardFromStore(cardDetail.id);
       closeCard();
-      toast.success('Karte gelöscht');
+      toast.success(t('card.deleted'));
     } catch {
-      toast.error('Karte konnte nicht gelöscht werden');
+      toast.error(t('card.deleteError'));
     }
   };
 
@@ -135,9 +137,9 @@ export function CardDetailModal() {
   const swimlane = board?.swimlanes.find((s) => s.id === cardDetail?.swimlaneId);
 
   return (
-    <Modal isOpen={!!selectedCardId} onClose={closeCard} title="Kartendetails">
+    <Modal isOpen={!!selectedCardId} onClose={closeCard} title={t('card.cardDetails')}>
       {isLoading || !cardDetail || !board ? (
-        <div className="p-8 text-center text-gray-500 dark:text-gray-400">Laden...</div>
+        <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('common.loading')}</div>
       ) : (
         <div className="p-6 space-y-6">
           {/* Header with close button */}
@@ -184,10 +186,10 @@ export function CardDetailModal() {
                   onMoved={handleMoved}
                   triggerClassName="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
                 >
-                  Spalte: <strong>{column.name}</strong>
+                  {t('card.column', { name: column.name })}
                 </MoveCardPopover>
               ) : (
-                <span>Spalte: <strong>{column.name}</strong></span>
+                <span>{t('card.column', { name: column.name })}</span>
               )
             )}
             {swimlane && !swimlane.isDefault && (
@@ -200,17 +202,17 @@ export function CardDetailModal() {
                   onMoved={handleMoved}
                   triggerClassName="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
                 >
-                  Swimlane: <strong>{swimlane.name}</strong>
+                  {t('card.swimlane', { name: swimlane.name })}
                 </MoveCardPopover>
               ) : (
-                <span>Swimlane: <strong>{swimlane.name}</strong></span>
+                <span>{t('card.swimlane', { name: swimlane.name })}</span>
               )
             )}
           </div>
 
           {/* Card type selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kartentyp</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('card.cardType')}</label>
             <div className="flex gap-2">
               {(['task', 'story', 'bug'] as const).map((type) => {
                 const Icon = TYPE_ICONS[type];
@@ -233,7 +235,7 @@ export function CardDetailModal() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Beschreibung</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('card.description')}</label>
             {editingDescription && canEdit ? (
               <div className="space-y-2">
                 <textarea
@@ -245,7 +247,7 @@ export function CardDetailModal() {
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={handleSaveDescription}>
-                    Speichern
+                    {t('common.save')}
                   </Button>
                   <Button
                     size="sm"
@@ -255,7 +257,7 @@ export function CardDetailModal() {
                       setEditingDescription(false);
                     }}
                   >
-                    Abbrechen
+                    {t('common.cancel')}
                   </Button>
                 </div>
               </div>
@@ -264,7 +266,7 @@ export function CardDetailModal() {
                 className={`text-sm text-gray-600 dark:text-gray-400 rounded-lg p-3 border border-transparent min-h-[3rem] ${canEdit ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-200 dark:hover:border-gray-600' : ''}`}
                 onClick={() => canEdit && setEditingDescription(true)}
               >
-                {cardDetail.description || (canEdit ? 'Beschreibung hinzufügen...' : 'Keine Beschreibung')}
+                {cardDetail.description || (canEdit ? t('card.addDescription') : t('card.noDescription'))}
               </div>
             )}
           </div>
@@ -272,7 +274,7 @@ export function CardDetailModal() {
           {/* Labels */}
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Labels</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('card.labels')}</label>
               {canEdit && <LabelPicker
                 boardId={board.id}
                 cardId={cardDetail.id}
@@ -318,7 +320,7 @@ export function CardDetailModal() {
           {/* Assignees (display only) */}
           {cardDetail.assignees.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Zugewiesen</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('card.assignees')}</label>
               <div className="flex flex-wrap gap-2">
                 {cardDetail.assignees.map((a) => (
                   <div key={a.id} className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-full px-3 py-1">
@@ -336,7 +338,7 @@ export function CardDetailModal() {
           {cardDetail.parentCard && (
             <div className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
               <Link2 size={14} className="text-gray-400 flex-shrink-0" />
-              <span className="text-gray-600 dark:text-gray-400">Unteraufgabe von:</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('card.subtaskOf')}</span>
               <button
                 onClick={() => openCard(cardDetail.parentCard!.id)}
                 className="font-medium text-blue-600 hover:underline truncate"
@@ -355,13 +357,13 @@ export function CardDetailModal() {
                       }
                     }
                     setCardDetail({ ...cardDetail, parentCardId: null, parentCard: null });
-                    toast.success('Verknüpfung entfernt');
+                    toast.success(t('card.linkRemoved'));
                   } catch {
-                    toast.error('Verknüpfung konnte nicht entfernt werden');
+                    toast.error(t('card.linkRemoveError'));
                   }
                 }}
                 className="ml-auto text-gray-400 dark:text-gray-500 hover:text-red-500 flex-shrink-0"
-                title="Verknüpfung entfernen"
+                title={t('card.removeLink')}
               >
                 <X size={14} />
               </button>
@@ -415,7 +417,7 @@ export function CardDetailModal() {
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <Activity size={16} />
-              Aktivität
+              {t('board.activity')}
             </label>
             <ActivityFeed cardId={cardDetail.id} boardId={board.id} maxHeight="200px" />
           </div>
@@ -428,7 +430,7 @@ export function CardDetailModal() {
                 className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition-colors"
               >
                 <Trash2 size={16} />
-                Karte löschen
+                {t('card.deleteCard')}
               </button>
             </div>
           )}
@@ -451,6 +453,7 @@ function SubtaskSection({
   onSubtasksChange: () => void;
   canEdit?: boolean;
 }) {
+  const { t } = useTranslation();
   const board = useBoardStore((s) => s.board);
   const openCard = useBoardStore((s) => s.openCard);
   const addCardToStore = useBoardStore((s) => s.addCard);
@@ -492,7 +495,7 @@ function SubtaskSection({
       setShowAddForm(false);
       onSubtasksChange();
     } catch {
-      toast.error('Unteraufgabe konnte nicht erstellt werden');
+      toast.error(t('card.subtaskCreateError'));
     } finally {
       setSubmitting(false);
     }
@@ -502,7 +505,7 @@ function SubtaskSection({
     <div>
       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         <ListChecks size={16} />
-        Unteraufgaben {card.subtasks.length > 0 && `(${doneCount}/${card.subtasks.length})`}
+        {t('card.subtasks')} {card.subtasks.length > 0 && `(${doneCount}/${card.subtasks.length})`}
       </label>
 
       {/* Progress bar */}
@@ -549,21 +552,21 @@ function SubtaskSection({
               if (e.key === 'Enter') handleAddSubtask();
               if (e.key === 'Escape') setShowAddForm(false);
             }}
-            placeholder="Unteraufgabe hinzufügen..."
+            placeholder={t('card.subtaskPlaceholder')}
             className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={handleAddSubtask} disabled={submitting || !newTitle.trim()}>
-              Hinzufügen
+              {t('common.add')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setShowAddForm(false)}>
-              Abbrechen
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
       ) : (
         <button onClick={() => setShowAddForm(true)} className="mt-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
-          + Unteraufgabe hinzufügen
+          {t('card.addSubtask')}
         </button>
       )}
     </div>
@@ -581,6 +584,7 @@ function SetParentSection({
   card: CardDetail;
   onParentSet: () => void;
 }) {
+  const { t } = useTranslation();
   const board = useBoardStore((s) => s.board);
   const updateCardInStore = useBoardStore((s) => s.updateCard);
   const [isOpen, setIsOpen] = useState(false);
@@ -602,7 +606,7 @@ function SetParentSection({
       setIsOpen(false);
       onParentSet();
     } catch {
-      toast.error('Verknüpfung konnte nicht gesetzt werden');
+      toast.error(t('card.linkRemoveError'));
     }
   };
 
@@ -610,24 +614,24 @@ function SetParentSection({
     return (
       <button onClick={() => setIsOpen(true)} className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
         <Link2 size={14} className="inline mr-1" />
-        Als Unteraufgabe zuweisen...
+        {t('card.assignAsSubtask')}
       </button>
     );
   }
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Elternkarte wählen</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('card.selectParent')}</label>
       <input
         autoFocus
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Karte suchen..."
+        placeholder={t('card.searchCards')}
         className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded">
         {candidates.length === 0 ? (
-          <div className="p-3 text-sm text-gray-400 dark:text-gray-500 text-center">Keine passenden Karten gefunden</div>
+          <div className="p-3 text-sm text-gray-400 dark:text-gray-500 text-center">{t('card.noMatchingCards')}</div>
         ) : (
           candidates.slice(0, 20).map((c) => (
             <button
@@ -644,7 +648,7 @@ function SetParentSection({
         )}
       </div>
       <Button size="sm" variant="ghost" onClick={() => setIsOpen(false)}>
-        Abbrechen
+        {t('common.cancel')}
       </Button>
     </div>
   );
@@ -661,6 +665,7 @@ function DueDateSection({
   cardDetail: CardDetail;
   onUpdate: (dueDate: string | null) => void;
 }) {
+  const { t, i18n } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [dateValue, setDateValue] = useState('');
 
@@ -684,7 +689,7 @@ function DueDateSection({
       onUpdate(newDueDate);
       setEditing(false);
     } catch {
-      toast.error('Fälligkeitsdatum konnte nicht gespeichert werden');
+      toast.error(t('card.dueDateSaveError'));
     }
   };
 
@@ -694,13 +699,13 @@ function DueDateSection({
       onUpdate(null);
       setEditing(false);
     } catch {
-      toast.error('Fälligkeitsdatum konnte nicht entfernt werden');
+      toast.error(t('card.dueDateRemoveError'));
     }
   };
 
   const formatDueDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleString('de-DE', {
+    return d.toLocaleString(i18n.language, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -723,7 +728,7 @@ function DueDateSection({
     <div>
       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         <Calendar size={16} />
-        Fälligkeitsdatum
+        {t('card.dueDate')}
       </label>
       {editing ? (
         <div className="space-y-2">
@@ -735,15 +740,15 @@ function DueDateSection({
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={handleSave}>
-              Speichern
+              {t('common.save')}
             </Button>
             {cardDetail.dueDate && (
               <Button size="sm" variant="ghost" onClick={handleClear} className="text-red-600">
-                Entfernen
+                {t('common.remove')}
               </Button>
             )}
             <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
-              Abbrechen
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
@@ -759,11 +764,11 @@ function DueDateSection({
               <Calendar size={14} />
               {formatDueDate(cardDetail.dueDate)}
               {new Date(cardDetail.dueDate) < new Date() && (
-                <span className="text-xs font-medium text-red-600">(Überfällig)</span>
+                <span className="text-xs font-medium text-red-600">{t('card.overdue')}</span>
               )}
             </span>
           ) : (
-            'Fälligkeitsdatum setzen...'
+            t('card.addDueDate')
           )}
         </div>
       )}
@@ -786,6 +791,7 @@ function CommentSection({
   canComment?: boolean;
   onCommentsChange: (comments: Comment[]) => void;
 }) {
+  const { t, i18n } = useTranslation();
   const currentUser = useAuthStore((s) => s.user);
   const [newBody, setNewBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -800,7 +806,7 @@ function CommentSection({
       onCommentsChange([...comments, comment]);
       setNewBody('');
     } catch {
-      toast.error('Kommentar konnte nicht hinzugefügt werden');
+      toast.error(t('card.commentAddError'));
     } finally {
       setSubmitting(false);
     }
@@ -813,7 +819,7 @@ function CommentSection({
       onCommentsChange(comments.map((c) => (c.id === commentId ? updated : c)));
       setEditingId(null);
     } catch {
-      toast.error('Kommentar konnte nicht aktualisiert werden');
+      toast.error(t('card.commentUpdateError'));
     }
   };
 
@@ -822,20 +828,20 @@ function CommentSection({
       await commentsApi.deleteComment(boardId, cardId, commentId);
       onCommentsChange(comments.filter((c) => c.id !== commentId));
     } catch {
-      toast.error('Kommentar konnte nicht gelöscht werden');
+      toast.error(t('card.commentDeleteError'));
     }
   };
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString(i18n.language, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   return (
     <div>
       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
         <MessageSquare size={16} />
-        Kommentare ({comments.length})
+        {t('card.comments')} ({comments.length})
       </label>
 
       {/* Comment list */}
@@ -852,7 +858,7 @@ function CommentSection({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {comment.author?.displayName ?? 'Unbekannt'}
+                    {comment.author?.displayName ?? t('common.unknown')}
                   </span>
                   <span className="text-xs text-gray-400 dark:text-gray-500">{formatTime(comment.createdAt)}</span>
                   {isOwn && !isEditing && (
@@ -863,14 +869,14 @@ function CommentSection({
                           setEditBody(comment.body);
                         }}
                         className="p-1 text-gray-400 hover:text-blue-600"
-                        title="Bearbeiten"
+                        title={t('common.edit')}
                       >
                         <Pencil size={12} />
                       </button>
                       <button
                         onClick={() => handleDeleteComment(comment.id)}
                         className="p-1 text-gray-400 hover:text-red-600"
-                        title="Löschen"
+                        title={t('common.delete')}
                       >
                         <Trash2 size={12} />
                       </button>
@@ -888,10 +894,10 @@ function CommentSection({
                     />
                     <div className="flex gap-2">
                       <Button size="sm" onClick={() => handleUpdateComment(comment.id)}>
-                        Speichern
+                        {t('common.save')}
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
-                        Abbrechen
+                        {t('common.cancel')}
                       </Button>
                     </div>
                   </div>
@@ -914,7 +920,7 @@ function CommentSection({
           <textarea
             value={newBody}
             onChange={(e) => setNewBody(e.target.value)}
-            placeholder="Kommentar schreiben..."
+            placeholder={t('card.commentPlaceholder')}
             className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={2}
             onKeyDown={(e) => {
@@ -927,7 +933,7 @@ function CommentSection({
           {newBody.trim() && (
             <div className="mt-2">
               <Button size="sm" onClick={handleAddComment} disabled={submitting}>
-                Kommentar senden
+                {t('card.submitComment')}
               </Button>
             </div>
           )}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { listBoards, createBoard } from '../../api/boards.api.js';
 import { createBoardFromTemplate } from '../../api/templates.api.js';
 import { AppLayout } from '../../components/layout/AppLayout.js';
@@ -8,6 +9,7 @@ import { TemplatePicker } from './TemplatePicker.js';
 import type { Board } from '@trello-clone/shared';
 
 export function BoardListPage() {
+  const { t } = useTranslation();
   const { teamId } = useParams<{ teamId: string }>();
   const [boards, setBoards] = useState<Board[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,23 +45,23 @@ export function BoardListPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <Link to="/teams" className="text-sm text-blue-600 hover:underline">
-              &larr; Teams
+              &larr; {t('board.backToTeams')}
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Boards</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('board.boards')}</h1>
           </div>
           <Button
             size="sm"
             onClick={() => setShowTemplatePicker(true)}
             disabled={creating}
           >
-            {creating ? 'Erstellen...' : '+ Board erstellen'}
+            {creating ? t('common.creating') : t('board.createBoard')}
           </Button>
         </div>
 
         {loading ? (
-          <p className="text-gray-500 dark:text-gray-400">Laden...</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
         ) : boards.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400">Noch keine Boards vorhanden.</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('board.noBoards')}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {boards.map((board) => (

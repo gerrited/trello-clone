@@ -75,11 +75,11 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
 }
 
 export const SHORTCUT_LIST = [
-  { keys: '?', description: 'Tastaturkürzel anzeigen' },
-  { keys: 'n', description: 'Neue Karte erstellen' },
-  { keys: 'b', description: 'Zurück zur Board-Liste' },
-  { keys: 'f', description: 'Filter fokussieren' },
-  { keys: 'a', description: 'Aktivität ein-/ausblenden' },
-  { keys: 'Ctrl+K / /', description: 'Suche öffnen' },
-  { keys: 'Escape', description: 'Modals schließen' },
+  { keys: '?', descriptionKey: 'shortcuts.showShortcuts' },
+  { keys: 'n', descriptionKey: 'shortcuts.newCard' },
+  { keys: 'b', descriptionKey: 'shortcuts.backToBoards' },
+  { keys: 'f', descriptionKey: 'shortcuts.focusFilter' },
+  { keys: 'a', descriptionKey: 'shortcuts.toggleActivity' },
+  { keys: 'Ctrl+K / /', descriptionKey: 'shortcuts.openSearch' },
+  { keys: 'Escape', descriptionKey: 'shortcuts.closeModals' },
 ];

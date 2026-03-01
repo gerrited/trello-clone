@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Activity } from '@trello-clone/shared';
 import { WS_EVENTS } from '@trello-clone/shared';
 import * as activitiesApi from '../../api/activities.api.js';
@@ -12,6 +13,7 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ boardId, cardId, maxHeight = '400px' }: ActivityFeedProps) {
+  const { t } = useTranslation();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,12 +72,12 @@ export function ActivityFeed({ boardId, cardId, maxHeight = '400px' }: ActivityF
     const diffMs = now - then;
     const diffMin = Math.floor(diffMs / 60000);
 
-    if (diffMin < 1) return 'gerade eben';
-    if (diffMin < 60) return `vor ${diffMin}m`;
+    if (diffMin < 1) return t('activity.justNow');
+    if (diffMin < 60) return t('activity.minutesAgo', { count: diffMin });
     const diffHours = Math.floor(diffMin / 60);
-    if (diffHours < 24) return `vor ${diffHours}h`;
+    if (diffHours < 24) return t('activity.hoursAgo', { count: diffHours });
     const diffDays = Math.floor(diffHours / 24);
-    return `vor ${diffDays}d`;
+    return t('activity.daysAgo', { count: diffDays });
   }
 
   if (isLoading) {
@@ -97,7 +99,7 @@ export function ActivityFeed({ boardId, cardId, maxHeight = '400px' }: ActivityF
   if (activities.length === 0) {
     return (
       <div className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
-        Noch keine Aktivität
+        {t('activity.noActivity')}
       </div>
     );
   }
@@ -132,7 +134,7 @@ export function ActivityFeed({ boardId, cardId, maxHeight = '400px' }: ActivityF
           onClick={() => fetchActivities(nextCursor)}
           className="w-full text-xs text-blue-600 hover:underline py-2 text-center"
         >
-          Mehr laden
+          {t('activity.loadMore')}
         </button>
       )}
     </div>

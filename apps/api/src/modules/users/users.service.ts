@@ -16,7 +16,12 @@ export async function updateProfile(userId: string, input: UpdateProfileInput) {
 
   const [updated] = await db
     .update(schema.users)
-    .set({ displayName: input.displayName, email: input.email, updatedAt: new Date() })
+    .set({
+      displayName: input.displayName,
+      email: input.email,
+      ...(input.language !== undefined ? { language: input.language } : {}),
+      updatedAt: new Date(),
+    })
     .where(eq(schema.users.id, userId))
     .returning({
       id: schema.users.id,
@@ -24,6 +29,7 @@ export async function updateProfile(userId: string, input: UpdateProfileInput) {
       displayName: schema.users.displayName,
       avatarUrl: schema.users.avatarUrl,
       passwordHash: schema.users.passwordHash,
+      language: schema.users.language,
       createdAt: schema.users.createdAt,
       updatedAt: schema.users.updatedAt,
     });
