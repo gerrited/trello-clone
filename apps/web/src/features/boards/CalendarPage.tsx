@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { CardSummary } from '@trello-clone/shared';
@@ -7,12 +8,6 @@ import { getBoard } from '../../api/boards.api.js';
 import { AppLayout } from '../../components/layout/AppLayout.js';
 import { CardDetailModal } from './CardDetailModal.js';
 import { useRealtimeBoard } from '../../hooks/useRealtimeBoard.js';
-
-const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-const MONTH_NAMES = [
-  'Januar', 'Februar', 'Maerz', 'April', 'Mai', 'Juni',
-  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
-];
 
 function getMonthDays(year: number, month: number) {
   // month is 0-indexed
@@ -50,6 +45,10 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export function CalendarPage() {
+  const { t } = useTranslation();
+  const MONTHS = Array.from({ length: 12 }, (_, i) => t(`calendar.months.${i}`));
+  const WEEKDAYS = Array.from({ length: 7 }, (_, i) => t(`calendar.weekdays.${i}`));
+
   const { teamId, boardId } = useParams<{ teamId: string; boardId: string }>();
   const board = useBoardStore((s) => s.board);
   const isLoading = useBoardStore((s) => s.isLoading);
@@ -122,7 +121,7 @@ export function CalendarPage() {
             &larr; Board
           </Link>
           <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
-            {board.name} — Kalender
+            {board.name} — {t('board.calendar')}
           </h1>
         </div>
 
@@ -136,7 +135,7 @@ export function CalendarPage() {
           </button>
           <div className="text-center">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-              {MONTH_NAMES[viewMonth]} {viewYear}
+              {MONTHS[viewMonth]} {viewYear}
             </h2>
             <button
               onClick={() => {
@@ -145,7 +144,7 @@ export function CalendarPage() {
               }}
               className="text-xs text-blue-600 hover:underline"
             >
-              Heute
+              {t('calendar.today')}
             </button>
           </div>
           <button
@@ -211,7 +210,7 @@ export function CalendarPage() {
                   })}
                   {dayCards.length > 3 && (
                     <div className="text-[10px] text-gray-400 dark:text-gray-500 pl-1">
-                      +{dayCards.length - 3} weitere
+                      {t('calendar.moreCards', { count: dayCards.length - 3 })}
                     </div>
                   )}
                 </div>
