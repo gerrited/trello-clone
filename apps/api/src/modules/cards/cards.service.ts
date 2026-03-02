@@ -4,6 +4,7 @@ import { AppError } from '../../middleware/error.js';
 import { requireBoardAccess } from '../../middleware/boardAccess.js';
 import { getPositionAfter, getPositionBetween, getPositionBefore } from '../../utils/ordering.js';
 import type { CreateCardInput, UpdateCardInput, MoveCardInput } from '@trello-clone/shared';
+import { storageProvider } from '../../lib/storage/index.js';
 
 export async function createCard(boardId: string, userId: string, input: CreateCardInput) {
   await requireBoardAccess(boardId, userId, 'edit');
@@ -155,6 +156,7 @@ export async function getCard(cardId: string, userId: string) {
     attachments: card.attachments.map((a) => ({
       ...a,
       createdAt: a.createdAt.toISOString(),
+      url: storageProvider.getUrl(a.storagePath),
     })),
     subtasks: subtasks.map((s) => ({
       ...s,

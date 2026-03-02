@@ -105,7 +105,7 @@ export function AttachmentSection({ boardId, cardId, attachments, canEdit, onAtt
           {attachments.map((attachment) => {
             const FileIcon = getFileIcon(attachment.mimeType);
             const isImage = attachment.mimeType.startsWith('image/');
-            const downloadUrl = `/uploads/${attachment.storagePath}`;
+            const downloadUrl = attachment.url;
 
             return (
               <div key={attachment.id} className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">

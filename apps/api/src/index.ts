@@ -23,7 +23,7 @@ import { attachmentRoutes } from './modules/attachments/attachments.routes.js';
 import { userRoutes } from './modules/users/users.routes.js';
 import { ensureSystemTemplates } from './modules/templates/templates.service.js';
 import { setupSocketIO } from './ws/socket.js';
-import path from 'node:path';
+import { isLocalStorage, registerStaticServing } from './lib/storage/index.js';
 
 const logger = pino({ name: 'api' });
 const app: Express = express();
@@ -42,6 +42,10 @@ app.use(cookieParser());
 
 setupPassport();
 app.use(passport.initialize());
+
+if (isLocalStorage()) {
+  registerStaticServing(app);
+}
 
 app.get('/api/v1/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -64,9 +68,6 @@ app.use('/api/v1/boards/:boardId/save-as-template', saveAsTemplateRoutes);
 app.use('/api/v1/boards/:boardId/shares', shareRoutes);
 app.use('/api/v1/shared', sharedBoardRoutes);
 app.use('/api/v1/boards/:boardId/cards/:cardId/attachments', attachmentRoutes);
-
-// Static file serving for uploads
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 app.use(errorHandler);
 
