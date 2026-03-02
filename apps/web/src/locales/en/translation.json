@@ -35,7 +35,22 @@
     "noAccount": "Don't have an account?",
     "alreadyHaveAccount": "Already have an account?",
     "loginFailed": "Login failed",
-    "registrationFailed": "Registration failed"
+    "registrationFailed": "Registration failed",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordTitle": "Reset password",
+    "forgotPasswordDescription": "Enter your email and we'll send you a reset link.",
+    "sendResetLink": "Send reset link",
+    "sendingResetLink": "Sending...",
+    "resetEmailSent": "Email sent",
+    "resetEmailSentDescription": "If an account with that email exists, you will receive a reset link shortly.",
+    "resetPasswordTitle": "Choose a new password",
+    "setNewPassword": "Set new password",
+    "settingNewPassword": "Saving...",
+    "passwordResetSuccess": "Password changed. Please sign in.",
+    "invalidOrExpiredToken": "This link is invalid or has expired.",
+    "requestNewLink": "Request a new link",
+    "backToLogin": "Back to sign in",
+    "forgotPasswordError": "Failed to send reset email. Please try again."
   },
   "user": {
     "editProfile": "Edit Profile",

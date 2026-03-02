@@ -35,7 +35,22 @@
     "noAccount": "Pas encore de compte ?",
     "alreadyHaveAccount": "Vous avez déjà un compte ?",
     "loginFailed": "Échec de la connexion",
-    "registrationFailed": "Échec de l'inscription"
+    "registrationFailed": "Échec de l'inscription",
+    "forgotPassword": "Mot de passe oublié ?",
+    "forgotPasswordTitle": "Réinitialiser le mot de passe",
+    "forgotPasswordDescription": "Saisissez votre email et nous vous enverrons un lien de réinitialisation.",
+    "sendResetLink": "Envoyer le lien",
+    "sendingResetLink": "Envoi en cours...",
+    "resetEmailSent": "Email envoyé",
+    "resetEmailSentDescription": "Si un compte avec cet email existe, vous recevrez un lien de réinitialisation sous peu.",
+    "resetPasswordTitle": "Choisir un nouveau mot de passe",
+    "setNewPassword": "Définir le mot de passe",
+    "settingNewPassword": "Enregistrement...",
+    "passwordResetSuccess": "Mot de passe modifié. Veuillez vous connecter.",
+    "invalidOrExpiredToken": "Ce lien est invalide ou a expiré.",
+    "requestNewLink": "Demander un nouveau lien",
+    "backToLogin": "Retour à la connexion",
+    "forgotPasswordError": "Impossible d'envoyer le lien. Veuillez réessayer."
   },
   "user": {
     "editProfile": "Modifier le profil",
