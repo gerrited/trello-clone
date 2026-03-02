@@ -16,24 +16,32 @@ vi.mock('../../db/index.js', async () => {
       query: {
         users: { findFirst: vi.fn() },
         refreshTokens: { findMany: vi.fn() },
+        passwordResetTokens: { findFirst: vi.fn() },
       },
       insert: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     },
     schema: await import('../../db/schema.js'),
   };
 });
 
+vi.mock('../../services/email.service.js', () => ({
+  sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { db } from '../../db/index.js';
-import { register, login, refreshAccessToken, revokeRefreshToken, getMe } from './auth.service.js';
+import { register, login, refreshAccessToken, revokeRefreshToken, getMe, requestPasswordReset, resetPassword } from './auth.service.js';
 
 type MockedDb = {
   query: {
     users: { findFirst: ReturnType<typeof vi.fn> };
     refreshTokens: { findMany: ReturnType<typeof vi.fn> };
+    passwordResetTokens: { findFirst: ReturnType<typeof vi.fn> };
   };
   insert: ReturnType<typeof vi.fn>;
   update: ReturnType<typeof vi.fn>;
+  delete: ReturnType<typeof vi.fn>;
 };
 const dbMock = db as unknown as MockedDb;
 
@@ -67,6 +75,11 @@ beforeEach(() => {
     set: vi.fn().mockReturnValue({
       where: vi.fn().mockResolvedValue([]),
     }),
+  });
+
+  // Default delete chain: delete(table).where() → resolves
+  dbMock.delete.mockReturnValue({
+    where: vi.fn().mockResolvedValue([]),
   });
 });
 
@@ -295,5 +308,105 @@ describe('getMe', () => {
     dbMock.query.users.findFirst.mockResolvedValue({ ...mockUser, passwordHash: null });
     const result = await getMe('user-123');
     expect(result.hasPassword).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// requestPasswordReset
+// ---------------------------------------------------------------------------
+
+describe('requestPasswordReset', () => {
+  it('does nothing (no error) when email is not found', async () => {
+    dbMock.query.users.findFirst.mockResolvedValue(null);
+
+    await expect(requestPasswordReset('unknown@example.com')).resolves.toBeUndefined();
+  });
+
+  it('deletes old tokens and inserts new one when user exists', async () => {
+    dbMock.query.users.findFirst.mockResolvedValue({ ...mockUser, language: 'en' });
+    dbMock.insert.mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) });
+
+    await requestPasswordReset('test@example.com');
+
+    // delete was called for old tokens
+    expect(dbMock.delete).toHaveBeenCalled();
+    // insert was called for the new token
+    expect(dbMock.insert).toHaveBeenCalled();
+  });
+
+  it('stores a SHA-256 hash — not the raw token', async () => {
+    dbMock.query.users.findFirst.mockResolvedValue({ ...mockUser, language: 'en' });
+    const insertValues = vi.fn().mockResolvedValue(undefined);
+    dbMock.insert.mockReturnValue({ values: insertValues });
+
+    await requestPasswordReset('test@example.com');
+
+    const inserted = insertValues.mock.calls[0][0] as Record<string, unknown>;
+    expect(inserted.tokenHash).toBeDefined();
+    // SHA-256 hex digest is always 64 chars
+    expect(String(inserted.tokenHash)).toHaveLength(64);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resetPassword
+// ---------------------------------------------------------------------------
+
+describe('resetPassword', () => {
+  it('throws 400 when token is not found', async () => {
+    dbMock.query.passwordResetTokens.findFirst.mockResolvedValue(null);
+
+    await expect(resetPassword('bad-token', 'newpassword123')).rejects.toMatchObject({
+      statusCode: 400,
+      message: 'Invalid or expired reset token',
+    });
+  });
+
+  it('throws 400 when token is already used', async () => {
+    dbMock.query.passwordResetTokens.findFirst.mockResolvedValue({
+      id: 'prt-1',
+      userId: 'user-123',
+      tokenHash: 'abc',
+      expiresAt: new Date(Date.now() + 60_000),
+      usedAt: new Date(), // already used
+    });
+
+    await expect(resetPassword('some-token', 'newpassword123')).rejects.toMatchObject({
+      statusCode: 400,
+      message: 'Invalid or expired reset token',
+    });
+  });
+
+  it('throws 400 when token is expired', async () => {
+    dbMock.query.passwordResetTokens.findFirst.mockResolvedValue({
+      id: 'prt-1',
+      userId: 'user-123',
+      tokenHash: 'abc',
+      expiresAt: new Date(Date.now() - 60_000), // expired
+      usedAt: null,
+    });
+
+    await expect(resetPassword('some-token', 'newpassword123')).rejects.toMatchObject({
+      statusCode: 400,
+      message: 'Invalid or expired reset token',
+    });
+  });
+
+  it('updates password, marks token used, revokes refresh tokens on success', async () => {
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    dbMock.query.passwordResetTokens.findFirst.mockResolvedValue({
+      id: 'prt-1',
+      userId: 'user-123',
+      tokenHash,
+      expiresAt: new Date(Date.now() + 3_600_000),
+      usedAt: null,
+    });
+
+    await resetPassword(rawToken, 'newpassword123');
+
+    // update was called 3 times: password + mark token used + revoke refresh tokens
+    expect(dbMock.update).toHaveBeenCalledTimes(3);
   });
 });

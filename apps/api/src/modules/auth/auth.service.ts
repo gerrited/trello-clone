@@ -1,15 +1,17 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
-import { eq, isNull } from 'drizzle-orm';
+import { eq, isNull, and } from 'drizzle-orm';
 import { db, schema } from '../../db/index.js';
 import { env } from '../../config/env.js';
 import { AppError } from '../../middleware/error.js';
+import { sendPasswordResetEmail } from '../../services/email.service.js';
 import type { RegisterInput, LoginInput } from '@trello-clone/shared';
 
 const SALT_ROUNDS = 12;
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
+const RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
 function generateAccessToken(userId: string): string {
   return jwt.sign({ sub: userId }, env.JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
@@ -257,4 +259,63 @@ export async function findOrCreateOAuthUser(
     accessToken,
     refreshToken,
   };
+}
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  const user = await db.query.users.findFirst({
+    where: eq(schema.users.email, email),
+  });
+
+  // Return silently if no user — prevents email enumeration
+  if (!user) return;
+
+  // Delete any existing tokens for this user
+  await db.delete(schema.passwordResetTokens)
+    .where(eq(schema.passwordResetTokens.userId, user.id));
+
+  // Generate secure random token and hash it
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY_MS);
+
+  await db.insert(schema.passwordResetTokens).values({
+    userId: user.id,
+    tokenHash,
+    expiresAt,
+  });
+
+  const resetLink = `${env.WEB_URL}/reset-password?token=${rawToken}`;
+  await sendPasswordResetEmail(user.email, user.displayName, resetLink, user.language);
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+  const resetToken = await db.query.passwordResetTokens.findFirst({
+    where: eq(schema.passwordResetTokens.tokenHash, tokenHash),
+  });
+
+  if (!resetToken || resetToken.usedAt !== null || resetToken.expiresAt < new Date()) {
+    throw new AppError(400, 'Invalid or expired reset token');
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+  // Update user password
+  await db.update(schema.users)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(schema.users.id, resetToken.userId));
+
+  // Mark token as used
+  await db.update(schema.passwordResetTokens)
+    .set({ usedAt: new Date() })
+    .where(eq(schema.passwordResetTokens.id, resetToken.id));
+
+  // Revoke all active refresh tokens for this user
+  await db.update(schema.refreshTokens)
+    .set({ revokedAt: new Date() })
+    .where(and(
+      eq(schema.refreshTokens.userId, resetToken.userId),
+      isNull(schema.refreshTokens.revokedAt),
+    ));
 }
