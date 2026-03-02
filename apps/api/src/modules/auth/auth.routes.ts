@@ -3,7 +3,7 @@ import type { Router as RouterType } from 'express';
 import passport from 'passport';
 import { validate } from '../../middleware/validate.js';
 import { requireAuth } from '../../middleware/auth.js';
-import { registerSchema, loginSchema } from '@trello-clone/shared';
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '@trello-clone/shared';
 import { env } from '../../config/env.js';
 import * as ctrl from './auth.controller.js';
 
@@ -14,6 +14,8 @@ router.post('/login', validate(loginSchema), ctrl.loginHandler);
 router.post('/refresh', ctrl.refreshHandler);
 router.post('/logout', ctrl.logoutHandler);
 router.get('/me', requireAuth, ctrl.meHandler);
+router.post('/forgot-password', validate(forgotPasswordSchema), ctrl.forgotPasswordHandler);
+router.post('/reset-password', validate(resetPasswordSchema), ctrl.resetPasswordHandler);
 
 // Google OAuth
 router.get('/google', passport.authenticate('google', { session: false, scope: ['profile', 'email'] }));
