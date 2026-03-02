@@ -35,7 +35,22 @@
     "noAccount": "Noch kein Konto?",
     "alreadyHaveAccount": "Bereits ein Konto?",
     "loginFailed": "Login fehlgeschlagen",
-    "registrationFailed": "Registrierung fehlgeschlagen"
+    "registrationFailed": "Registrierung fehlgeschlagen",
+    "forgotPassword": "Passwort vergessen?",
+    "forgotPasswordTitle": "Passwort zurücksetzen",
+    "forgotPasswordDescription": "Gib deine E-Mail-Adresse ein und wir senden dir einen Reset-Link.",
+    "sendResetLink": "Reset-Link senden",
+    "sendingResetLink": "Wird gesendet...",
+    "resetEmailSent": "E-Mail gesendet",
+    "resetEmailSentDescription": "Falls ein Konto mit dieser E-Mail-Adresse existiert, erhältst du in Kürze einen Reset-Link.",
+    "resetPasswordTitle": "Neues Passwort wählen",
+    "setNewPassword": "Passwort setzen",
+    "settingNewPassword": "Wird gespeichert...",
+    "passwordResetSuccess": "Passwort geändert. Bitte einloggen.",
+    "invalidOrExpiredToken": "Dieser Link ist ungültig oder abgelaufen.",
+    "requestNewLink": "Neuen Link anfordern",
+    "backToLogin": "Zurück zum Login",
+    "forgotPasswordError": "Reset-Link konnte nicht gesendet werden. Bitte erneut versuchen."
   },
   "user": {
     "editProfile": "Profil bearbeiten",

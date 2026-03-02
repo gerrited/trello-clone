@@ -58,8 +58,10 @@ api.interceptors.response.use(
         failedQueue.forEach(({ reject }) => reject(refreshError));
         failedQueue = [];
         useAuthStore.getState().logout();
-        // Use soft navigation instead of hard reload to prevent infinite reload loops
-        if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        // Use soft navigation instead of hard reload to prevent infinite reload loops.
+        // Exclude all public routes that don't require authentication.
+        const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/auth/callback'];
+        if (!PUBLIC_PATHS.some((p) => window.location.pathname.startsWith(p))) {
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);

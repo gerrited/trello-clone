@@ -35,7 +35,22 @@
     "noAccount": "Non hai ancora un account?",
     "alreadyHaveAccount": "Hai già un account?",
     "loginFailed": "Accesso fallito",
-    "registrationFailed": "Registrazione fallita"
+    "registrationFailed": "Registrazione fallita",
+    "forgotPassword": "Password dimenticata?",
+    "forgotPasswordTitle": "Reimposta la password",
+    "forgotPasswordDescription": "Inserisci la tua email e ti invieremo un link di reimpostazione.",
+    "sendResetLink": "Invia link di reset",
+    "sendingResetLink": "Invio in corso...",
+    "resetEmailSent": "Email inviata",
+    "resetEmailSentDescription": "Se esiste un account con questa email, riceverai presto un link di reimpostazione.",
+    "resetPasswordTitle": "Scegli una nuova password",
+    "setNewPassword": "Imposta password",
+    "settingNewPassword": "Salvataggio...",
+    "passwordResetSuccess": "Password modificata. Accedi ora.",
+    "invalidOrExpiredToken": "Questo link non è valido o è scaduto.",
+    "requestNewLink": "Richiedi un nuovo link",
+    "backToLogin": "Torna al login",
+    "forgotPasswordError": "Impossibile inviare il link. Riprova."
   },
   "user": {
     "editProfile": "Modifica profilo",

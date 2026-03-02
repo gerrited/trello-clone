@@ -35,7 +35,22 @@
     "noAccount": "Nog geen account?",
     "alreadyHaveAccount": "Al een account?",
     "loginFailed": "Inloggen mislukt",
-    "registrationFailed": "Registratie mislukt"
+    "registrationFailed": "Registratie mislukt",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "forgotPasswordTitle": "Wachtwoord opnieuw instellen",
+    "forgotPasswordDescription": "Voer je e-mailadres in en we sturen je een resetlink.",
+    "sendResetLink": "Resetlink verzenden",
+    "sendingResetLink": "Verzenden...",
+    "resetEmailSent": "E-mail verzonden",
+    "resetEmailSentDescription": "Als er een account bestaat voor dit e-mailadres, ontvang je binnenkort een resetlink.",
+    "resetPasswordTitle": "Kies een nieuw wachtwoord",
+    "setNewPassword": "Wachtwoord instellen",
+    "settingNewPassword": "Opslaan...",
+    "passwordResetSuccess": "Wachtwoord gewijzigd. Log in.",
+    "invalidOrExpiredToken": "Deze link is ongeldig of verlopen.",
+    "requestNewLink": "Nieuw link aanvragen",
+    "backToLogin": "Terug naar inloggen",
+    "forgotPasswordError": "Resetlink kon niet worden verzonden. Probeer het opnieuw."
   },
   "user": {
     "editProfile": "Profiel bewerken",

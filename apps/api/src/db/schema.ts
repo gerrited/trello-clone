@@ -269,6 +269,20 @@ export const attachments = pgTable(
   (t) => [index('idx_attachments_card').on(t.cardId)],
 );
 
+// Password Reset Tokens
+export const passwordResetTokens = pgTable(
+  'password_reset_tokens',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: varchar('token_hash', { length: 64 }).notNull().unique(), // SHA-256 hex = 64 chars
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('idx_prt_user').on(t.userId)],
+);
+
 // Refresh Tokens
 export const refreshTokens = pgTable(
   'refresh_tokens',

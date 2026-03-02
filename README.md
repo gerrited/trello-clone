@@ -15,6 +15,9 @@ A modern, full-stack Trello-like project management application built with React
 - **Comments**: Add and manage comments on cards
 - **Labels & Assignments**: Tag cards and assign to team members
 - **OAuth Authentication**: Sign in with Google or Microsoft accounts
+- **Password Reset**: Forgot-password flow with time-limited email links via Resend
+- **Internationalization**: Full i18n support in English, German, French, Italian, and Dutch
+- **Dark Mode**: System, light, and dark theme options
 - **Responsive UI**: Modern React-based interface with Tailwind CSS
 
 ## Tech Stack
@@ -39,6 +42,7 @@ A modern, full-stack Trello-like project management application built with React
 - **PostgreSQL 17** - Database
 - **Socket.io 4.8** - Real-time WebSocket communication
 - **Passport.js** - Authentication
+- **Resend** - Transactional email (password reset)
 - **Pino** - Logging
 
 ### Development & Tooling
@@ -129,6 +133,11 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 MICROSOFT_CLIENT_ID=
 MICROSOFT_CLIENT_SECRET=
+
+# Password reset emails via Resend (optional - required for forgot-password flow)
+RESEND_API_KEY=re_your_api_key
+FROM_EMAIL=noreply@yourdomain.com
+FRONTEND_URL=http://localhost:5173
 
 # Environment
 NODE_ENV=development
@@ -301,6 +310,9 @@ pnpm format  # if configured
 - `POST /auth/register` - Register new user
 - `POST /auth/login` - Login
 - `POST /auth/refresh` - Refresh JWT token
+- `POST /auth/logout` - Logout
+- `POST /auth/forgot-password` - Request password reset email
+- `POST /auth/reset-password` - Reset password with token
 - `GET /auth/google` - Google OAuth flow
 - `GET /auth/microsoft` - Microsoft OAuth flow
 
@@ -361,6 +373,9 @@ For detailed API routes, see the route files in `apps/api/src/modules/`.
 ### Optional for Development
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth
 - `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET` - Microsoft OAuth
+- `RESEND_API_KEY` - Resend API key (required for forgot-password emails)
+- `FROM_EMAIL` - Sender address for reset emails (e.g. `noreply@yourdomain.com`)
+- `FRONTEND_URL` - Frontend base URL used in reset links (default: `http://localhost:5173`)
 
 ### Production
 For production deployment, ensure:
