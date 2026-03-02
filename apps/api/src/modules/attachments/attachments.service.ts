@@ -1,8 +1,10 @@
 import { eq, and } from 'drizzle-orm';
-import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
 import { db, schema } from '../../db/index.js';
 import { AppError } from '../../middleware/error.js';
 import { requireBoardAccess } from '../../middleware/boardAccess.js';
+import { storageProvider } from '../../lib/storage/index.js';
 
 export async function addAttachment(
   boardId: string,
@@ -17,13 +19,16 @@ export async function addAttachment(
   });
   if (!card || card.boardId !== boardId) throw new AppError(404, 'Card not found');
 
+  const key = `attachments/${crypto.randomUUID()}${path.extname(file.originalname)}`;
+  await storageProvider.upload(key, file.buffer, file.mimetype);
+
   const [attachment] = await db
     .insert(schema.attachments)
     .values({
       cardId,
       uploadedBy: userId,
       filename: file.originalname,
-      storagePath: file.filename,
+      storagePath: key,
       mimeType: file.mimetype,
       sizeBytes: file.size,
     })
@@ -37,6 +42,7 @@ export async function addAttachment(
   return {
     ...attachment,
     createdAt: attachment.createdAt.toISOString(),
+    url: storageProvider.getUrl(key),
     uploader: uploader ?? { id: userId, displayName: 'Unknown', avatarUrl: null },
   };
 }
@@ -62,6 +68,7 @@ export async function listAttachments(boardId: string, cardId: string, userId: s
   return rows.map((a) => ({
     ...a,
     createdAt: a.createdAt.toISOString(),
+    url: storageProvider.getUrl(a.storagePath),
   }));
 }
 
@@ -80,12 +87,9 @@ export async function deleteAttachment(
 
   await db.delete(schema.attachments).where(eq(schema.attachments.id, attachmentId));
 
-  // Remove file from disk (best-effort)
   try {
-    const { UPLOAD_DIR } = await import('../../middleware/upload.js');
-    const filePath = `${UPLOAD_DIR}/${attachment.storagePath}`;
-    fs.unlinkSync(filePath);
+    await storageProvider.delete(attachment.storagePath);
   } catch {
-    // File may already be deleted — ignore
+    // best-effort: ignore errors
   }
 }
