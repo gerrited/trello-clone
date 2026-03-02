@@ -6,6 +6,8 @@ import { getMe } from './api/auth.api.js';
 import { LoginPage } from './features/auth/LoginPage.js';
 import { RegisterPage } from './features/auth/RegisterPage.js';
 import { AuthCallbackPage } from './features/auth/AuthCallbackPage.js';
+import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage.js';
+import { ResetPasswordPage } from './features/auth/ResetPasswordPage.js';
 import { TeamsPage } from './features/teams/TeamsPage.js';
 import { BoardListPage } from './features/boards/BoardListPage.js';
 import { BoardPage } from './features/boards/BoardPage.js';
@@ -38,6 +40,8 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/teams" element={<AuthGuard><TeamsPage /></AuthGuard>} />
       <Route path="/teams/:teamId/boards" element={<AuthGuard><BoardListPage /></AuthGuard>} />
       <Route path="/teams/:teamId/boards/:boardId" element={<AuthGuard><BoardPage /></AuthGuard>} />

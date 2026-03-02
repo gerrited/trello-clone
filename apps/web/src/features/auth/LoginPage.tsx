@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link, useLocation } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -13,9 +13,11 @@ import { LanguageSelector } from '../../components/LanguageSelector.js';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [error, setError] = useState('');
   const { t } = useTranslation();
+  const passwordReset = (location.state as { passwordReset?: boolean } | null)?.passwordReset;
 
   const {
     register,
@@ -43,11 +45,24 @@ export function LoginPage() {
 
       <h2 className="text-xl font-semibold dark:text-gray-100 mb-6">{t('auth.signIn')}</h2>
 
+      {passwordReset && (
+        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-sm">
+          {t('auth.passwordResetSuccess')}
+        </div>
+      )}
+
       {error && <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-sm">{error}</div>}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input label={t('auth.email')} type="email" {...register('email')} error={errors.email?.message} />
-        <Input label={t('auth.password')} type="password" {...register('password')} error={errors.password?.message} />
+        <div>
+          <Input label={t('auth.password')} type="password" {...register('password')} error={errors.password?.message} />
+          <div className="mt-1 text-right">
+            <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline">
+              {t('auth.forgotPassword')}
+            </Link>
+          </div>
+        </div>
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
         </Button>
