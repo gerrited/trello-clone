@@ -30,7 +30,14 @@ vi.mock('../../middleware/upload.js', () => ({
 }));
 
 vi.mock('node:fs', () => ({
-  default: { unlinkSync: vi.fn() },
+  default: {
+    unlinkSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    promises: {
+      writeFile: vi.fn().mockResolvedValue(undefined),
+      unlink: vi.fn().mockResolvedValue(undefined),
+    },
+  },
 }));
 
 import { db } from '../../db/index.js';
