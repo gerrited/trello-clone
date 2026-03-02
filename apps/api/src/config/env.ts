@@ -20,6 +20,8 @@ const envSchema = z.object({
   MICROSOFT_CLIENT_ID: z.string().default(''),
   MICROSOFT_CLIENT_SECRET: z.string().default(''),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  RESEND_API_KEY: z.string().min(1),
+  FROM_EMAIL: z.string().email(),
 });
 
 export const env = envSchema.parse(process.env);
