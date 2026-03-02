@@ -8,7 +8,12 @@ function createProvider(): StorageProvider {
   if (backend === 's3') {
     return new S3StorageProvider();
   }
-  return new LocalStorageProvider();
+  if (backend === 'local') {
+    return new LocalStorageProvider();
+  }
+  throw new Error(
+    `Unknown STORAGE_BACKEND value: "${backend}". Valid values are "local" and "s3".`,
+  );
 }
 
 export const storageProvider: StorageProvider = createProvider();

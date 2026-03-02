@@ -25,8 +25,12 @@ vi.mock('../../middleware/boardAccess.js', () => ({
   requireBoardAccess: vi.fn().mockResolvedValue({ board: { id: 'board-1' }, permission: 'edit' }),
 }));
 
-vi.mock('../../middleware/upload.js', () => ({
-  UPLOAD_DIR: '/tmp/uploads',
+vi.mock('../../lib/storage/index.js', () => ({
+  storageProvider: {
+    upload: vi.fn().mockResolvedValue(undefined),
+    delete: vi.fn().mockResolvedValue(undefined),
+    getUrl: vi.fn().mockReturnValue('/uploads/attachments/mock-uuid.png'),
+  },
 }));
 
 vi.mock('node:fs', () => ({
@@ -60,7 +64,7 @@ const mockCard = { id: 'card-1', boardId: 'board-1' };
 
 const mockFile = {
   originalname: 'test.png',
-  filename: 'stored-uuid.png',
+  buffer: Buffer.from('fake image data'),
   mimetype: 'image/png',
   size: 12345,
 } as Express.Multer.File;
@@ -127,6 +131,7 @@ describe('addAttachment', () => {
     expect(result).toMatchObject({
       id: 'att-1',
       createdAt: '2024-01-01T00:00:00.000Z',
+      url: '/uploads/attachments/mock-uuid.png',
       uploader: mockUser,
     });
     expect(dbMock.insert).toHaveBeenCalledOnce();
@@ -177,6 +182,7 @@ describe('listAttachments', () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].createdAt).toBe('2024-01-01T00:00:00.000Z');
+    expect(result[0].url).toBe('/uploads/attachments/mock-uuid.png');
   });
 });
 

@@ -87,9 +87,5 @@ export async function deleteAttachment(
 
   await db.delete(schema.attachments).where(eq(schema.attachments.id, attachmentId));
 
-  try {
-    await storageProvider.delete(attachment.storagePath);
-  } catch {
-    // best-effort: ignore errors
-  }
+  await storageProvider.delete(attachment.storagePath);
 }
