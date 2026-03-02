@@ -19,3 +19,11 @@ export async function getMe(): Promise<{ user: User }> {
 export async function logoutUser(): Promise<void> {
   await api.post('/auth/logout');
 }
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  await api.post('/auth/forgot-password', { email });
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  await api.post('/auth/reset-password', { token, password });
+}
