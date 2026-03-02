@@ -70,8 +70,8 @@ export class S3StorageProvider implements StorageProvider {
           Key: key,
         }),
       );
-    } catch (err) {
-      console.error(`S3 delete failed for key "${key}":`, err);
+    } catch {
+      // best-effort: ignore errors
     }
   }
 
