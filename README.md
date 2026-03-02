@@ -15,9 +15,11 @@ A modern, full-stack Trello-like project management application built with React
 - **Comments**: Add and manage comments on cards
 - **Labels & Assignments**: Tag cards and assign to team members
 - **OAuth Authentication**: Sign in with Google or Microsoft accounts
+- **User Profile**: Edit display name and email; change password via the user menu
+- **Theme Selection**: Switch between light, dark, and system-default appearance (persisted across sessions)
+- **Language Selection**: Switch UI language between German, English, French, Italian, and Dutch; preference saved to user profile
+- **Storage for Attachments**: Use local or S3 compatible storages
 - **Password Reset**: Forgot-password flow with time-limited email links via Resend
-- **Internationalization**: Full i18n support in English, German, French, Italian, and Dutch
-- **Dark Mode**: System, light, and dark theme options
 - **Responsive UI**: Modern React-based interface with Tailwind CSS
 
 ## Tech Stack
@@ -134,9 +136,19 @@ GOOGLE_CLIENT_SECRET=
 MICROSOFT_CLIENT_ID=
 MICROSOFT_CLIENT_SECRET=
 
-# Password reset emails via Resend (optional - required for forgot-password flow)
+# File storage (optional - defaults to local)
+STORAGE_TYPE=local
+# UPLOAD_DIR=./uploads                 # local storage path (default: ./uploads)
+# AWS_ACCESS_KEY_ID=                   # required when STORAGE_TYPE=s3
+# AWS_SECRET_ACCESS_KEY=               # required when STORAGE_TYPE=s3
+# AWS_REGION=us-east-1                 # required when STORAGE_TYPE=s3
+# AWS_S3_BUCKET=my-bucket              # required when STORAGE_TYPE=s3
+# CDN_URL=                             # optional: CDN prefix for S3 file URLs
+
+# Email / Resend (optional - required for password reset)
 RESEND_API_KEY=re_your_api_key
 FROM_EMAIL=noreply@yourdomain.com
+
 FRONTEND_URL=http://localhost:5173
 
 # Environment
@@ -367,15 +379,34 @@ For detailed API routes, see the route files in `apps/api/src/modules/`.
 
 ### Required for Development
 - `DATABASE_URL` - PostgreSQL connection string
-- `JWT_SECRET` - JWT signing secret
-- `JWT_REFRESH_SECRET` - Refresh token secret
+- `JWT_SECRET` - JWT signing secret (min 10 chars)
+- `JWT_REFRESH_SECRET` - Refresh token secret (min 10 chars)
 
 ### Optional for Development
+- `API_PORT` - Backend port (default: `3001`)
+- `WEB_URL` / `API_URL` - Service URLs (defaults to localhost)
+- `FRONTEND_URL` - Frontend base URL used in reset links (default: `http://localhost:5173`)
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth
 - `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET` - Microsoft OAuth
-- `RESEND_API_KEY` - Resend API key (required for forgot-password emails)
-- `FROM_EMAIL` - Sender address for reset emails (e.g. `noreply@yourdomain.com`)
-- `FRONTEND_URL` - Frontend base URL used in reset links (default: `http://localhost:5173`)
+
+### File Storage
+By default, uploaded attachments are stored on the local filesystem in an `uploads/` directory relative to the API working directory, and served at `/uploads`.
+
+- `STORAGE_TYPE` - Storage backend: `local` (default) or `s3`
+- `UPLOAD_DIR` - Local storage path (default: `./uploads`; only used when `STORAGE_TYPE=local`)
+
+For S3-compatible storage (set `STORAGE_TYPE=s3`):
+- `AWS_ACCESS_KEY_ID` - AWS access key (or compatible provider key)
+- `AWS_SECRET_ACCESS_KEY` - AWS secret key
+- `AWS_REGION` - S3 region (e.g. `us-east-1`)
+- `AWS_S3_BUCKET` - S3 bucket name
+- `CDN_URL` - Optional CDN prefix for serving uploaded files (e.g. `https://cdn.example.com`)
+
+### Email (Password Reset)
+Password reset emails are sent via [Resend](https://resend.com). Leave these unset to disable password reset:
+
+- `RESEND_API_KEY` - Resend API key (get one at resend.com)
+- `FROM_EMAIL` - Sender address for password reset emails (e.g. `noreply@yourdomain.com`)
 
 ### Production
 For production deployment, ensure:
@@ -384,6 +415,8 @@ For production deployment, ensure:
 - `NODE_ENV=production`
 - Database has proper backups
 - CORS origin matches actual deployment URL
+- If using S3, the bucket has appropriate access policies
+- `FROM_EMAIL` uses a domain verified in Resend
 
 ## Troubleshooting
 
