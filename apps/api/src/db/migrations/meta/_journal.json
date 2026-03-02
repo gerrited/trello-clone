@@ -43,6 +43,13 @@
       "when": 1772352284589,
       "tag": "0005_lazy_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772440900049,
+      "tag": "0006_overjoyed_landau",
+      "breakpoints": true
     }
   ]
 }
