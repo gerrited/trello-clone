@@ -1,7 +1,6 @@
 import { Resend } from 'resend';
 import { env } from '../config/env.js';
-
-const resend = new Resend(env.RESEND_API_KEY);
+import { AppError } from '../middleware/error.js';
 
 const SUBJECTS: Record<string, string> = {
   de: 'Passwort zurücksetzen',
@@ -41,6 +40,10 @@ export async function sendPasswordResetEmail(
   resetLink: string,
   language: string,
 ): Promise<void> {
+  if (!env.RESEND_API_KEY || !env.FROM_EMAIL) {
+    throw new AppError(503, 'Email service not configured. Set RESEND_API_KEY and FROM_EMAIL environment variables.');
+  }
+  const resend = new Resend(env.RESEND_API_KEY);
   const lang = SUBJECTS[language] ? language : 'en';
   const subject = SUBJECTS[lang];
   const intro = BODY_INTRO[lang](displayName);
