@@ -4,6 +4,7 @@ export interface Attachment {
   uploadedBy: string;
   filename: string;
   storagePath: string;
+  url: string;
   mimeType: string;
   sizeBytes: number;
   createdAt: string;
