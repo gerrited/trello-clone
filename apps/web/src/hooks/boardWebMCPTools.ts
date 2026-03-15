@@ -223,6 +223,10 @@ export function createBoardWebMCPTools(params: {
           throw new Error('Board is not loaded yet. Please wait and try again.');
         }
 
+        if (title === undefined && description === undefined && cardType === undefined && dueDate === undefined) {
+          throw new Error('At least one field must be provided: title, description, cardType, or dueDate.');
+        }
+
         let card;
         try {
           card = await cardsApi.updateCard(boardId, cardId, {

@@ -234,6 +234,12 @@ describe('update_card', () => {
     await expect(tool.execute({ cardId: CARD_1, title: 'x' }))
       .rejects.toThrow('Card not found. Use list_cards to get valid card IDs.');
   });
+
+  it('throws when no updateable fields are provided', async () => {
+    const tool = getTool('update_card', [makeCard()]);
+    await expect(tool.execute({ cardId: CARD_1 }))
+      .rejects.toThrow('At least one field must be provided: title, description, cardType, or dueDate.');
+  });
 });
 
 describe('move_card', () => {
