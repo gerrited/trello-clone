@@ -32,7 +32,14 @@ apps/web/src/hooks/useBoardWebMCP.test.ts     Update — verify hook registers e
 apps/web/src/api/assignees.api.ts             New — addAssignee, removeAssignee
 ```
 
-A `teamsApi.getTeam(teamId)` call is needed for `list_current_team_members`. Check whether `apps/web/src/api/teams.api.ts` already exists before creating it; if the function is absent, add `getTeam` to that file or create it.
+A `teamsApi.getTeam(teamId)` call is needed for `list_current_team_members`. `apps/web/src/api/teams.api.ts` exists but does not have `getTeam` — add it. The endpoint is `GET /teams/:teamId` and returns `{ team: TeamWithMembers }` where `TeamWithMembers` is defined in `packages/shared/src/types/team.ts`. The function signature:
+
+```ts
+export async function getTeam(teamId: string): Promise<TeamWithMembers> {
+  const res = await client.get<{ team: TeamWithMembers }>(`/teams/${teamId}`);
+  return res.data.team;
+}
+```
 
 ### Factory pattern
 
@@ -61,6 +68,8 @@ The Phase 1 tools (`list_current_team_boards`, `list_columns`, `create_card`) mo
 
 ## New API module: `assignees.api.ts`
 
+The server wraps the assignee in an `assignee` key: `{ assignee: { id, displayName, avatarUrl } }`. The client function must unwrap it:
+
 ```ts
 // apps/web/src/api/assignees.api.ts
 
@@ -77,11 +86,11 @@ export async function addAssignee(
   cardId: string,
   userId: string,
 ): Promise<Assignee> {
-  const res = await client.post<Assignee>(
+  const res = await client.post<{ assignee: Assignee }>(
     `/boards/${boardId}/cards/${cardId}/assignees`,
     { userId },
   );
-  return res.data;
+  return res.data.assignee;
 }
 
 export async function removeAssignee(
@@ -114,7 +123,7 @@ Returns cards on the current board. Reads from `boardStore` — no API call.
   | `columnId` | `string` | UUID format | No |
   | `search` | `string` | max 200 chars | No |
 
-- **Output:** `Array<{ id, title, columnId, swimlaneId, cardType, dueDate, assignees: [{ id, displayName }], labels: [{ id, name, color }], commentCount }>`
+- **Output:** `Array<{ id, title, columnId, swimlaneId, cardType, dueDate, assignees: [{ id, displayName, avatarUrl }], labels: [{ id, name, color }], commentCount }>`
 - **Filtering:** `columnId` filter applied first (exact match), then `search` (case-insensitive substring match on `title`). Both are independent and composable.
 - **Returns `[]`** if board is not loaded or no cards match.
 - **Pre-validates** `columnId` as UUID if provided; throws `Error("columnId must be a valid UUID. Use list_columns to get valid column IDs.")`.
@@ -140,6 +149,7 @@ Updates fields on an existing card.
 - **Output:** raw `Card` from `cardsApi.updateCard`
 - **Payload:** only fields explicitly provided are sent (same `!== undefined` spread pattern as Phase 1).
 - **Store update:** `useBoardStore.getState().updateCard(cardId, { ...fieldsInCardSummary })` — only `title`, `cardType`, `dueDate` exist in `CardSummary`; `description` is omitted from the store update.
+- **Board null guard:** check `useBoardStore.getState().board` before calling the API; throw `Error("Board is not loaded yet. Please wait and try again.")` if null.
 - **`isArchived` and `parentCardId`** are intentionally excluded — archiving and subtask reparenting are out of scope for Phase 2.
 
 ---
@@ -158,9 +168,9 @@ Moves a card to a different column, optionally a different swimlane, at the top 
   | `swimlaneId` | `string` | UUID format | No |
 
 - **Output:** raw `Card`
-- **Position resolution:**
-  - `"top"` → omit `afterId` (server places card first in the column).
-  - `"bottom"` → read cards from `useBoardStore.getState().board.cards`, filter to the target `columnId` and `swimlaneId` (if provided; otherwise the card's current swimlane), sort by `position` lexicographically, take the last card's `id` as `afterId`. If the column is empty, omit `afterId` (same as top).
+- **Position resolution:** The `MoveCardInput` schema requires `afterId` to be present (as `string | null`) — it cannot be omitted entirely.
+  - `"top"` → send `afterId: null` (server places card first in the column).
+  - `"bottom"` → read `useBoardStore.getState().board.cards`, filter to `columnId` matching the target and `swimlaneId` matching: (a) the provided `swimlaneId` if given, or (b) the moving card's current `swimlaneId` (read from the same store). Sort by `position` lexicographically, take the last card's `id` as `afterId`. If the column has no other cards, send `afterId: null` (same as top).
 - **Store update:** `useBoardStore.getState().moveCard(card.id, card.columnId, card.swimlaneId, card.position)` using values from the API response.
 
 ---
@@ -175,7 +185,8 @@ Permanently deletes a card from the board.
   |---|---|---|---|
   | `cardId` | `string` | UUID format | Yes |
 
-- **Output:** `{ success: true }`
+- **Output:** `{ success: true }` — synthesized by the tool; `cardsApi.deleteCard` returns `void`.
+- **Board null guard:** check `useBoardStore.getState().board` before calling the API; throw `Error("Board is not loaded yet. Please wait and try again.")` if null.
 - **Store update:** `useBoardStore.getState().removeCard(cardId)`
 
 ---
@@ -228,10 +239,12 @@ Removes a team member from a card.
 
 | Scenario | Behaviour |
 |---|---|
-| `cardId` / `columnId` / `swimlaneId` / `userId` not a valid UUID | Pre-validate; throw `Error("<field> must be a valid UUID. Use list_cards to get valid card IDs.")` |
+| `cardId` / `columnId` / `swimlaneId` not a valid UUID | Pre-validate; throw `Error("<field> must be a valid UUID. Use list_cards to get valid card IDs.")` |
+| `userId` not a valid UUID | Pre-validate; throw `Error("userId must be a valid UUID. Use list_current_team_members to get valid user IDs.")` |
 | `update_card` / `delete_card` with cardId not on board (404) | Throw `Error("Card not found. Use list_cards to get valid card IDs.")` |
 | `move_card` 404 | Re-throw with original message |
-| `assign_user` user not a team member (API 422 or 404) | Re-throw with original message |
+| `assign_user` user not a team member (API 400) | Re-throw with original message |
+| `assign_user` user already assigned (API 409) | Silently succeed — return the existing assignee from the card's current `assignees` array in the store (idempotent). `CardSummary.assignees` carries `{ id, displayName, avatarUrl }`, so the full output shape is available. |
 | Board not loaded (`boardStore.board` is null) for read operations | Return `[]` |
 | Board not loaded for write operations | Throw `Error("Board is not loaded yet. Please wait and try again.")` |
 | 403 on any tool | Re-throw with original message |
