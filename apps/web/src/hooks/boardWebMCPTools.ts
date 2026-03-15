@@ -346,5 +346,91 @@ export function createBoardWebMCPTools(params: {
         return { success: true };
       },
     },
+    {
+      name: 'assign_user',
+      description:
+        'Assign a team member to a card. Use list_current_team_members to get valid user IDs.',
+      inputSchema: {
+        type: 'object',
+        required: ['cardId', 'userId'],
+        properties: {
+          cardId: { type: 'string', format: 'uuid' },
+          userId: { type: 'string', format: 'uuid' },
+        },
+      },
+      execute: async (input: unknown) => {
+        const { cardId, userId } = input as { cardId: string; userId: string };
+
+        if (!isUUID(cardId)) {
+          throw new Error('cardId must be a valid UUID. Use list_cards to get valid card IDs.');
+        }
+        if (!isUUID(userId)) {
+          throw new Error('userId must be a valid UUID. Use list_current_team_members to get valid user IDs.');
+        }
+
+        let assignee;
+        try {
+          assignee = await assigneesApi.addAssignee(boardId, cardId, userId);
+        } catch (err) {
+          const apiErr = err as { response?: { status?: number } };
+          if (apiErr.response?.status === 409) {
+            // Already assigned — silently succeed, return existing from store (idempotent).
+            // In normal operation the assignee is always present in the store on 409.
+            const card = useBoardStore.getState().board?.cards.find((c) => c.id === cardId);
+            const existing = card?.assignees.find((a) => a.id === userId);
+            if (existing) return existing;
+          }
+          throw err;
+        }
+
+        const board = useBoardStore.getState().board;
+        if (board) {
+          const card = board.cards.find((c) => c.id === cardId);
+          if (card && !card.assignees.some((a) => a.id === assignee.id)) {
+            useBoardStore.getState().updateCard(cardId, {
+              assignees: [...card.assignees, assignee],
+            });
+          }
+        }
+
+        return assignee;
+      },
+    },
+    {
+      name: 'unassign_user',
+      description: 'Remove a team member from a card.',
+      inputSchema: {
+        type: 'object',
+        required: ['cardId', 'userId'],
+        properties: {
+          cardId: { type: 'string', format: 'uuid' },
+          userId: { type: 'string', format: 'uuid' },
+        },
+      },
+      execute: async (input: unknown) => {
+        const { cardId, userId } = input as { cardId: string; userId: string };
+
+        if (!isUUID(cardId)) {
+          throw new Error('cardId must be a valid UUID. Use list_cards to get valid card IDs.');
+        }
+        if (!isUUID(userId)) {
+          throw new Error('userId must be a valid UUID. Use list_current_team_members to get valid user IDs.');
+        }
+
+        await assigneesApi.removeAssignee(boardId, cardId, userId);
+
+        const board = useBoardStore.getState().board;
+        if (board) {
+          const card = board.cards.find((c) => c.id === cardId);
+          if (card) {
+            useBoardStore.getState().updateCard(cardId, {
+              assignees: card.assignees.filter((a) => a.id !== userId),
+            });
+          }
+        }
+
+        return { success: true };
+      },
+    },
   ];
 }

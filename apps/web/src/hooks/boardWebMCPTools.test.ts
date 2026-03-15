@@ -313,3 +313,74 @@ describe('delete_card', () => {
       .rejects.toThrow('Card not found. Use list_cards to get valid card IDs.');
   });
 });
+
+describe('assign_user', () => {
+  const assignee = { id: USER_1, displayName: 'Alice', avatarUrl: null };
+
+  it('assigns user and returns the assignee', async () => {
+    vi.mocked(assigneesApi.addAssignee).mockResolvedValue(assignee);
+    const tool = getTool('assign_user', [makeCard()]);
+    const result = await tool.execute({ cardId: CARD_1, userId: USER_1 });
+    expect(assigneesApi.addAssignee).toHaveBeenCalledWith(BOARD_ID, CARD_1, USER_1);
+    expect(result).toEqual(assignee);
+  });
+
+  it('appends assignee to card in store', async () => {
+    vi.mocked(assigneesApi.addAssignee).mockResolvedValue(assignee);
+    const tool = getTool('assign_user', [makeCard()]);
+    await tool.execute({ cardId: CARD_1, userId: USER_1 });
+    const card = useBoardStore.getState().board?.cards.find((c) => c.id === CARD_1);
+    expect(card?.assignees).toEqual([assignee]);
+  });
+
+  it('is idempotent — returns existing assignee from store when API returns 409', async () => {
+    vi.mocked(assigneesApi.addAssignee).mockRejectedValue({ response: { status: 409 } });
+    const tool = getTool('assign_user', [makeCard({ assignees: [assignee] })]);
+    const result = await tool.execute({ cardId: CARD_1, userId: USER_1 });
+    expect(result).toEqual(assignee);
+  });
+
+  it('throws on invalid cardId UUID', async () => {
+    const tool = getTool('assign_user');
+    await expect(tool.execute({ cardId: 'not-a-uuid', userId: USER_1 }))
+      .rejects.toThrow('cardId must be a valid UUID. Use list_cards to get valid card IDs.');
+  });
+
+  it('throws on invalid userId UUID', async () => {
+    const tool = getTool('assign_user');
+    await expect(tool.execute({ cardId: CARD_1, userId: 'not-a-uuid' }))
+      .rejects.toThrow('userId must be a valid UUID. Use list_current_team_members to get valid user IDs.');
+  });
+});
+
+describe('unassign_user', () => {
+  const assignee = { id: USER_1, displayName: 'Alice', avatarUrl: null };
+
+  it('unassigns user and returns { success: true }', async () => {
+    vi.mocked(assigneesApi.removeAssignee).mockResolvedValue(undefined);
+    const tool = getTool('unassign_user', [makeCard({ assignees: [assignee] })]);
+    const result = await tool.execute({ cardId: CARD_1, userId: USER_1 });
+    expect(assigneesApi.removeAssignee).toHaveBeenCalledWith(BOARD_ID, CARD_1, USER_1);
+    expect(result).toEqual({ success: true });
+  });
+
+  it('removes assignee from card in store', async () => {
+    vi.mocked(assigneesApi.removeAssignee).mockResolvedValue(undefined);
+    const tool = getTool('unassign_user', [makeCard({ assignees: [assignee] })]);
+    await tool.execute({ cardId: CARD_1, userId: USER_1 });
+    const card = useBoardStore.getState().board?.cards.find((c) => c.id === CARD_1);
+    expect(card?.assignees).toEqual([]);
+  });
+
+  it('throws on invalid cardId UUID', async () => {
+    const tool = getTool('unassign_user');
+    await expect(tool.execute({ cardId: 'not-a-uuid', userId: USER_1 }))
+      .rejects.toThrow('cardId must be a valid UUID. Use list_cards to get valid card IDs.');
+  });
+
+  it('throws on invalid userId UUID', async () => {
+    const tool = getTool('unassign_user');
+    await expect(tool.execute({ cardId: CARD_1, userId: 'not-a-uuid' }))
+      .rejects.toThrow('userId must be a valid UUID. Use list_current_team_members to get valid user IDs.');
+  });
+});
