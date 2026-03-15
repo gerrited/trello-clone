@@ -5,16 +5,8 @@ import * as boardsApi from '../api/boards.api.js';
 import * as cardsApi from '../api/cards.api.js';
 import type { CardSummary } from '@trello-clone/shared';
 
-function isValidColumnId(value: string): boolean {
-  // Accept standard UUIDs
-  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
-    return true;
-  }
-  // Also accept short IDs like "col-1", "col-2" (word-number pattern)
-  if (/^[a-zA-Z][a-zA-Z0-9]*-\d+$/.test(value)) {
-    return true;
-  }
-  return false;
+function isUUID(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
 /**
@@ -79,7 +71,7 @@ export function useBoardWebMCP(): void {
           swimlaneId?: string;
         };
 
-        if (!isValidColumnId(columnId)) {
+        if (!isUUID(columnId)) {
           throw new Error(
             'columnId must be a valid UUID. Use list_columns to get valid column IDs.',
           );

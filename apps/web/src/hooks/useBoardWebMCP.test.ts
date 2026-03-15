@@ -33,11 +33,11 @@ const makeBoard = (): BoardDetail => ({
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
   columns: [
-    { id: 'col-1', boardId: BOARD_ID, name: 'To Do', position: 'a0', wipLimit: null, color: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-    { id: 'col-2', boardId: BOARD_ID, name: 'Done', position: 'b0', wipLimit: 5, color: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+    { id: '11111111-1111-1111-1111-111111111111', boardId: BOARD_ID, name: 'To Do', position: 'a0', wipLimit: null, color: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+    { id: '22222222-2222-2222-2222-222222222222', boardId: BOARD_ID, name: 'Done', position: 'b0', wipLimit: 5, color: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
   ],
   swimlanes: [
-    { id: 'swim-1', boardId: BOARD_ID, name: 'Default', position: 'a0', isDefault: true, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+    { id: '33333333-3333-3333-3333-333333333333', boardId: BOARD_ID, name: 'Default', position: 'a0', isDefault: true, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
   ],
   cards: [],
   labels: [],
@@ -113,8 +113,8 @@ describe('list_columns', () => {
     const result = await tool.execute({});
 
     expect(result).toEqual([
-      { id: 'col-1', name: 'To Do', wipLimit: null },
-      { id: 'col-2', name: 'Done', wipLimit: 5 },
+      { id: '11111111-1111-1111-1111-111111111111', name: 'To Do', wipLimit: null },
+      { id: '22222222-2222-2222-2222-222222222222', name: 'Done', wipLimit: 5 },
     ]);
   });
 
@@ -134,8 +134,8 @@ describe('create_card', () => {
   const validCard = {
     id: 'new-card-1',
     boardId: BOARD_ID,
-    columnId: 'col-1',
-    swimlaneId: 'swim-1',
+    columnId: '11111111-1111-1111-1111-111111111111',
+    swimlaneId: '33333333-3333-3333-3333-333333333333',
     parentCardId: null,
     cardType: 'task' as const,
     title: 'My new card',
@@ -153,11 +153,11 @@ describe('create_card', () => {
     renderHook(() => useBoardWebMCP(), { wrapper });
 
     const tool = registeredTools.find((t) => t.name === 'create_card')!;
-    const result = await tool.execute({ title: 'My new card', columnId: 'col-1' });
+    const result = await tool.execute({ title: 'My new card', columnId: '11111111-1111-1111-1111-111111111111' });
 
     expect(cardsApi.createCard).toHaveBeenCalledWith(BOARD_ID, {
       title: 'My new card',
-      columnId: 'col-1',
+      columnId: '11111111-1111-1111-1111-111111111111',
     });
     expect(result).toEqual(validCard);
   });
@@ -167,7 +167,7 @@ describe('create_card', () => {
     renderHook(() => useBoardWebMCP(), { wrapper });
 
     const tool = registeredTools.find((t) => t.name === 'create_card')!;
-    await tool.execute({ title: 'My new card', columnId: 'col-1' });
+    await tool.execute({ title: 'My new card', columnId: '11111111-1111-1111-1111-111111111111' });
 
     const cards = useBoardStore.getState().board?.cards ?? [];
     expect(cards).toHaveLength(1);
@@ -183,18 +183,18 @@ describe('create_card', () => {
     const tool = registeredTools.find((t) => t.name === 'create_card')!;
     await tool.execute({
       title: 'Bug fix',
-      columnId: 'col-1',
+      columnId: '11111111-1111-1111-1111-111111111111',
       description: 'Some details',
       cardType: 'bug',
-      swimlaneId: 'swim-1',
+      swimlaneId: '33333333-3333-3333-3333-333333333333',
     });
 
     expect(cardsApi.createCard).toHaveBeenCalledWith(BOARD_ID, {
       title: 'Bug fix',
-      columnId: 'col-1',
+      columnId: '11111111-1111-1111-1111-111111111111',
       description: 'Some details',
       cardType: 'bug',
-      swimlaneId: 'swim-1',
+      swimlaneId: '33333333-3333-3333-3333-333333333333',
     });
   });
 
