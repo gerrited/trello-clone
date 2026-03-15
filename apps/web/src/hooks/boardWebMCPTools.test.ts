@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createBoardWebMCPTools } from './boardWebMCPTools.js';
 import { useBoardStore } from '../stores/boardStore.js';
 import type { BoardDetail } from '../api/boards.api.js';
-import type { Board, CardSummary } from '@trello-clone/shared';
+import type { Board, CardSummary, TeamRole } from '@trello-clone/shared';
 
 // All API modules mocked — include every function used by any tool in this file
 vi.mock('../api/boards.api.js', () => ({ listBoards: vi.fn() }));
@@ -115,6 +115,14 @@ describe('list_columns', () => {
       { id: COL_2, name: 'Done', wipLimit: 5 },
     ]);
   });
+
+  it('returns [] when board is not loaded', async () => {
+    useBoardStore.setState({ board: null, isLoading: true, selectedCardId: null });
+    const tool = createBoardWebMCPTools({ boardId: BOARD_ID, teamId: TEAM_ID })
+      .find((t) => t.name === 'list_columns')!;
+    const result = await tool.execute({});
+    expect(result).toEqual([]);
+  });
 });
 
 describe('create_card', () => {
@@ -175,7 +183,7 @@ describe('list_current_team_members', () => {
     vi.mocked(teamsApi.getTeam).mockResolvedValue({
       id: TEAM_ID, name: 'Team', slug: 'team', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
       members: [
-        { id: 'mem-1', userId: USER_1, role: 'member' as any, displayName: 'Alice', email: 'alice@example.com', avatarUrl: null },
+        { id: 'mem-1', userId: USER_1, role: 'member' as TeamRole, displayName: 'Alice', email: 'alice@example.com', avatarUrl: null },
       ],
     });
     const tool = getTool('list_current_team_members');
