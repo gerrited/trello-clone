@@ -3,6 +3,7 @@ import { useBoardStore } from '../stores/boardStore.js';
 import * as boardsApi from '../api/boards.api.js';
 import * as cardsApi from '../api/cards.api.js';
 import * as teamsApi from '../api/teams.api.js';
+import * as assigneesApi from '../api/assignees.api.js';
 import type { CardSummary } from '@trello-clone/shared';
 
 function isUUID(value: string): boolean {
@@ -185,6 +186,164 @@ export function createBoardWebMCPTools(params: {
           displayName: m.displayName,
           email: m.email,
         }));
+      },
+    },
+
+    // ── Phase 2 write tools ────────────────────────────────────────────────
+    {
+      name: 'update_card',
+      description:
+        'Update fields on a card. Provide at least one of: title, description, cardType, dueDate.',
+      inputSchema: {
+        type: 'object',
+        required: ['cardId'],
+        properties: {
+          cardId: { type: 'string', format: 'uuid', description: 'Use list_cards to get valid card IDs.' },
+          title: { type: 'string', minLength: 1, maxLength: 500 },
+          description: { type: 'string', maxLength: 5000, nullable: true },
+          cardType: { type: 'string', enum: ['story', 'bug', 'task'] },
+          dueDate: { type: 'string', nullable: true, description: 'ISO 8601 datetime or null to clear.' },
+        },
+      },
+      execute: async (input: unknown) => {
+        const { cardId, title, description, cardType, dueDate } = input as {
+          cardId: string;
+          title?: string;
+          description?: string | null;
+          cardType?: 'story' | 'bug' | 'task';
+          dueDate?: string | null;
+        };
+
+        if (!isUUID(cardId)) {
+          throw new Error('cardId must be a valid UUID. Use list_cards to get valid card IDs.');
+        }
+
+        const board = useBoardStore.getState().board;
+        if (!board) {
+          throw new Error('Board is not loaded yet. Please wait and try again.');
+        }
+
+        let card;
+        try {
+          card = await cardsApi.updateCard(boardId, cardId, {
+            ...(title !== undefined ? { title } : {}),
+            ...(description !== undefined ? { description } : {}),
+            ...(cardType !== undefined ? { cardType } : {}),
+            ...(dueDate !== undefined ? { dueDate } : {}),
+          });
+        } catch (err) {
+          const apiErr = err as { response?: { status?: number } };
+          if (apiErr.response?.status === 404) {
+            throw new Error('Card not found. Use list_cards to get valid card IDs.');
+          }
+          throw err;
+        }
+
+        useBoardStore.getState().updateCard(cardId, {
+          title: card.title,
+          cardType: card.cardType,
+          dueDate: card.dueDate ?? null,
+        });
+
+        return card;
+      },
+    },
+    {
+      name: 'move_card',
+      description:
+        'Move a card to a different column. Use "top" or "bottom" for position.',
+      inputSchema: {
+        type: 'object',
+        required: ['cardId', 'columnId', 'position'],
+        properties: {
+          cardId: { type: 'string', format: 'uuid' },
+          columnId: { type: 'string', format: 'uuid', description: 'Use list_columns to get valid IDs.' },
+          position: { type: 'string', enum: ['top', 'bottom'] },
+          swimlaneId: { type: 'string', format: 'uuid' },
+        },
+      },
+      execute: async (input: unknown) => {
+        const { cardId, columnId, position, swimlaneId } = input as {
+          cardId: string;
+          columnId: string;
+          position: 'top' | 'bottom';
+          swimlaneId?: string;
+        };
+
+        if (!isUUID(cardId)) {
+          throw new Error('cardId must be a valid UUID. Use list_cards to get valid card IDs.');
+        }
+        if (!isUUID(columnId)) {
+          throw new Error('columnId must be a valid UUID. Use list_columns to get valid column IDs.');
+        }
+        if (swimlaneId !== undefined && !isUUID(swimlaneId)) {
+          throw new Error('swimlaneId must be a valid UUID.');
+        }
+
+        const board = useBoardStore.getState().board;
+        if (!board) {
+          throw new Error('Board is not loaded yet. Please wait and try again.');
+        }
+
+        let afterId: string | null = null;
+        if (position === 'bottom') {
+          const movingCard = board.cards.find((c) => c.id === cardId);
+          const targetSwimlaneId = swimlaneId ?? movingCard?.swimlaneId;
+          const colCards = board.cards
+            .filter(
+              (c) =>
+                c.columnId === columnId &&
+                (targetSwimlaneId === undefined || c.swimlaneId === targetSwimlaneId) &&
+                c.id !== cardId,
+            )
+            .sort((a, b) => a.position.localeCompare(b.position));
+          afterId = colCards.length > 0 ? colCards[colCards.length - 1].id : null;
+        }
+
+        const card = await cardsApi.moveCard(boardId, cardId, {
+          columnId,
+          afterId,
+          ...(swimlaneId !== undefined ? { swimlaneId } : {}),
+        });
+
+        useBoardStore.getState().moveCard(card.id, card.columnId, card.swimlaneId, card.position);
+        return card;
+      },
+    },
+    {
+      name: 'delete_card',
+      description: 'Delete a card permanently from the board.',
+      inputSchema: {
+        type: 'object',
+        required: ['cardId'],
+        properties: {
+          cardId: { type: 'string', format: 'uuid', description: 'Use list_cards to get valid card IDs.' },
+        },
+      },
+      execute: async (input: unknown) => {
+        const { cardId } = input as { cardId: string };
+
+        if (!isUUID(cardId)) {
+          throw new Error('cardId must be a valid UUID. Use list_cards to get valid card IDs.');
+        }
+
+        const board = useBoardStore.getState().board;
+        if (!board) {
+          throw new Error('Board is not loaded yet. Please wait and try again.');
+        }
+
+        try {
+          await cardsApi.deleteCard(boardId, cardId);
+        } catch (err) {
+          const apiErr = err as { response?: { status?: number } };
+          if (apiErr.response?.status === 404) {
+            throw new Error('Card not found. Use list_cards to get valid card IDs.');
+          }
+          throw err;
+        }
+
+        useBoardStore.getState().removeCard(cardId);
+        return { success: true };
       },
     },
   ];

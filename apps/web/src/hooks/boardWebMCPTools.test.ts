@@ -192,3 +192,124 @@ describe('list_current_team_members', () => {
     expect(result).toEqual([{ id: USER_1, displayName: 'Alice', email: 'alice@example.com' }]);
   });
 });
+
+// --- Card write tools ---
+
+describe('update_card', () => {
+  const apiCard = {
+    id: CARD_1, boardId: BOARD_ID, columnId: COL_1, swimlaneId: SWIM_1,
+    parentCardId: null, cardType: 'bug' as const, title: 'Updated title',
+    description: null, position: 'a0', dueDate: null, isArchived: false,
+    createdBy: USER_1, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
+  };
+
+  it('updates card and returns it', async () => {
+    vi.mocked(cardsApi.updateCard).mockResolvedValue(apiCard);
+    const tool = getTool('update_card', [makeCard()]);
+    const result = await tool.execute({ cardId: CARD_1, title: 'Updated title', cardType: 'bug' });
+    expect(cardsApi.updateCard).toHaveBeenCalledWith(
+      BOARD_ID, CARD_1, { title: 'Updated title', cardType: 'bug' },
+    );
+    expect(result).toEqual(apiCard);
+  });
+
+  it('updates store with CardSummary fields from API response', async () => {
+    vi.mocked(cardsApi.updateCard).mockResolvedValue(apiCard);
+    const tool = getTool('update_card', [makeCard()]);
+    await tool.execute({ cardId: CARD_1, title: 'Updated title', cardType: 'bug' });
+    const card = useBoardStore.getState().board?.cards.find((c) => c.id === CARD_1);
+    expect(card?.title).toBe('Updated title');
+    expect(card?.cardType).toBe('bug');
+  });
+
+  it('throws on invalid cardId UUID', async () => {
+    const tool = getTool('update_card');
+    await expect(tool.execute({ cardId: 'not-a-uuid', title: 'x' }))
+      .rejects.toThrow('cardId must be a valid UUID. Use list_cards to get valid card IDs.');
+  });
+
+  it('throws with recovery hint on 404', async () => {
+    vi.mocked(cardsApi.updateCard).mockRejectedValue({ response: { status: 404 } });
+    const tool = getTool('update_card', [makeCard()]);
+    await expect(tool.execute({ cardId: CARD_1, title: 'x' }))
+      .rejects.toThrow('Card not found. Use list_cards to get valid card IDs.');
+  });
+});
+
+describe('move_card', () => {
+  const apiCard = {
+    id: CARD_1, boardId: BOARD_ID, columnId: COL_2, swimlaneId: SWIM_1,
+    parentCardId: null, cardType: 'task' as const, title: 'Test card',
+    description: null, position: 'a0', dueDate: null, isArchived: false,
+    createdBy: USER_1, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
+  };
+
+  it('moves to top — sends afterId: null', async () => {
+    vi.mocked(cardsApi.moveCard).mockResolvedValue(apiCard);
+    const tool = getTool('move_card', [makeCard()]);
+    await tool.execute({ cardId: CARD_1, columnId: COL_2, position: 'top' });
+    expect(cardsApi.moveCard).toHaveBeenCalledWith(
+      BOARD_ID, CARD_1, { columnId: COL_2, afterId: null },
+    );
+  });
+
+  it('moves to bottom — sends last card in target column as afterId', async () => {
+    const existingCard = makeCard({ id: CARD_2, columnId: COL_2, swimlaneId: SWIM_1, position: 'a0' });
+    vi.mocked(cardsApi.moveCard).mockResolvedValue(apiCard);
+    const tool = getTool('move_card', [makeCard(), existingCard]);
+    await tool.execute({ cardId: CARD_1, columnId: COL_2, position: 'bottom' });
+    expect(cardsApi.moveCard).toHaveBeenCalledWith(
+      BOARD_ID, CARD_1, { columnId: COL_2, afterId: CARD_2 },
+    );
+  });
+
+  it('moves to bottom with afterId: null when target column is empty', async () => {
+    vi.mocked(cardsApi.moveCard).mockResolvedValue(apiCard);
+    // Only the card being moved exists; COL_2 is empty
+    const tool = getTool('move_card', [makeCard()]);
+    await tool.execute({ cardId: CARD_1, columnId: COL_2, position: 'bottom' });
+    expect(cardsApi.moveCard).toHaveBeenCalledWith(
+      BOARD_ID, CARD_1, { columnId: COL_2, afterId: null },
+    );
+  });
+
+  it('updates store with values from API response', async () => {
+    vi.mocked(cardsApi.moveCard).mockResolvedValue(apiCard);
+    const tool = getTool('move_card', [makeCard()]);
+    await tool.execute({ cardId: CARD_1, columnId: COL_2, position: 'top' });
+    const card = useBoardStore.getState().board?.cards.find((c) => c.id === CARD_1);
+    expect(card?.columnId).toBe(COL_2);
+    expect(card?.swimlaneId).toBe(SWIM_1);
+    expect(card?.position).toBe('a0');
+  });
+});
+
+describe('delete_card', () => {
+  it('deletes card and returns { success: true }', async () => {
+    vi.mocked(cardsApi.deleteCard).mockResolvedValue(undefined);
+    const tool = getTool('delete_card', [makeCard()]);
+    const result = await tool.execute({ cardId: CARD_1 });
+    expect(cardsApi.deleteCard).toHaveBeenCalledWith(BOARD_ID, CARD_1);
+    expect(result).toEqual({ success: true });
+  });
+
+  it('removes card from store', async () => {
+    vi.mocked(cardsApi.deleteCard).mockResolvedValue(undefined);
+    const tool = getTool('delete_card', [makeCard()]);
+    await tool.execute({ cardId: CARD_1 });
+    expect(useBoardStore.getState().board?.cards).toHaveLength(0);
+  });
+
+  it('throws on invalid cardId UUID', async () => {
+    const tool = getTool('delete_card');
+    await expect(tool.execute({ cardId: 'not-a-uuid' }))
+      .rejects.toThrow('cardId must be a valid UUID. Use list_cards to get valid card IDs.');
+  });
+
+  it('throws with recovery hint on 404', async () => {
+    vi.mocked(cardsApi.deleteCard).mockRejectedValue({ response: { status: 404 } });
+    const tool = getTool('delete_card', [makeCard()]);
+    await expect(tool.execute({ cardId: CARD_1 }))
+      .rejects.toThrow('Card not found. Use list_cards to get valid card IDs.');
+  });
+});
