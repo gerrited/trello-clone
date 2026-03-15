@@ -368,6 +368,11 @@ export function createBoardWebMCPTools(params: {
           throw new Error('userId must be a valid UUID. Use list_current_team_members to get valid user IDs.');
         }
 
+        const board = useBoardStore.getState().board;
+        if (!board) {
+          throw new Error('Board is not loaded yet. Please wait and try again.');
+        }
+
         let assignee;
         try {
           assignee = await assigneesApi.addAssignee(boardId, cardId, userId);
@@ -376,21 +381,19 @@ export function createBoardWebMCPTools(params: {
           if (apiErr.response?.status === 409) {
             // Already assigned — silently succeed, return existing from store (idempotent).
             // In normal operation the assignee is always present in the store on 409.
-            const card = useBoardStore.getState().board?.cards.find((c) => c.id === cardId);
+            const card = board.cards.find((c) => c.id === cardId);
             const existing = card?.assignees.find((a) => a.id === userId);
             if (existing) return existing;
+            throw new Error('User is already assigned to this card.');
           }
           throw err;
         }
 
-        const board = useBoardStore.getState().board;
-        if (board) {
-          const card = board.cards.find((c) => c.id === cardId);
-          if (card && !card.assignees.some((a) => a.id === assignee.id)) {
-            useBoardStore.getState().updateCard(cardId, {
-              assignees: [...card.assignees, assignee],
-            });
-          }
+        const card = board.cards.find((c) => c.id === cardId);
+        if (card && !card.assignees.some((a) => a.id === assignee.id)) {
+          useBoardStore.getState().updateCard(cardId, {
+            assignees: [...card.assignees, assignee],
+          });
         }
 
         return assignee;
@@ -417,16 +420,18 @@ export function createBoardWebMCPTools(params: {
           throw new Error('userId must be a valid UUID. Use list_current_team_members to get valid user IDs.');
         }
 
+        const board = useBoardStore.getState().board;
+        if (!board) {
+          throw new Error('Board is not loaded yet. Please wait and try again.');
+        }
+
         await assigneesApi.removeAssignee(boardId, cardId, userId);
 
-        const board = useBoardStore.getState().board;
-        if (board) {
-          const card = board.cards.find((c) => c.id === cardId);
-          if (card) {
-            useBoardStore.getState().updateCard(cardId, {
-              assignees: card.assignees.filter((a) => a.id !== userId),
-            });
-          }
+        const card = board.cards.find((c) => c.id === cardId);
+        if (card) {
+          useBoardStore.getState().updateCard(cardId, {
+            assignees: card.assignees.filter((a) => a.id !== userId),
+          });
         }
 
         return { success: true };
