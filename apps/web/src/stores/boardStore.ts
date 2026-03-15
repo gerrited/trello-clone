@@ -100,6 +100,7 @@ export const useBoardStore = create<BoardState>()(
       // Card actions
       addCard: (card) => set((state) => {
         if (!state.board) return;
+        if (state.board.cards.some((c) => c.id === card.id)) return;
         state.board.cards.push(card);
       }),
 

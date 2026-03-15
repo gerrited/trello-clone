@@ -25,6 +25,7 @@ import { ShareBoardModal } from './ShareBoardModal.js';
 import { ConnectionStatus } from '../../components/ui/ConnectionStatus.js';
 import { useRealtimeBoard } from '../../hooks/useRealtimeBoard.js';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts.js';
+import { useBoardWebMCP } from '../../hooks/useBoardWebMCP.js';
 import { toast } from 'sonner';
 import type { Column, CardSummary, CardType } from '@trello-clone/shared';
 
@@ -116,6 +117,9 @@ export function BoardPage() {
 
   // Real-time updates via Socket.IO
   useRealtimeBoard(boardId);
+
+  // Register WebMCP tools
+  useBoardWebMCP();
 
   // Keyboard shortcuts
   const shortcutHandlers = useMemo(
