@@ -1,5 +1,5 @@
 import { api } from './client.js';
-import type { Team, CreateTeamInput } from '@trello-clone/shared';
+import type { Team, CreateTeamInput, TeamWithMembers } from '@trello-clone/shared';
 
 export async function listTeams(): Promise<(Team & { role: string })[]> {
   const { data } = await api.get<{ teams: (Team & { role: string })[] }>('/teams');
@@ -13,4 +13,9 @@ export async function createTeam(input: CreateTeamInput): Promise<Team> {
 
 export async function deleteTeam(teamId: string): Promise<void> {
   await api.delete(`/teams/${teamId}`);
+}
+
+export async function getTeam(teamId: string): Promise<TeamWithMembers> {
+  const { data } = await api.get<{ team: TeamWithMembers }>(`/teams/${teamId}`);
+  return data.team;
 }
