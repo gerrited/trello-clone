@@ -19,7 +19,6 @@ function isUUID(value: string): boolean {
  */
 export function useBoardWebMCP(): void {
   const { teamId, boardId } = useParams<{ teamId: string; boardId: string }>();
-  const addCard = useBoardStore((s) => s.addCard);
 
   const tools: WebMCPTool[] = [
     {
@@ -121,7 +120,7 @@ export function useBoardWebMCP(): void {
           attachmentCount: 0,
         };
 
-        addCard(cardSummary);
+        useBoardStore.getState().addCard(cardSummary);
         return card;
       },
     },
