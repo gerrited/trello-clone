@@ -1,11 +1,7 @@
 import { useEffect, useRef } from 'react';
+import type { WebMCPToolDefinition } from '../types/webmcp.js';
 
-export interface WebMCPTool {
-  name: string;
-  description: string;
-  inputSchema: object;
-  execute: (input: unknown) => Promise<unknown>;
-}
+export type WebMCPTool = WebMCPToolDefinition;
 
 /**
  * Registers WebMCP tools via navigator.modelContext on mount.
