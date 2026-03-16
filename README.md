@@ -21,6 +21,7 @@ A modern, full-stack Trello-like project management application built with React
 - **Storage for Attachments**: Use local or S3 compatible storages
 - **Password Reset**: Forgot-password flow with time-limited email links via Resend
 - **Responsive UI**: Modern React-based interface with Tailwind CSS
+- **AI Agent Integration**: 10 WebMCP tools let AI agents manage boards, cards, and assignees directly via natural language (Chrome 146+)
 
 ## Tech Stack
 
@@ -309,6 +310,36 @@ pnpm lint
 ```bash
 pnpm format  # if configured
 ```
+
+## AI Agent Integration (WebMCP)
+
+The board page exposes 10 tools via the [WebMCP](https://github.com/webmcp/webmcp) browser API, allowing AI agents to manage boards and cards through natural language.
+
+### Requirements
+
+- **Chrome 146+** with the Model Context Protocol flag enabled (`chrome://flags/#model-context-protocol`)
+- No server-side changes required — tools are registered entirely in the frontend
+
+### Available Tools
+
+| Tool | Description |
+|---|---|
+| `list_current_team_boards` | List all boards for the current team |
+| `list_columns` | List columns on the current board |
+| `list_cards` | List cards, optionally filtered by column or search term |
+| `create_card` | Create a new card in a column |
+| `update_card` | Update a card's title, description, type, or due date |
+| `move_card` | Move a card to a different column (top or bottom position) |
+| `delete_card` | Permanently delete a card |
+| `list_current_team_members` | List team members (use to find user IDs for assignment) |
+| `assign_user` | Assign a team member to a card |
+| `unassign_user` | Remove a team member from a card |
+
+### How It Works
+
+Tools are registered when a user opens a board page via the `useBoardWebMCP` hook (`apps/web/src/hooks/useBoardWebMCP.ts`). The hook calls `createBoardWebMCPTools({ boardId, teamId })` (defined in `apps/web/src/hooks/boardWebMCPTools.ts`) and registers the resulting tool definitions with `navigator.modelContext`.
+
+All tools read live board state from the Zustand `boardStore` and call the existing REST API for mutations. Store updates are applied optimistically after each successful API call so the UI stays in sync.
 
 ## API Documentation
 
